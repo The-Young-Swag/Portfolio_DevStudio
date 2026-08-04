@@ -6,6 +6,7 @@ export function App() {
         <Section>
             <Container>
                 <Heading level={1}>
+                    Ivan Harvey Danao Rivera
                 </Heading>
 
                 <Text>
