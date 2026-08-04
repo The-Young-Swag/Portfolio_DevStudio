@@ -1,19 +1,5 @@
-import { Container, Section } from "@/components/layout";
-import { Heading, Text } from "@/components/typography";
-import { profile } from "@/constants/profile"
+import { HomePage } from "@/pages";
 
 export function App() {
-    return (
-        <Section>
-            <Container>
-                <Heading level={1}>
-                   {profile.name}
-                </Heading>
-
-                <Text>
-                   {profile.headline}
-                </Text>
-            </Container>
-        </Section>
-    );
+    return <HomePage />;
 }
