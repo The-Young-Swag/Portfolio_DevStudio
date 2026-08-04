@@ -1,16 +1,17 @@
 import { Container, Section } from "@/components/layout";
 import { Heading, Text } from "@/components/typography";
+import { profile } from "@/constants/profile"
 
 export function App() {
     return (
         <Section>
             <Container>
                 <Heading level={1}>
-                    Ivan Harvey Danao Rivera
+                   {profile.name}
                 </Heading>
 
                 <Text>
-                    Junior Fullstack Developer
+                   {profile.headline}
                 </Text>
             </Container>
         </Section>
