@@ -1,7 +1,11 @@
+import { Container, Section } from "@/components/layout";
+
 export function App() {
     return (
-        <main>
-            Portfolio DevStudio
-        </main>
-    )
+        <Section>
+            <Container>
+                <h1>Hello Portfolio</h1>
+            </Container>
+        </Section>
+    );
 }
