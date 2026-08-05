@@ -10,11 +10,19 @@ export function HeroInfo() {
                 {profile.location} — {profile.availability}
             </p>
 
+            <Text className="mt-6 text-lg">
+                {profile.greeting}
+            </Text>
+
             <Heading level={1}>
                 {profile.name}
             </Heading>
 
-            <div className="mt-6 space-y-4 max-w-xl">
+            <Text className="mt-2 text-xl">
+                {profile.headline}
+            </Text>
+
+            <div className="mt-6 max-w-xl">
                 <Text>
                     {profile.description}
                 </Text>
