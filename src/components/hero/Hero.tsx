@@ -7,7 +7,7 @@ export function Hero() {
     return (
 <Section id="overview">
     <Container>
-        <div className="grid gap-8 md:grid-cols-[300px_1fr] md:gap-12 items-start">
+        <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12 items-start">
             <HeroPortrait />
 
             <div>
