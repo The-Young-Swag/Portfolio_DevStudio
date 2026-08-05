@@ -12,9 +12,9 @@ export const profile = {
     description:
     "Passionate about building modern web applications, learning software engineering best practices, and creating thoughtful user experiences.",
 
-    github: "",
+    github: "https://github.com/the-young-swag",
 
-    linkedin: "",
-
-    resume: "",
+    linkedin: "https://www.linkedin.com/in/ivan-harvey-rivera/",
+    
+    resume: "/resume.pdf",
 };

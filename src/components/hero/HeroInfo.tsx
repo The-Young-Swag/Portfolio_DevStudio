@@ -1,5 +1,6 @@
 import { Heading, Text } from "@/components/typography";
 import { profile } from "@/constants/profile";
+import { Button } from "@/components/ui";
 
 export function HeroInfo() {
     return (
@@ -26,6 +27,27 @@ export function HeroInfo() {
                 <Text>
                     {profile.description}
                 </Text>
+            </div>
+            <div
+            className="
+                mt-8
+                flex
+                flex-wrap
+                gap-3
+            "
+            >            
+        <Button href={profile.github}>
+            GitHub
+        </Button>
+
+        <Button href={profile.resume}>
+            Resume
+        </Button>
+
+        <Button href={profile.linkedin}>
+            LinkedIn
+        </Button>
+
             </div>
         </div>
     );
