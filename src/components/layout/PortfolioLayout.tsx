@@ -8,12 +8,17 @@ export function PortfolioLayout({
     children,
 }: PortfolioLayoutProps) {
     return (
-        <div className="flex min-h-screen">
-            <Sidebar />
+        <div className="min-h-screen bg-neutral-50">
+            <div className="mx-auto flex max-w-[1600px]">
+                <Sidebar />
 
-            <main className="flex-1">
-                {children}
-            </main>
+                <main className="min-w-0 flex-1">
+                    {children}
+                </main>
+
+                {/* Reserved for future right rail */}
+                <aside className="hidden xl:block w-72 shrink-0" />
+            </div>
         </div>
     );
 }
