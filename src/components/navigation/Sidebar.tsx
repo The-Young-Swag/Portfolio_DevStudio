@@ -1,3 +1,4 @@
+import { ConnectList } from "./ConnectList";
 import { NavigationList } from "./NavigationList";
 import { SidebarFooter } from "./SidebarFooter";
 import { SidebarHeader } from "./SidebarHeader";
@@ -19,6 +20,8 @@ export function Sidebar() {
             <SidebarHeader />
 
             <NavigationList />
+
+            <ConnectList />
 
             <SidebarFooter />
         </aside>
