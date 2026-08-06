@@ -12,22 +12,17 @@ export function HeroStats() {
             "
         >
             <StatCard
-                label="Experience"
+                label="EXPERIENCE"
                 value="--"
             />
 
             <StatCard
-                label="GitHub Contributions"
+                label="COMMITS / YR"
                 value="--"
             />
 
             <StatCard
-                label="Availability"
-                value="Open to Work"
-            />
-
-            <StatCard
-                label="Coffees Consumed"
+                label="COFFEES CONSUMED"
                 value="Yes ☕"
             />
         </div>
