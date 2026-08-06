@@ -16,5 +16,7 @@ export const profile = {
 
     linkedin: "https://www.linkedin.com/in/ivan-harvey-rivera/",
     
+    email: "your.email@example.com",  // <-- ADD THIS LINE
+    
     resume: "/resume.pdf",
 };
