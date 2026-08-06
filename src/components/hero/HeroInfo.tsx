@@ -36,15 +36,25 @@ export function HeroInfo() {
                 gap-3
             "
             >            
-        <Button href={profile.github}>
+        <Button
+            href={profile.github}
+            target="_blank"
+            rel="noreferrer"
+        >
             GitHub
         </Button>
 
-        <Button href={profile.resume}>
+        <Button
+            href={profile.resume}
+        >
             Resume
         </Button>
 
-        <Button href={profile.linkedin}>
+        <Button
+            href={profile.linkedin}
+            target="_blank"
+            rel="noreferrer"
+        >
             LinkedIn
         </Button>
 
