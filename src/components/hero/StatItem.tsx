@@ -1,38 +1,72 @@
 import type { LucideIcon } from "lucide-react";
 
 type StatItemProps = {
-    value: string;
     label: string;
+    value: string;
     icon: LucideIcon;
 };
 
 export function StatItem({
-    value,
     label,
+    value,
     icon: Icon,
 }: StatItemProps) {
     return (
         <div
             className="
+                group
                 relative
-                border-r
-                border-neutral-200
-                px-3
+                px-4
                 py-5
-                first:pl-0
-                last:border-r-0
+                transition-colors
+                duration-150
+                hover:bg-neutral-50
                 sm:px-4
-                sm:py-6
             "
         >
-            <div className="text-2xl font-medium sm:text-3xl">
-                {value}
-            </div>
+            {/* Label */}
+            <p
+                className="
+                    flex
+                    items-center
+                    gap-1.5
+                    font-mono
+                    text-[12px]
+                    uppercase
+                    tracking-[0.08em]
+                    text-neutral-500
+                    transition-colors
+                    duration-150
+                    group-hover:text-[#059669]
+                "
+            >
+                <Icon
+                    size={15}
+                    strokeWidth={1.8}
+                    className="
+                        text-neutral-400
+                        transition-colors
+                        duration-150
+                        group-hover:text-[#059669]
+                    "
+                />
 
-            <div className="mt-2 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-neutral-400">
-                <Icon size={11} />
                 {label}
-            </div>
+            </p>
+
+            {/* Value */}
+            <p
+                className="
+                    mt-2
+                    font-display
+                    text-[25px]
+                    leading-none
+                    text-neutral-950
+                    sm:text-[27px]
+                "
+            >
+                {value}
+            </p>
         </div>
     );
 }

@@ -4,8 +4,8 @@ import { profile } from "@/constants/profile";
 export function HeroInfo() {
     return (
         <div>
-            <p className="mb-3 flex items-center gap-2 text-sm text-neutral-500">
-            <span className="h-2 w-2 rounded-full bg-[#50C878]" />
+            <p className="font-mono text-[11px] text-neutral-500">
+                <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#059669]" />
                 {profile.location} — {profile.availability}
             </p>
 
@@ -32,16 +32,22 @@ export function HeroInfo() {
                     mt-8
                     flex
                     flex-wrap
-                    gap-6
+                    gap-x-6
+                    gap-y-3
                     font-mono
-                    text-[11px]
+                    text-[12px]
                 "
             >
                 <a
                     href={profile.github}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-neutral-600 transition-colors hover:text-neutral-950"
+                    className="
+                        text-neutral-600
+                        transition-colors
+                        duration-150
+                        hover:text-[#059669]
+                    "
                 >
                     github ↗
                 </a>
@@ -50,7 +56,12 @@ export function HeroInfo() {
                     href={profile.linkedin}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-neutral-600 transition-colors hover:text-neutral-950"
+                    className="
+                        text-neutral-600
+                        transition-colors
+                        duration-150
+                        hover:text-[#059669]
+                    "
                 >
                     linkedin ↗
                 </a>
@@ -59,14 +70,24 @@ export function HeroInfo() {
                     href={profile.resume}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-neutral-600 transition-colors hover:text-neutral-950"
+                    className="
+                        text-neutral-600
+                        transition-colors
+                        duration-150
+                        hover:text-[#059669]
+                    "
                 >
                     résumé ↗
                 </a>
 
                 <a
                     href={`mailto:${profile.email}`}
-                    className="text-neutral-600 transition-colors hover:text-neutral-950"
+                    className="
+                        text-neutral-600
+                        transition-colors
+                        duration-150
+                        hover:text-[#059669]
+                    "
                 >
                     email
                 </a>

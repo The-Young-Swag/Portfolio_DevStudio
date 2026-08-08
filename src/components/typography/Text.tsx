@@ -11,10 +11,10 @@ export function Text({
 }: TextProps) {
     return (
         <p
-        className={clsx(
-            "text-base leading-7 text-neutral-600 dark:text-neutral-300",
-            className,
-        )}
+            className={clsx(
+                "text-base leading-7 text-neutral-700 dark:text-neutral-300",
+                className,
+            )}
         >
             {children}
         </p>
