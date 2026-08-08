@@ -1,37 +1,85 @@
 type ExperienceItemProps = {
+    period: string;
     role: string;
     company: string;
-    period: string;
-    description: string;
+    description: string[];
 };
 
 export function ExperienceItem({
+    period,
     role,
     company,
-    period,
     description,
 }: ExperienceItemProps) {
     return (
-        <article className="border-b border-neutral-200 py-6 last:border-b-0">
-            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                <div>
-                    <h3 className="text-lg font-semibold">
-                        {role}
-                    </h3>
+        <div className="relative">
+            {/* Timeline dot */}
+            <span
+                className="
+                    absolute
+                    -left-[25.5px]
+                    top-[3px]
+                    h-2.5
+                    w-2.5
+                    rounded-full
+                    border-2
+                    border-[#059669]
+                    bg-white
+                "
+            />
 
-                    <p className="mt-1 text-sm text-neutral-500">
-                        {company}
-                    </p>
-                </div>
-
-                <p className="text-sm text-neutral-500">
-                    {period}
-                </p>
-            </div>
-
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-neutral-600">
-                {description}
+            {/* Period */}
+            <p
+                className="
+                    mb-1
+                    font-mono
+                    text-[10.5px]
+                    text-neutral-500
+                "
+            >
+                {period}
             </p>
-        </article>
+
+            {/* Role */}
+            <h3
+                className="
+                    font-display
+                    text-[16px]
+                    font-medium
+                    text-neutral-950
+                "
+            >
+                {role}
+            </h3>
+
+            {/* Company */}
+            <p
+                className="
+                    font-mono
+                    text-[11.5px]
+                    text-neutral-500
+                "
+            >
+                {company}
+            </p>
+
+            {/* Experience bullets */}
+            <ul
+                className="
+                    mt-2.5
+                    ml-4
+                    list-outside
+                    list-disc
+                    space-y-1.5
+                    text-[13px]
+                    leading-relaxed
+                    text-neutral-600
+                "
+            >
+                {description.map((item, index) => (
+                    <li key={index}>{item}</li>
+                ))}
+            </ul>
+        </div>
     );
 }
