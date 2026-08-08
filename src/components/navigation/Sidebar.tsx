@@ -1,7 +1,6 @@
 import { ConnectList } from "./ConnectList";
 import { NavigationList } from "./NavigationList";
 import { SidebarFooter } from "./SidebarFooter";
-import { SidebarHeader } from "./SidebarHeader";
 
 export function Sidebar() {
     return (
@@ -9,19 +8,22 @@ export function Sidebar() {
             className="
                 hidden
                 lg:flex
-                w-64
+                lg:sticky
+                lg:top-0
+                lg:h-screen
+                w-[270px]
                 shrink-0
                 flex-col
                 border-r
                 border-neutral-200
-                p-6
+                bg-white
             "
         >
-            <SidebarHeader />
+            <nav className="flex-1 px-3 pb-2 pt-2">
+                <NavigationList />
 
-            <NavigationList />
-
-            <ConnectList />
+                <ConnectList />
+            </nav>
 
             <SidebarFooter />
         </aside>

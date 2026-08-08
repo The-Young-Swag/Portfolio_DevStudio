@@ -4,7 +4,6 @@ import {
     GraduationCap,
     Home,
     Layers3,
-    Mail,
 } from "lucide-react";
 
 export const navigation = [
@@ -32,10 +31,5 @@ export const navigation = [
         id: "certification",
         label: "Certification",
         icon: GraduationCap,
-    },
-    {
-        id: "contact",
-        label: "Contact",
-        icon: Mail,
     },
 ];

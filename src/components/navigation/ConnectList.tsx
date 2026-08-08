@@ -2,43 +2,62 @@ import { socialLinks } from "@/constants/socialLinks";
 
 export function ConnectList() {
     return (
-        <section className="mt-10">
-            <p className="mb-4 text-xs uppercase tracking-[0.2em] text-neutral-500">
+        <div className="mt-6">
+            <p
+                className="
+                    px-3
+                    pb-3
+                    font-mono
+                    text-[10.5px]
+                    uppercase
+                    tracking-[0.11em]
+                    text-neutral-500
+                "
+            >
                 Connect
             </p>
 
-            <ul className="space-y-2">
+            <div className="space-y-0.5">
                 {socialLinks.map((item) => {
                     const Icon = item.icon;
 
                     return (
-                        <li key={item.label}>
-                            <a
-                                href={item.href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="
-                                    flex
-                                    items-center
-                                    gap-3
-                                    rounded-lg
-                                    px-3
-                                    py-2
-                                    text-sm
-                                    text-neutral-600
-                                    transition-colors
-                                    hover:bg-neutral-100
-                                    hover:text-neutral-950
-                                "
-                            >
-                                <Icon size={16} />
+                        <a
+                            key={item.label}
+                            href={item.href}
+                            target={
+                                item.label === "Email"
+                                    ? undefined
+                                    : "_blank"
+                            }
+                            rel={
+                                item.label === "Email"
+                                    ? undefined
+                                    : "noreferrer"
+                            }
+                            className="
+                                flex
+                                items-center
+                                gap-3
+                                px-3
+                                py-2.5
+                                font-mono
+                                text-[12px]
+                                text-neutral-600
+                                transition-colors
+                                hover:text-neutral-950
+                            "
+                        >
+                            <Icon
+                                size={14}
+                                strokeWidth={1.75}
+                            />
 
-                                {item.label}
-                            </a>
-                        </li>
+                            {item.label}
+                        </a>
                     );
                 })}
-            </ul>
-        </section>
+            </div>
+        </div>
     );
 }

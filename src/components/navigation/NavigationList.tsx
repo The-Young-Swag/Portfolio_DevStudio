@@ -2,36 +2,55 @@ import { navigation } from "@/constants/navigation";
 
 export function NavigationList() {
     return (
-        <nav>
-            <ul className="space-y-2">
-                {navigation.map((item) => {
-                    const Icon = item.icon;
+        <>
+            <p
+                className="
+                    px-3
+                    pb-3
+                    pt-2
+                    font-mono
+                    text-[10.5px]
+                    uppercase
+                    tracking-[0.11em]
+                    text-neutral-500
+                "
+            >
+                Navigate
+            </p>
 
-                    return (
-                        <li key={item.id}>
+            <div className="space-y-0.5">
+                {navigation
+                    .filter((item) => item.id !== "contact")
+                    .map((item) => {
+                        const Icon = item.icon;
+
+                        return (
                             <a
+                                key={item.id}
                                 href={`#${item.id}`}
                                 className="
                                     flex
                                     items-center
                                     gap-3
-                                    rounded-lg
                                     px-3
-                                    py-2
-                                    text-sm
+                                    py-2.5
+                                    font-mono
+                                    text-[12px]
                                     text-neutral-600
                                     transition-colors
-                                    hover:bg-neutral-100
                                     hover:text-neutral-950
                                 "
                             >
-                                <Icon size={16} />
+                                <Icon
+                                    size={14}
+                                    strokeWidth={1.75}
+                                />
+
                                 {item.label}
                             </a>
-                        </li>
-                    );
-                })}
-            </ul>
-        </nav>
+                        );
+                    })}
+            </div>
+        </>
     );
 }
