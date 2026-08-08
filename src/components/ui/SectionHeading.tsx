@@ -8,14 +8,32 @@ export function SectionHeading({
     title,
 }: SectionHeadingProps) {
     return (
-        <div className="mb-8">
-            <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
-                {number}
-            </p>
+        <h2
+            className="
+                group
+                font-display
+                text-2xl
+                leading-tight
+                text-neutral-950
+            "
+        >
+            {number}
+            {" — "}
+            {title}
 
-            <h2 className="mt-2 text-3xl font-bold uppercase tracking-tight">
-                {title}
-            </h2>
-        </div>
+            <span
+                aria-hidden="true"
+                className="
+                    ml-2
+                    text-sm
+                    text-neutral-400
+                    opacity-0
+                    transition-opacity
+                    group-hover:opacity-100
+                "
+            >
+                #
+            </span>
+        </h2>
     );
 }

@@ -1,78 +1,53 @@
-type ContributionHeatmapProps = {
-    year: number;
-};
+import { useState } from "react";
 
-const weeks = 52;
-const days = 7;
+import { ContributionHeatmap } from "./ContributionHeatmap";
+import { YearSelector } from "./YearSelector";
 
-function getIntensity(week: number, day: number) {
-    const value =
-        (week * 17 + day * 13 + week * day * 3) % 11;
+import type {
+    ContributionPeriod,
+    ContributionPeriodId,
+} from "./types";
 
-    if (value <= 3) return 0;
-    if (value <= 5) return 1;
-    if (value <= 7) return 2;
-    if (value <= 9) return 3;
-
-    return 4;
-}
-
-const intensityClasses = [
-    "bg-neutral-100",
-    "bg-[#d7e5df]",
-    "bg-[#a9c8bb]",
-    "bg-[#6fa58f]",
-    "bg-[#40826D]",
+const periods: ContributionPeriod[] = [
+    {
+        id: "last-12-months",
+        label: "Last 12 Months",
+    },
+    {
+        id: "2025",
+        label: "2025",
+        year: 2025,
+    },
+    {
+        id: "2024",
+        label: "2024",
+        year: 2024,
+    },
+    {
+        id: "2023",
+        label: "2023",
+        year: 2023,
+    },
 ];
 
-export function ContributionHeatmap({
-    year,
-}: ContributionHeatmapProps) {
-    return (
-        <div className="overflow-x-auto">
-            <div
-                className="
-                    min-w-[760px]
-                    border-y
-                    border-neutral-200
-                    py-5
-                "
-            >
-                <div className="flex gap-1">
-                    {Array.from({ length: weeks }).map(
-                        (_, weekIndex) => (
-                            <div
-                                key={weekIndex}
-                                className="flex flex-col gap-1"
-                            >
-                                {Array.from({
-                                    length: days,
-                                }).map((_, dayIndex) => {
-                                    const intensity =
-                                        getIntensity(
-                                            weekIndex,
-                                            dayIndex,
-                                        );
+export function BuildLog() {
+    const [selectedPeriod, setSelectedPeriod] =
+        useState<ContributionPeriodId>(
+            "last-12-months"
+        );
 
-                                    return (
-                                        <span
-                                            key={`${weekIndex}-${dayIndex}`}
-                                            title={`${year} contribution activity`}
-                                            className={`
-                                                block
-                                                h-3
-                                                w-3
-                                                shrink-0
-                                                rounded-[4px]
-                                                ${intensityClasses[intensity]}
-                                            `}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ),
-                    )}
-                </div>
+    return (
+        <div>
+            <YearSelector
+                periods={periods}
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={setSelectedPeriod}
+            />
+
+            <div className="mt-6">
+                <ContributionHeatmap
+                    period={selectedPeriod}
+                />
             </div>
         </div>
     );

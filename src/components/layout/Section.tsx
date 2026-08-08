@@ -12,14 +12,14 @@ export function Section({
     className,
 }: SectionProps) {
     return (
-        <section
-            id={id}
-            className={clsx(
-                "py-10 md:py-14",
-                className,
-            )}
-        >
-            {children}
-        </section>
+    <section
+        id={id}
+        className={clsx(
+            "py-4 md:py-5",
+            className,
+        )}
+    >
+        {children}
+    </section>
     );
 }
