@@ -1,21 +1,31 @@
 import { Container, Section } from "@/components/layout";
 import { HeroInfo } from "./HeroInfo";
 import { HeroPortrait } from "./HeroPortrait";
-import { HeroStats } from "./HeroStats"
+import { HeroStats } from "./HeroStats";
+import { Breadcrumb } from "@/components/navigation";
 
 export function Hero() {
     return (
-<Section id="overview">
-    <Container>
-        <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12 items-start">
-            <HeroPortrait />
+        <Section id="overview" className="pt-8 md:pt-10">
+            <Container>
+                <Breadcrumb />
 
-            <div>
-                <HeroInfo />
+                <div
+                    className="
+                        mt-16
+                        grid
+                        items-start
+                        gap-12
+                        md:grid-cols-[340px_minmax(0,1fr)]
+                    "
+                >
+                    <HeroPortrait />
+
+                    <HeroInfo />
+                </div>
+
                 <HeroStats />
-            </div>
-        </div>
-    </Container>
-</Section>
+            </Container>
+        </Section>
     );
 }

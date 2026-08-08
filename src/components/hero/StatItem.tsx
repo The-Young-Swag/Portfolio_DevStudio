@@ -1,16 +1,16 @@
 import type { LucideIcon } from "lucide-react";
 
-type StatCardProps = {
+type StatItemProps = {
     value: string;
     label: string;
     icon: LucideIcon;
 };
 
-export function StatCard({
+export function StatItem({
     value,
     label,
     icon: Icon,
-}: StatCardProps) {
+}: StatItemProps) {
     return (
         <div
             className="
@@ -25,7 +25,7 @@ export function StatCard({
                 sm:py-6
             "
         >
-            <div className="font-display text-2xl font-medium sm:text-3xl">
+            <div className="text-2xl font-medium sm:text-3xl">
                 {value}
             </div>
 
