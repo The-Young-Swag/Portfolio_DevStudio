@@ -1,30 +1,29 @@
-import { StatCard } from "./StatCard";
+import { CalendarDays, Coffee, GitCommit } from "lucide-react";
+
+import { StatCard } from "./StatItem";
 
 export function HeroStats() {
     return (
-        <div
-            className="
-                mt-10
-                grid
-                gap-4
-                sm:grid-cols-2
-                lg:grid-cols-4
-            "
-        >
-            <StatCard
-                label="EXPERIENCE"
-                value="--"
-            />
+        <div className="mt-10 border-t border-neutral-200">
+            <div className="grid grid-cols-3">
+                <StatCard
+                    value="--"
+                    label="Experience"
+                    icon={CalendarDays}
+                />
 
-            <StatCard
-                label="COMMITS / YR"
-                value="--"
-            />
+                <StatCard
+                    value="--"
+                    label="Commits / Yr"
+                    icon={GitCommit}
+                />
 
-            <StatCard
-                label="COFFEES CONSUMED"
-                value="Yes ☕"
-            />
+                <StatCard
+                    value="YES"
+                    label="Coffees Consumed"
+                    icon={Coffee}
+                />
+            </div>
         </div>
     );
 }
