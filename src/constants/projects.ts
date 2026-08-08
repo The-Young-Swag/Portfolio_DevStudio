@@ -1,31 +1,20 @@
 export const projects = [
     {
-        title: "NotebookLM Clone",
-        description:
-            "AI-powered learning workspace with flashcards, quizzes, contextual chat, and lesson understanding.",
-        stack: [
-            "React",
-            "Next.js",
-            "TypeScript",
-        ],
-    },
-    {
         title: "Arc-Hive",
         description:
-            "Document archival system with OCR, machine learning classification, and digital cabinet organization.",
-        stack: [
-            "PHP",
-            "MySQL",
-        ],
+            "Document archival system designed to digitize and organize physical document records.",
+        stack: ["PHP", "MySQL", "Tesseract OCR"],
     },
     {
         title: "Library Attendance Monitoring System",
         description:
-            "Internship project replacing manual attendance with a real-time monitoring system.",
-        stack: [
-            "PHP",
-            "MSSQL",
-            "AJAX",
-        ],
+            "Real-time library attendance monitoring system developed during internship.",
+        stack: ["PHP", "MSSQL", "jQuery AJAX"],
+    },
+    {
+        title: "LumiNoesis AI",
+        description:
+            "AI-powered educational platform designed to help students learn through contextual tutoring, quizzes, and flashcards.",
+        stack: ["React", "PHP", "FastAPI"],
     },
 ];
