@@ -3,7 +3,6 @@ import { SectionHeading } from "@/components/ui";
 
 import { BuildLog } from "./BuildLog";
 import { ContributionHeatmap } from "./ContributionHeatmap";
-import { ContributionLegend } from "./ContributionLegend";
 import { YearSelector } from "./YearSelector";
 
 export function GitHubActivitySection() {
@@ -19,8 +18,6 @@ export function GitHubActivitySection() {
                     <YearSelector />
 
                     <ContributionHeatmap />
-
-                    <ContributionLegend />
 
                     <BuildLog />
                 </div>

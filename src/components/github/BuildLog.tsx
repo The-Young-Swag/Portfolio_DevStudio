@@ -1,7 +1,9 @@
+
+
 export function BuildLog() {
     return (
-        <div>
-            Build Log
-        </div>
+        <ul className="space-y-3">
+
+        </ul>
     );
 }
