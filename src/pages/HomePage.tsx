@@ -1,6 +1,7 @@
 import { Hero } from "@/components/hero";
 import { GitHubActivitySection } from "@/components/github";
 import { ProjectsSection } from "@/components/projects";
+import { ExperienceSection } from "@/components/experience";
 
 export function HomePage() {
     return (
@@ -10,6 +11,8 @@ export function HomePage() {
             <GitHubActivitySection />
 
             <ProjectsSection />
+
+            <ExperienceSection />
         </>
     );
 }
