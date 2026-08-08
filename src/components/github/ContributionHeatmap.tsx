@@ -1,176 +1,159 @@
+import type { ContributionPeriodId } from "./types";
+
 type ContributionHeatmapProps = {
-    year: number;
+    period: ContributionPeriodId;
 };
 
-const weeks = 52;
-const days = 7;
-
 const intensityClasses = [
-    "bg-[#E6E6E9]", // Less
+    "bg-[#E6E6E9]",
     "bg-[#C6F0DE]",
     "bg-[#8AD9B5]",
     "bg-[#42B683]",
-    "bg-[#059669]", // More
+    "bg-[#059669]",
 ];
 
-function getIntensity(week: number, day: number) {
-    const value =
-        (week * 17 + day * 13 + week * day * 3) % 11;
+const weeks = 52;
+const daysPerWeek = 7;
 
-    if (value <= 3) return 0;
-    if (value <= 5) return 1;
-    if (value <= 7) return 2;
-    if (value <= 9) return 3;
+function getContributionLevel(count: number) {
+    if (count === 0) return 0;
+    if (count <= 2) return 1;
+    if (count <= 5) return 2;
+    if (count <= 9) return 3;
 
     return 4;
 }
 
+function generateContributionData(period: ContributionPeriodId) {
+    const cells = [];
+
+    for (let week = 0; week < weeks; week++) {
+        for (let day = 0; day < daysPerWeek; day++) {
+            const seed =
+                Math.abs(
+                    Math.sin(
+                        week * 12.9898 +
+                            day * 78.233 +
+                            period.length * 37.17
+                    )
+                );
+
+            const count =
+                seed > 0.82
+                    ? 10 + Math.floor(seed * 8)
+                    : seed > 0.66
+                      ? 6 + Math.floor(seed * 4)
+                      : seed > 0.46
+                        ? 3 + Math.floor(seed * 3)
+                        : seed > 0.28
+                          ? 1 + Math.floor(seed * 2)
+                          : 0;
+
+            cells.push({
+                count,
+                level: getContributionLevel(count),
+            });
+        }
+    }
+
+    return cells;
+}
+
 export function ContributionHeatmap({
-    year,
+    period,
 }: ContributionHeatmapProps) {
+    const contributions =
+        generateContributionData(period);
+
+    const totalContributions =
+        contributions.reduce(
+            (total, day) => total + day.count,
+            0
+        );
+
     return (
-        <div
-            className="
-                overflow-hidden
-                rounded-xl
-                border
-                border-neutral-200
-                bg-white
-            "
-        >
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
             {/* Header */}
-            <div
-                className="
-                    flex
-                    items-center
-                    justify-between
-                    gap-6
-                    px-6
-                    pt-7
-                    sm:px-10
-                "
-            >
-                <h3
-                    className="
-                        font-display
-                        text-xl
-                        leading-none
-                        text-neutral-950
-                        sm:text-2xl
-                    "
-                >
-                    1,284 contributions in the last year
-                </h3>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <p className="font-display text-2xl leading-none">
+                    {totalContributions.toLocaleString()}{" "}
+                    contributions in the last year
+                </p>
 
-                <div
-                    className="
-                        flex
-                        shrink-0
-                        items-center
-                        gap-1.5
-                        font-mono
-                        text-[10px]
-                        text-neutral-500
-                    "
-                >
-                    <span>Less</span>
+                {/* Legend */}
+                <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] text-neutral-500">
+                        Less
+                    </span>
 
-                    {intensityClasses.map((className) => (
+                    {intensityClasses.map((color) => (
                         <span
-                            key={className}
-                            className={`
-                                h-3
-                                w-3
-                                rounded-[4px]
-                                ${className}
-                            `}
+                            key={color}
+                            className={`h-3 w-3 rounded-[4px] ${color}`}
                         />
                     ))}
 
-                    <span>More</span>
+                    <span className="font-mono text-[10px] text-neutral-500">
+                        More
+                    </span>
                 </div>
             </div>
 
             {/* Heatmap */}
-            <div className="overflow-x-auto px-6 py-8 sm:px-10">
-                <div
-                    className="
-                        flex
-                        min-w-[760px]
-                        gap-1
-                    "
-                >
+            <div className="mt-8 overflow-x-auto">
+                <div className="flex min-w-[760px] gap-[3px]">
                     {Array.from({ length: weeks }).map(
                         (_, weekIndex) => (
                             <div
                                 key={weekIndex}
-                                className="flex flex-col gap-1"
+                                className="flex flex-col gap-[3px]"
                             >
                                 {Array.from({
-                                    length: days,
+                                    length: daysPerWeek,
                                 }).map((_, dayIndex) => {
-                                    const intensity =
-                                        getIntensity(
-                                            weekIndex,
-                                            dayIndex,
-                                        );
+                                    const day =
+                                        contributions[
+                                            weekIndex *
+                                                daysPerWeek +
+                                                dayIndex
+                                        ];
 
                                     return (
-                                        <span
+                                        <div
                                             key={`${weekIndex}-${dayIndex}`}
-                                            title={`${year} contribution activity`}
+                                            title={`${day.count} contributions`}
                                             className={`
                                                 h-3
                                                 w-3
                                                 shrink-0
                                                 rounded-[4px]
-                                                ${intensityClasses[intensity]}
+                                                ${intensityClasses[day.level]}
                                             `}
                                         />
                                     );
                                 })}
                             </div>
-                        ),
+                        )
                     )}
                 </div>
             </div>
 
-            {/* Activity notes */}
-            <div
-                className="
-                    mx-6
-                    border-t
-                    border-neutral-200
-                    px-0
-                    py-5
-                    sm:mx-10
-                    sm:py-6
-                "
-            >
-                <div
-                    className="
-                        flex
-                        flex-col
-                        gap-3
-                        font-mono
-                        text-[11px]
-                        leading-relaxed
-                        text-neutral-500
-                        sm:flex-row
-                        sm:gap-10
-                    "
-                >
+            {/* Activity summary */}
+            <div className="mt-8 border-t border-neutral-200 pt-6">
+                <div className="flex flex-col gap-3 font-mono text-[10.5px] text-neutral-500 sm:flex-row sm:gap-12">
                     <p>
-                        Most active:
-                        <span className="ml-1 text-neutral-950">
-                            Tuesdays, for reasons unclear even to me
+                        Most active:{" "}
+                        <span className="text-neutral-700">
+                            Tuesdays, for reasons unclear even
+                            to me
                         </span>
                     </p>
 
                     <p>
-                        Least active:
-                        <span className="ml-1 text-neutral-950">
-                            Sundays — touch grass protocol engaged
+                        Least active:{" "}
+                        <span className="text-neutral-700">
+                            Sundays — touch grass protocol
+                            engaged
                         </span>
                     </p>
                 </div>

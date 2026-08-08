@@ -1,24 +1,32 @@
+import type {
+    ContributionPeriod,
+    ContributionPeriodId,
+} from "./types";
+
 type YearSelectorProps = {
-    selectedYear: number;
-    onYearChange: (year: number) => void;
+    periods: ContributionPeriod[];
+    selectedPeriod: ContributionPeriodId;
+    onPeriodChange: (periodId: ContributionPeriodId) => void;
 };
 
-const years = [2026, 2025, 2024];
-
 export function YearSelector({
-    selectedYear,
-    onYearChange,
+    periods,
+    selectedPeriod,
+    onPeriodChange,
 }: YearSelectorProps) {
     return (
-        <div className="flex items-center gap-2">
-            {years.map((year) => {
-                const isSelected = selectedYear === year;
+        <div className="flex flex-wrap items-center gap-2">
+            {periods.map((period) => {
+                const isSelected =
+                    selectedPeriod === period.id;
 
                 return (
                     <button
-                        key={year}
+                        key={period.id}
                         type="button"
-                        onClick={() => onYearChange(year)}
+                        onClick={() =>
+                            onPeriodChange(period.id)
+                        }
                         className={`
                             rounded-md
                             border
@@ -29,12 +37,12 @@ export function YearSelector({
                             transition-colors
                             ${
                                 isSelected
-                                    ? "border-[#40826D] bg-[#40826D] text-white"
-                                    : "border-neutral-200 text-neutral-500 hover:border-[#40826D] hover:text-[#40826D]"
+                                    ? "border-[#059669] bg-[#059669] text-white"
+                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-[#42B683] hover:text-[#059669]"
                             }
                         `}
                     >
-                        {year}
+                        {period.label}
                     </button>
                 );
             })}
