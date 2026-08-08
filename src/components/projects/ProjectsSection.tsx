@@ -1,5 +1,6 @@
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
+
 import { ProjectsGrid } from "./ProjectsGrid";
 
 export function ProjectsSection() {
@@ -8,25 +9,28 @@ export function ProjectsSection() {
             <Container>
                 <SectionHeading
                     number="02"
-                    title="Projects"
+                    title="Selected projects"
                 />
 
-                <ProjectsGrid />
-
-                <div className="mt-8">
-                    <a
-                        href="/projects"
-                        className="
-                            font-mono
-                            text-[11px]
-                            text-neutral-500
-                            transition-colors
-                            hover:text-[#059669]
-                        "
-                    >
-                        See more projects ↗
-                    </a>
+                <div className="mt-5">
+                    <ProjectsGrid />
                 </div>
+
+                <a
+                    href="/projects"
+                    className="
+                        mt-5
+                        inline-flex
+                        items-center
+                        gap-1.5
+                        font-mono
+                        text-[11.5px]
+                        text-[#059669]
+                        hover:underline
+                    "
+                >
+                    See all projects →
+                </a>
             </Container>
         </Section>
     );

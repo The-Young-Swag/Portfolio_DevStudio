@@ -14,7 +14,10 @@ export function Section({
     return (
         <section
             id={id}
-            className={clsx("scroll-mt-10", className)}
+            className={clsx(
+                "py-10 md:py-14",
+                className,
+            )}
         >
             {children}
         </section>
