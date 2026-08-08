@@ -10,6 +10,7 @@ import { ContactSection } from "@/components/contact";
 export function HomePage() {
     return (
         <>
+
             <Hero />
 
             <GitHubActivitySection />
