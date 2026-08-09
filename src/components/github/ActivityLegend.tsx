@@ -9,7 +9,7 @@ const LEGEND_LEVEL_CLASSES = [
 export function ActivityLegend() {
     return (
         <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-[var(--graphite)]">
+            <span className="font-mono text-[10px] text-(--graphite)">
                 Less
             </span>
 
@@ -17,8 +17,8 @@ export function ActivityLegend() {
                 <span
                     key={level}
                     className={`
-                        h-[11px]
-                        w-[11px]
+                        h-2.75
+                        w-2.75
                         shrink-0
                         rounded-[3px]
                         ${level}
@@ -27,7 +27,7 @@ export function ActivityLegend() {
                 />
             ))}
 
-            <span className="font-mono text-[10px] text-[var(--graphite)]">
+            <span className="font-mono text-[10px] text-(--graphite)">
                 More
             </span>
         </div>

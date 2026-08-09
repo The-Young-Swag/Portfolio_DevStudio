@@ -66,7 +66,7 @@ export function SidebarFooter() {
                     className="
                         font-mono
                         text-[11px]
-                        text-[var(--graphite)]
+                        text-(--graphite)
                     "
                 >
                     {isDark ? "Dark mode" : "Light mode"}
@@ -147,4 +147,4 @@ export function SidebarFooter() {
             </div>
         </footer>
     );
-}
+} 

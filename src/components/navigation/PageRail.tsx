@@ -167,7 +167,7 @@ export function PageRail() {
                 hidden
                 xl:block
 
-                w-[220px]
+                w-55
             "
         >
             <p

@@ -114,7 +114,7 @@ export function ContributionHeatmap({
                         font-display
                         text-2xl
                         leading-none
-                        text-[var(--ink)]
+                        text-(--ink)
                     "
                 >
                     {totalContributions.toLocaleString()}{" "}
@@ -130,7 +130,7 @@ export function ContributionHeatmap({
                     <div
                         className="
                             flex
-                            gap-[3px]
+                            gap-0.75
                             px-2
                         "
                         role="grid"
@@ -140,7 +140,7 @@ export function ContributionHeatmap({
                         (_, weekIndex) => (
                             <div
                                 key={weekIndex}
-                                className="flex flex-col gap-[3px]"
+                                className="flex flex-col gap-0.75"
                             >
                                 {Array.from({
                                     length: DAYS_PER_WEEK,
@@ -159,10 +159,10 @@ export function ContributionHeatmap({
                                             role="gridcell"
                                             aria-label={`${day.count} contributions`}
                                             className={`
-                                                h-[11px]
-                                                w-[11px]
+                                                h-2.75
+                                                w-2.75
                                                 shrink-0
-                                                rounded-[4px]
+                                                rounded-sm
                                                 ${CONTRIBUTION_LEVEL_CLASSES[day.level]}
                                             `}
                                         />
@@ -191,14 +191,14 @@ export function ContributionHeatmap({
                         gap-3
                         font-mono
                         text-[10.5px]
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         sm:flex-row
                         sm:gap-12
                     "
                 >
                     <p>
                         Most active:{" "}
-                        <span className="text-[var(--ink)]">
+                        <span className="text-(--ink)">
                             Tuesdays, for reasons unclear
                             even to me
                         </span>
@@ -206,7 +206,7 @@ export function ContributionHeatmap({
 
                     <p>
                         Least active:{" "}
-                        <span className="text-[var(--ink)]">
+                        <span className="text-(--ink)">
                             Sundays — touch grass protocol
                             engaged
                         </span>

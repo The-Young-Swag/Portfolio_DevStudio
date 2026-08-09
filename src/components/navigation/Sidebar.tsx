@@ -15,7 +15,7 @@ export function Sidebar() {
         hidden
         lg:flex
     
-        w-[280px]
+        w-70
         shrink-0
         flex-col
         overflow-hidden
@@ -28,8 +28,8 @@ export function Sidebar() {
     
         shadow-[0_12px_40px_rgba(31,38,135,0.10)]
     
-        backdrop-blur-[24px]
-        backdrop-saturate-[160%]
+        backdrop-blur-xl
+        backdrop-saturate-160
     
         dark:border-white/15
         dark:bg-black/25

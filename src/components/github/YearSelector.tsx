@@ -34,8 +34,8 @@ export function YearSelector({
                             py-1.5
                             font-mono
                             text-[11px]
-                            backdrop-blur-[12px]
-                            backdrop-saturate-[140%]
+                            backdrop-blur-md
+                            backdrop-saturate-140
                             transition-colors
                             duration-150
 
@@ -49,7 +49,7 @@ export function YearSelector({
                                     : `
                                         border-white/70
                                         bg-white/30
-                                        text-[var(--graphite)]
+                                        text-(--graphite)
                                         hover:border-[#42B683]
                                         hover:text-[#059669]
                                     `
