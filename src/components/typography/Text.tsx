@@ -12,7 +12,7 @@ export function Text({
     return (
         <p
             className={clsx(
-                "text-base leading-7 text-neutral-700 dark:text-neutral-300",
+                "text-base leading-7",
                 className,
             )}
         >
