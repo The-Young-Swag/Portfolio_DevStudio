@@ -6,6 +6,7 @@ import { StackSection } from "@/components/stack"
 import { CertificationsSection } from "@/components/certifications"
 import { TimeSection } from "@/components/time"
 import { ContactSection } from "@/components/contact";
+import { Footer } from "@/components/layout";
 
 export function HomePage() {
     return (
@@ -26,6 +27,8 @@ export function HomePage() {
             <TimeSection />
 
             <ContactSection />
+
+            <Footer />
         </>
     );
 }
