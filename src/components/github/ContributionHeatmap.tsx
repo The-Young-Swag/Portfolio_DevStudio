@@ -1,19 +1,25 @@
 import type { ContributionPeriodId } from "./types";
+import { ActivityLegend } from "./ActivityLegend";
+
+const CONTRIBUTION_LEVEL_CLASSES = [
+    "bg-[#E6E6E9] dark:bg-[#1F2321]",
+    "bg-[#C6F0DE] dark:bg-[#123328]",
+    "bg-[#8AD9B5] dark:bg-[#1C5940]",
+    "bg-[#42B683] dark:bg-[#278562]",
+    "bg-[#059669] dark:bg-[#34D399]",
+] as const;
 
 type ContributionHeatmapProps = {
     period: ContributionPeriodId;
 };
 
-const intensityClasses = [
-    "bg-[#E6E6E9]",
-    "bg-[#C6F0DE]",
-    "bg-[#8AD9B5]",
-    "bg-[#42B683]",
-    "bg-[#059669]",
-];
+type ContributionCell = {
+    count: number;
+    level: number;
+};
 
-const weeks = 52;
-const daysPerWeek = 7;
+const WEEKS = 52;
+const DAYS_PER_WEEK = 7;
 
 function getContributionLevel(count: number) {
     if (count === 0) return 0;
@@ -24,19 +30,24 @@ function getContributionLevel(count: number) {
     return 4;
 }
 
-function generateContributionData(period: ContributionPeriodId) {
-    const cells = [];
+function generateContributionData(
+    period: ContributionPeriodId,
+): ContributionCell[] {
+    const cells: ContributionCell[] = [];
 
-    for (let week = 0; week < weeks; week++) {
-        for (let day = 0; day < daysPerWeek; day++) {
-            const seed =
-                Math.abs(
-                    Math.sin(
-                        week * 12.9898 +
-                            day * 78.233 +
-                            period.length * 37.17
-                    )
-                );
+    for (let week = 0; week < WEEKS; week++) {
+        for (
+            let day = 0;
+            day < DAYS_PER_WEEK;
+            day++
+        ) {
+            const seed = Math.abs(
+                Math.sin(
+                    week * 12.9898 +
+                        day * 78.233 +
+                        period.length * 37.17,
+                ),
+            );
 
             const count =
                 seed > 0.82
@@ -59,6 +70,15 @@ function generateContributionData(period: ContributionPeriodId) {
     return cells;
 }
 
+function getTotalContributions(
+    contributions: ContributionCell[],
+) {
+    return contributions.reduce(
+        (total, day) => total + day.count,
+        0,
+    );
+}
+
 export function ContributionHeatmap({
     period,
 }: ContributionHeatmapProps) {
@@ -66,55 +86,69 @@ export function ContributionHeatmap({
         generateContributionData(period);
 
     const totalContributions =
-        contributions.reduce(
-            (total, day) => total + day.count,
-            0
-        );
+        getTotalContributions(contributions);
 
     return (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
+        <div
+            className="
+                overflow-hidden
+                rounded-[26px]
+                glass
+                p-7
+                sm:p-9
+            "
+        >
             {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="font-display text-2xl leading-none">
+            <div
+                className="
+                    flex
+                    flex-col
+                    gap-4
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+            >
+                <p
+                    className="
+                        font-display
+                        text-2xl
+                        leading-none
+                        text-[var(--ink)]
+                    "
+                >
                     {totalContributions.toLocaleString()}{" "}
                     contributions in the last year
                 </p>
 
-                {/* Legend */}
-                <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-neutral-500">
-                        Less
-                    </span>
-
-                    {intensityClasses.map((color) => (
-                        <span
-                            key={color}
-                            className={`h-3 w-3 rounded-[4px] ${color}`}
-                        />
-                    ))}
-
-                    <span className="font-mono text-[10px] text-neutral-500">
-                        More
-                    </span>
-                </div>
+                <ActivityLegend />
             </div>
 
             {/* Heatmap */}
             <div className="mt-8 overflow-x-auto">
-                <div className="flex min-w-[760px] gap-[3px]">
-                    {Array.from({ length: weeks }).map(
+                <div className="flex justify-center">
+                    <div
+                        className="
+                            flex
+                            gap-[3px]
+                            px-2
+                        "
+                        role="grid"
+                        aria-label="Contribution activity"
+                    >
+                    {Array.from({ length: WEEKS }).map(
                         (_, weekIndex) => (
                             <div
                                 key={weekIndex}
                                 className="flex flex-col gap-[3px]"
                             >
                                 {Array.from({
-                                    length: daysPerWeek,
+                                    length: DAYS_PER_WEEK,
                                 }).map((_, dayIndex) => {
                                     const day =
                                         contributions[
                                             weekIndex *
-                                                daysPerWeek +
+                                                DAYS_PER_WEEK +
                                                 dayIndex
                                         ];
 
@@ -122,36 +156,57 @@ export function ContributionHeatmap({
                                         <div
                                             key={`${weekIndex}-${dayIndex}`}
                                             title={`${day.count} contributions`}
+                                            role="gridcell"
+                                            aria-label={`${day.count} contributions`}
                                             className={`
-                                                h-3
-                                                w-3
+                                                h-[11px]
+                                                w-[11px]
                                                 shrink-0
                                                 rounded-[4px]
-                                                ${intensityClasses[day.level]}
+                                                ${CONTRIBUTION_LEVEL_CLASSES[day.level]}
                                             `}
                                         />
                                     );
                                 })}
                             </div>
-                        )
+                        ),
                     )}
                 </div>
             </div>
+            </div>
 
             {/* Activity summary */}
-            <div className="mt-8 border-t border-neutral-200 pt-6">
-                <div className="flex flex-col gap-3 font-mono text-[10.5px] text-neutral-500 sm:flex-row sm:gap-12">
+            <div
+                className="
+                    mt-8
+                    border-t
+                    hairline
+                    pt-6
+                "
+            >
+                <div
+                    className="
+                        flex
+                        flex-col
+                        gap-3
+                        font-mono
+                        text-[10.5px]
+                        text-[var(--graphite)]
+                        sm:flex-row
+                        sm:gap-12
+                    "
+                >
                     <p>
                         Most active:{" "}
-                        <span className="text-neutral-700">
-                            Tuesdays, for reasons unclear even
-                            to me
+                        <span className="text-[var(--ink)]">
+                            Tuesdays, for reasons unclear
+                            even to me
                         </span>
                     </p>
 
                     <p>
                         Least active:{" "}
-                        <span className="text-neutral-700">
+                        <span className="text-[var(--ink)]">
                             Sundays — touch grass protocol
                             engaged
                         </span>

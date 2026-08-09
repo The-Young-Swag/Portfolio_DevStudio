@@ -28,17 +28,31 @@ export function YearSelector({
                             onPeriodChange(period.id)
                         }
                         className={`
-                            rounded-md
+                            rounded-full
                             border
-                            px-3
+                            px-3.5
                             py-1.5
                             font-mono
                             text-[11px]
+                            backdrop-blur-[12px]
+                            backdrop-saturate-[140%]
                             transition-colors
+                            duration-150
+
                             ${
                                 isSelected
-                                    ? "border-[#059669] bg-[#059669] text-white"
-                                    : "border-neutral-200 bg-white text-neutral-500 hover:border-[#42B683] hover:text-[#059669]"
+                                    ? `
+                                        border-[#059669]
+                                        bg-[#059669]
+                                        text-white
+                                    `
+                                    : `
+                                        border-white/70
+                                        bg-white/30
+                                        text-[var(--graphite)]
+                                        hover:border-[#42B683]
+                                        hover:text-[#059669]
+                                    `
                             }
                         `}
                     >
