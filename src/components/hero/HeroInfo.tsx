@@ -3,37 +3,71 @@ import { profile } from "@/constants/profile";
 
 export function HeroInfo() {
     return (
-        <div>
-            <p className="font-mono text-[11px] text-neutral-500">
-                <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#059669]" />
+        <div className="min-w-0 pt-1">
+            {/* Availability */}
+            <p
+                className="
+                    mb-4
+                    flex
+                    items-center
+                    gap-1.5
+                    font-mono
+                    text-[11px]
+                    text-[var(--graphite)]
+                "
+            >
+                <span
+                    className="
+                        h-1.5
+                        w-1.5
+                        rounded-full
+                        bg-[#059669]
+                    "
+                />
+
                 {profile.location} — {profile.availability}
             </p>
 
-            <Text className="mt-6 text-lg">
-                {profile.greeting}
-            </Text>
-
-            <Heading level={1}>
+            {/* Name */}
+            <Heading
+                level={1}
+                className="
+                    whitespace-nowrap
+                    text-[42px]
+                    font-semibold
+                    leading-[0.98]
+                    tracking-tight
+                    sm:text-[48px]
+                "
+            >
                 {profile.name}
             </Heading>
 
-            <Text className="mt-2 text-xl">
-                {profile.headline}
-            </Text>
-
-            <div className="mt-6 max-w-xl">
-                <Text>
+            {/* Description */}
+            <div
+                className="
+                    mt-7
+                    max-w-[520px]
+                    space-y-4
+                    font-sans
+                    text-[14.5px]
+                    leading-relaxed
+                    text-[var(--graphite)]
+                "
+            >
+                <Text className="text-[14.5px] leading-relaxed text-[var(--graphite)]">
                     {profile.description}
                 </Text>
             </div>
 
+            {/* External links */}
             <div
                 className="
-                    mt-8
+                    mt-7
                     flex
                     flex-wrap
-                    gap-x-6
-                    gap-y-3
+                    gap-x-5
+                    gap-y-2
                     font-mono
                     text-[12px]
                 "
@@ -43,7 +77,10 @@ export function HeroInfo() {
                     target="_blank"
                     rel="noreferrer"
                     className="
-                        text-neutral-600
+                        inline-flex
+                        items-center
+                        gap-1
+                        text-[var(--graphite)]
                         transition-colors
                         duration-150
                         hover:text-[#059669]
@@ -57,7 +94,10 @@ export function HeroInfo() {
                     target="_blank"
                     rel="noreferrer"
                     className="
-                        text-neutral-600
+                        inline-flex
+                        items-center
+                        gap-1
+                        text-[var(--graphite)]
                         transition-colors
                         duration-150
                         hover:text-[#059669]
@@ -71,7 +111,10 @@ export function HeroInfo() {
                     target="_blank"
                     rel="noreferrer"
                     className="
-                        text-neutral-600
+                        inline-flex
+                        items-center
+                        gap-1
+                        text-[var(--graphite)]
                         transition-colors
                         duration-150
                         hover:text-[#059669]
@@ -83,7 +126,7 @@ export function HeroInfo() {
                 <a
                     href={`mailto:${profile.email}`}
                     className="
-                        text-neutral-600
+                        text-[var(--graphite)]
                         transition-colors
                         duration-150
                         hover:text-[#059669]

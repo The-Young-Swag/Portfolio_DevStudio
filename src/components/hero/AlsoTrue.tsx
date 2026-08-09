@@ -40,34 +40,37 @@ export function AlsoTrue() {
                     <span
                         key={text}
                         className="
-                            group
-                            inline-flex
-                            items-center
-                            gap-2
-                            rounded-[7px]
-                            border
-                            border-neutral-200
-                            bg-white
-                            px-3
-                            py-1.5
-                            font-mono
-                            text-[12.5px]
-                            text-neutral-600
-                            transition-colors
-                            duration-150
-                            hover:border-[#059669]
-                            hover:text-[#059669]
-                        "
+                        group
+                        inline-flex
+                        items-center
+                        gap-2
+                        rounded-[12px]
+                        border
+                        border-white/70
+                        bg-white/30
+                        px-3
+                        py-1.5
+                        font-mono
+                        text-[12.5px]
+                        text-[var(--graphite)]
+                        shadow-[0_6px_20px_rgba(31,38,135,0.06)]
+                        backdrop-blur-[12px]
+                        backdrop-saturate-[140%]
+                        transition-colors
+                        duration-150
+                        hover:border-[#059669]
+                        hover:text-[#059669]
+                    "
                     >
                         <Icon
                             size={15}
                             strokeWidth={1.8}
                             className="
-                                text-neutral-400
-                                transition-colors
-                                duration-150
-                                group-hover:text-[#059669]
-                            "
+                            text-[var(--graphite)]
+                            transition-colors
+                            duration-150
+                            group-hover:text-[#059669]
+                        "
                         />
 
                         {text}

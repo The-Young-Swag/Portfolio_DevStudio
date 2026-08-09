@@ -5,9 +5,13 @@ export function HeroPortrait() {
         <figure
             className="
                 overflow-hidden
-                rounded-2xl
+                rounded-[20px]
                 border
-                border-neutral-200
+                border-white/70
+                bg-white/30
+                shadow-[0_18px_45px_rgba(31,38,135,0.10)]
+                backdrop-blur-[18px]
+                backdrop-saturate-[140%]
             "
         >
             <img

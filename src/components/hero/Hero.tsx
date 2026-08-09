@@ -15,8 +15,9 @@ export function Hero() {
                         mt-16
                         grid
                         items-start
-                        gap-12
-                        md:grid-cols-[340px_minmax(0,1fr)]
+                        gap-8
+                        md:grid-cols-[300px_minmax(0,1fr)]
+                        md:gap-12
                     "
                 >
                     <HeroPortrait />

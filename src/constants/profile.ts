@@ -1,5 +1,4 @@
 export const profile = {
-    greeting: "Hello, I'm",
     
     name: "Ivan Harvey Rivera",
 

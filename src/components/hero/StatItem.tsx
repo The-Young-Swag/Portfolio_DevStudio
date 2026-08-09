@@ -11,16 +11,14 @@ export function StatItem({
     value,
     icon: Icon,
 }: StatItemProps) {
+    const isCoffeeStat = label === "Coffees Consumed";
+
     return (
         <div
             className="
                 group
-                relative
                 px-4
                 py-5
-                transition-colors
-                duration-150
-                hover:bg-neutral-50
                 sm:px-4
             "
         >
@@ -34,7 +32,7 @@ export function StatItem({
                     text-[12px]
                     uppercase
                     tracking-[0.08em]
-                    text-neutral-500
+                    text-[var(--graphite)]
                     transition-colors
                     duration-150
                     group-hover:text-[#059669]
@@ -44,7 +42,7 @@ export function StatItem({
                     size={15}
                     strokeWidth={1.8}
                     className="
-                        text-neutral-400
+                        text-[var(--graphite)]
                         transition-colors
                         duration-150
                         group-hover:text-[#059669]
@@ -56,14 +54,20 @@ export function StatItem({
 
             {/* Value */}
             <p
-                className="
+                className={`
                     mt-2
                     font-display
                     text-[25px]
                     leading-none
-                    text-neutral-950
                     sm:text-[27px]
-                "
+                    transition-colors
+                    duration-150
+                    ${
+                        isCoffeeStat
+                            ? "text-[#059669] group-hover:text-neutral-950"
+                            : "text-neutral-950"
+                    }
+                `}
             >
                 {value}
             </p>
