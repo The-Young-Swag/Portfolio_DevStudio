@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from "react";
 
-import { Sidebar } from "@/components/navigation";
+import { PageRail, Sidebar } from "@/components/navigation";
 
 type PortfolioLayoutProps = PropsWithChildren;
 
@@ -15,7 +15,7 @@ export function PortfolioLayout({
                 {children}
             </main>
 
-            <aside className="hidden w-72 shrink-0 xl:block" />
+            <PageRail />
         </div>
     );
 }
