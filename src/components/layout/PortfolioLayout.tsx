@@ -1,5 +1,4 @@
 import type { PropsWithChildren } from "react";
-
 import { PageRail, Sidebar } from "@/components/navigation";
 
 type PortfolioLayoutProps = PropsWithChildren;
@@ -8,14 +7,31 @@ export function PortfolioLayout({
     children,
 }: PortfolioLayoutProps) {
     return (
-        <div className="flex min-h-screen">
-            <Sidebar />
+        <div className="relative min-h-screen">
+            {/* Background image / atmosphere */}
+            <div
+                className="app-background"
+                aria-hidden="true"
+            />
 
-            <main className="min-w-0 flex-1">
-                {children}
-            </main>
+            <div className="relative z-10 min-h-screen">
+                {/* Left glass navigation rail */}
+                <Sidebar />
 
-            <PageRail />
+                {/* Main content */}
+                <main
+                    className="
+                        min-w-0
+                        lg:ml-[328px]
+                        lg:mr-[280px]
+                    "
+                >
+                    {children}
+                </main>
+
+                {/* Right page navigation */}
+                <PageRail />
+            </div>
         </div>
     );
 }
