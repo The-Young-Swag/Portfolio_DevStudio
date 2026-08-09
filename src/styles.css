@@ -1,0 +1,93 @@
+@keyframes time-cloud-drift {
+    from {
+        transform: translateX(-18px);
+    }
+
+    to {
+        transform: translateX(18px);
+    }
+}
+
+@keyframes time-cloud-drift-slow {
+    from {
+        transform: translateX(-10px);
+    }
+
+    to {
+        transform: translateX(10px);
+    }
+}
+
+@keyframes time-cloud-drift-fast {
+    from {
+        transform: translateX(22px);
+    }
+
+    to {
+        transform: translateX(-22px);
+    }
+}
+
+@keyframes time-tree-sway {
+    0%,
+    100% {
+        transform: rotate(-0.4deg);
+    }
+
+    50% {
+        transform: rotate(0.4deg);
+    }
+}
+
+@keyframes time-star-twinkle {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.time-cloud {
+    animation: time-cloud-drift 18s ease-in-out infinite alternate;
+}
+
+.time-cloud-slow {
+    animation: time-cloud-drift-slow 28s ease-in-out infinite alternate;
+}
+
+.time-cloud-fast {
+    animation: time-cloud-drift-fast 12s ease-in-out infinite alternate;
+}
+
+.time-tree {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: time-tree-sway 5s ease-in-out infinite;
+}
+
+.time-tree-slow {
+    animation-duration: 7s;
+}
+
+.time-star {
+    animation: time-star-twinkle 3s ease-in-out infinite;
+}
+
+.time-star:nth-child(3n) {
+    animation-delay: 0.8s;
+}
+
+.time-star:nth-child(4n) {
+    animation-delay: 1.5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .time-cloud,
+    .time-tree,
+    .time-star {
+        animation: none;
+    }
+}
