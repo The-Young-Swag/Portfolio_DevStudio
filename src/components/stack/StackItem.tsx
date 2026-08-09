@@ -4,10 +4,25 @@ type StackItemProps = {
 
 export function StackItem({ name }: StackItemProps) {
     return (
-        <div className="rounded-xl border border-neutral-200 p-5">
-            <span className="text-sm font-medium">
-                {name}
-            </span>
-        </div>
+        <span
+            className="
+                inline-flex
+                items-center
+                rounded-md
+                border
+                border-neutral-200
+                px-2.5
+                py-1
+                font-mono
+                text-[11px]
+                text-neutral-600
+                transition-colors
+                duration-150
+                hover:border-[#059669]
+                hover:text-[#059669]
+            "
+        >
+            {name}
+        </span>
     );
 }
