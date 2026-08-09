@@ -6,7 +6,7 @@ const sections = [
         label: "Overview",
     },
     {
-        id: "github",
+        id: "build-log",
         label: "Build log",
     },
     {
@@ -35,41 +35,119 @@ const sections = [
     },
 ];
 
-function useActiveSection() {
-    const [activeSection, setActiveSection] = useState("overview");
-
-    useEffect(() => {
-        const elements = sections
-            .map(({ id }) => document.getElementById(id))
-            .filter((element): element is HTMLElement => element !== null);
-
-        if (elements.length === 0) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const visibleSections = entries
-                    .filter((entry) => entry.isIntersecting)
-                    .sort(
-                        (a, b) =>
-                            a.boundingClientRect.top -
-                            b.boundingClientRect.top,
-                    );
-
-                if (visibleSections.length > 0) {
-                    setActiveSection(visibleSections[0].target.id);
-                }
-            },
-            {
-                rootMargin: "-20% 0px -65% 0px",
-                threshold: 0,
-            },
+function getActiveSection(): string {
+    const elements = sections
+        .map(({ id }) => document.getElementById(id))
+        .filter(
+            (element): element is HTMLElement =>
+                element !== null,
         );
 
-        elements.forEach((element) => observer.observe(element));
+    if (elements.length === 0) {
+        return "overview";
+    }
 
-        return () => observer.disconnect();
+    /*
+     * Contact is the final section.
+     *
+     * When the user reaches the bottom of the document,
+     * explicitly activate Contact. This prevents the last
+     * section from being skipped by viewport-based detection.
+     */
+    const scrollPosition =
+        window.scrollY + window.innerHeight;
+
+    const documentHeight =
+        document.documentElement.scrollHeight;
+
+    if (scrollPosition >= documentHeight - 8) {
+        return "contact";
+    }
+
+    /*
+     * Use a position inside the viewport as the scroll-spy
+     * reference line. The last section whose top has crossed
+     * that line is the active section.
+     */
+    const activationLine =
+        window.innerHeight * 0.2;
+
+    let activeSection = elements[0].id;
+
+    for (const element of elements) {
+        if (
+            element.getBoundingClientRect().top <=
+            activationLine
+        ) {
+            activeSection = element.id;
+        } else {
+            break;
+        }
+    }
+
+    return activeSection;
+}
+
+function useActiveSection() {
+    const [activeSection, setActiveSection] =
+        useState("overview");
+
+    useEffect(() => {
+        let frameId: number | null = null;
+
+        const updateActiveSection = () => {
+            frameId = null;
+
+            const nextSection = getActiveSection();
+
+            setActiveSection((currentSection) =>
+                currentSection === nextSection
+                    ? currentSection
+                    : nextSection,
+            );
+        };
+
+        const handleScroll = () => {
+            if (frameId !== null) {
+                return;
+            }
+
+            frameId = window.requestAnimationFrame(
+                updateActiveSection,
+            );
+        };
+
+        /*
+         * Determine the correct section immediately on mount.
+         */
+        updateActiveSection();
+
+        window.addEventListener(
+            "scroll",
+            handleScroll,
+            { passive: true },
+        );
+
+        window.addEventListener(
+            "resize",
+            handleScroll,
+        );
+
+        return () => {
+            window.removeEventListener(
+                "scroll",
+                handleScroll,
+            );
+
+            window.removeEventListener(
+                "resize",
+                handleScroll,
+            );
+
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
+        };
     }, []);
 
     return activeSection;
