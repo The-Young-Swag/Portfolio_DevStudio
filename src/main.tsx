@@ -1,8 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
-import "./styles/globals.css";
-
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/inter";
+import "@fontsource/jetbrains-mono";
+import "./index.css";
 import { App } from "./app/App";
 import { AppProviders } from "./app/providers";
 
