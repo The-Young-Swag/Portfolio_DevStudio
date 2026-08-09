@@ -32,13 +32,15 @@ export function NavigationList() {
                                     flex
                                     items-center
                                     gap-3
+                                    rounded-[14px]
                                     px-3
                                     py-2.5
                                     font-mono
                                     text-[12px]
-                                    text-neutral-600
+                                    text-[var(--graphite)]
                                     transition-colors
-                                    hover:text-neutral-950
+                                    duration-150
+                                    hover:text-[var(--ink)]
                                 "
                             >
                                 <Icon

@@ -36,17 +36,19 @@ export function ConnectList() {
                                     : "noreferrer"
                             }
                             className="
-                                flex
-                                items-center
-                                gap-3
-                                px-3
-                                py-2.5
-                                font-mono
-                                text-[12px]
-                                text-neutral-600
-                                transition-colors
-                                hover:text-neutral-950
-                            "
+                            flex
+                            items-center
+                            gap-3
+                            rounded-[14px]
+                            px-3
+                            py-2.5
+                            font-mono
+                            text-[12px]
+                            text-[var(--graphite)]
+                            transition-colors
+                            duration-150
+                            hover:text-[var(--ink)]
+                        "
                         >
                             <Icon
                                 size={14}
