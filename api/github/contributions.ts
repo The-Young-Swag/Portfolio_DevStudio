@@ -175,35 +175,44 @@ export async function GET(request: Request) {
                 .contributionCalendar;
             
 
-        return Response.json({
-            calendar: {
-                totalContributions:
-                    calendar.totalContributions,
-        
-                weeks: calendar.weeks.map(
-                    (week) => ({
-                        days:
-                            week.contributionDays.map(
-                                (day) => ({
-                                    date: day.date,
-                                    count:
-                                        day.contributionCount,
-                                    level:
-                                        getLevel(
-                                            day.contributionLevel,
-                                        ),
-                                    weekday: day.weekday,
-                                }),
-                            ),
-                    }),
-                ),
-            },
-        
-            availableYears:
-                result.data.user
-                    .contributionsCollection
-                    .contributionYears,
-        });
+            return Response.json(
+                {
+                    calendar: {
+                        totalContributions:
+                            calendar.totalContributions,
+            
+                        weeks: calendar.weeks.map(
+                            (week) => ({
+                                days:
+                                    week.contributionDays.map(
+                                        (day) => ({
+                                            date: day.date,
+                                            count:
+                                                day.contributionCount,
+                                            level:
+                                                getLevel(
+                                                    day.contributionLevel,
+                                                ),
+                                            weekday:
+                                                day.weekday,
+                                        }),
+                                    ),
+                            }),
+                        ),
+                    },
+            
+                    availableYears:
+                        result.data.user
+                            .contributionsCollection
+                            .contributionYears,
+                },
+                {
+                    headers: {
+                        "Cache-Control":
+                            "public, s-maxage=1800, stale-while-revalidate=3600",
+                    },
+                },
+            );
         
     } catch (error) {
         console.error(

@@ -1,46 +1,68 @@
 import type { ContributionCalendar } from "./types";
 
 const WEEKDAY_NAMES = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
+    "Sundays",
+    "Mondays",
+    "Tuesdays",
+    "Wednesdays",
+    "Thursdays",
+    "Fridays",
+    "Saturdays",
 ] as const;
 
-export function getWeekdayActivity(
+export type ContributionStats = {
+    mostActiveDay: string;
+    leastActiveDay: string;
+    weekdayTotals: Record<number, number>;
+};
+
+export function getContributionStats(
     calendar: ContributionCalendar,
-) {
-    const totals = Array.from(
-        { length: 7 },
-        () => 0,
-    );
+): ContributionStats {
+    const weekdayTotals: Record<number, number> = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+        6: 0,
+    };
 
     for (const week of calendar.weeks) {
         for (const day of week.days) {
-            totals[day.weekday - 1] += day.count;
+            weekdayTotals[day.weekday] +=
+                day.count;
         }
     }
 
-    const mostActiveIndex = totals.indexOf(
-        Math.max(...totals),
+    const weekdays = Object.keys(
+        weekdayTotals,
+    ).map(Number);
+
+    const mostActiveDay = weekdays.reduce(
+        (best, weekday) =>
+            weekdayTotals[weekday] >
+            weekdayTotals[best]
+                ? weekday
+                : best,
+        weekdays[0],
     );
 
-    const leastActiveIndex = totals.indexOf(
-        Math.min(...totals),
+    const leastActiveDay = weekdays.reduce(
+        (least, weekday) =>
+            weekdayTotals[weekday] <
+            weekdayTotals[least]
+                ? weekday
+                : least,
+        weekdays[0],
     );
 
     return {
-        mostActive: {
-            weekday: WEEKDAY_NAMES[mostActiveIndex],
-            contributions: totals[mostActiveIndex],
-        },
-
-        leastActive: {
-            weekday: WEEKDAY_NAMES[leastActiveIndex],
-            contributions: totals[leastActiveIndex],
-        },
+        mostActiveDay:
+            WEEKDAY_NAMES[mostActiveDay],
+        leastActiveDay:
+            WEEKDAY_NAMES[leastActiveDay],
+        weekdayTotals,
     };
 }

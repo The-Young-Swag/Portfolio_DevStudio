@@ -1,4 +1,6 @@
 import type { ContributionCalendar } from "./types";
+import type { ContributionStats } from "./ContributionStats";
+
 import { ActivityLegend } from "./ActivityLegend";
 
 const CONTRIBUTION_LEVEL_CLASSES = [
@@ -11,10 +13,12 @@ const CONTRIBUTION_LEVEL_CLASSES = [
 
 type ContributionHeatmapProps = {
     calendar: ContributionCalendar;
+    stats: ContributionStats;
 };
 
 export function ContributionHeatmap({
     calendar,
+    stats,
 }: ContributionHeatmapProps) {
 
     type Week = (typeof calendar.weeks)[number];
@@ -118,7 +122,7 @@ export function ContributionHeatmap({
                     <p>
                         Most active:{" "}
                         <span className="text-(--ink)">
-                            Tuesdays, for reasons unclear
+                            {stats.mostActiveDay}, for reasons unclear
                             even to me
                         </span>
                     </p>
@@ -126,7 +130,7 @@ export function ContributionHeatmap({
                     <p>
                         Least active:{" "}
                         <span className="text-(--ink)">
-                            Sundays — touch grass protocol
+                            {stats.leastActiveDay} — touch grass protocol
                             engaged
                         </span>
                     </p>
