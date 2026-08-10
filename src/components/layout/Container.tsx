@@ -12,7 +12,7 @@ export function Container({
     return (
         <div
             className={clsx(
-                "mx-auto w-full max-w-[1080px] px-6 lg:px-8",
+                "mx-auto w-full max-w-270 px-6 lg:px-8",
                 className,
             )}
         >

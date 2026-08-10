@@ -22,8 +22,8 @@ export function PortfolioLayout({
                 <main
                     className="
                         min-w-0
-                        lg:ml-[328px]
-                        lg:mr-[280px]
+                        lg:ml-82
+                        lg:mr-70
                     "
                 >
                     {children}

@@ -22,7 +22,7 @@ export function Breadcrumb() {
                 &gt;
             </span>
 
-            <span className="text-neutral-950">
+            <span className="hairline">
                 Profile
             </span>
         </nav>
