@@ -4,7 +4,7 @@
 /* GLOBAL DESIGN TOKENS */
 
 :root {
-    --paper: #eef1f0;
+    --paper: #f4f1ff;
     --ink: #111113;
     --graphite: #686b70;
     --graphite-soft: #969aa0;
@@ -27,11 +27,14 @@
     --heatmap-2: #32B77E;
     --heatmap-3: #18AA74;
     --heatmap-4: #059669;
+
+    /* Year Selector - Last 12 Months */
+    --viridian : #04a16f;
 }
 
 html.dark {
     --paper: #0b1110;
-    --ink: #f4f4f6;
+    --ink: #ededff;
     --graphite: #a6aca9;
     --graphite-soft: #7f8783;
     --line: rgba(255, 255, 255, 0.10);
@@ -53,6 +56,10 @@ html.dark {
     --heatmap-2: #2B956B;
     --heatmap-3: #2EB682;
     --heatmap-4: #34D399;
+
+    
+
+
 }
 
 /*

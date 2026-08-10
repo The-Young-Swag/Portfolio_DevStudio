@@ -44,8 +44,8 @@ export function YearSelector({
                             ${
                                 isSelected
                                     ? `
-                                        border-(--accent-strong)
-                                        bg-(--accent-strong)
+                                        border-(--viridian)
+                                        bg-(--viridian)
                                         text-white
                                     `
                                     : `

@@ -98,8 +98,8 @@ export function SidebarFooter() {
                         ${
                             isDark
                                 ? `
-                                    border-(--accent-strong)
-                                    bg-(--accent-strong)
+                                    border-(--viridian)
+                                    bg-(--viridian)
                                     shadow-none
                                 `
                                 : `
