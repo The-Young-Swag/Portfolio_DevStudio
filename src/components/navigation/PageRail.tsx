@@ -181,8 +181,7 @@ export function PageRail() {
                     uppercase
                     tracking-[0.16em]
 
-                    text-neutral-400
-                    dark:text-neutral-500
+                    text-(--graphite)
                 "
             >
                 On this page
@@ -192,9 +191,7 @@ export function PageRail() {
                 aria-label="On this page"
                 className="
                     border-l
-                    border-neutral-300/60
-
-                    dark:border-white/15
+                    border-(--graphite)/20
                 "
             >
                 {sections.map((section) => {
@@ -231,17 +228,13 @@ export function PageRail() {
                                 ${
                                     isActive
                                         ? `
-                                            border-[#059669]
-                                            text-[#059669]
-                                            dark:text-[#059669]
+                                            border-(--accent-strong)
+                                            text-(--accent-strong)
                                         `
                                         : `
-                                            text-neutral-400
-                                            hover:border-[#059669]/60
-                                            hover:text-[#059669]
-
-                                            dark:text-neutral-500
-                                            dark:hover:text-[#059669]
+                                            text-(--graphite)
+                                            hover:border-(--accent-strong)/60
+                                            hover:text-(--accent-strong)
                                         `
                                 }
                             `}
