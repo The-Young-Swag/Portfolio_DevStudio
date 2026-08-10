@@ -1,29 +1,33 @@
 const GITHUB_GRAPHQL_URL =
     "https://api.github.com/graphql";
 
-const CONTRIBUTIONS_QUERY = `
+    const CONTRIBUTIONS_QUERY = `
     query Contributions(
         $login: String!
         $from: DateTime!
         $to: DateTime!
     ) {
-    user(login: $login) {
-    contributionsCollection(
-        from: $from
-        to: $to
-    ) {
-        contributionCalendar {
-            totalContributions
-            weeks {
-                contributionDays {
-                    contributionCount
-                    contributionLevel
-                    date
+        user(login: $login) {
+            contributionsCollection(
+                from: $from
+                to: $to
+            ) {
+                contributionYears
+
+                contributionCalendar {
+                    totalContributions
+
+                    weeks {
+                        contributionDays {
+                            contributionCount
+                            contributionLevel
+                            date
+                            weekday
+                        }
+                    }
                 }
             }
         }
-    }
-}
     }
 `;
 
@@ -31,8 +35,11 @@ type GitHubResponse = {
     data?: {
         user: {
             contributionsCollection: {
+                contributionYears: number[];
+
                 contributionCalendar: {
                     totalContributions: number;
+
                     weeks: {
                         contributionDays: {
                             contributionCount: number;
@@ -43,12 +50,14 @@ type GitHubResponse = {
                                 | "THIRD_QUARTILE"
                                 | "FOURTH_QUARTILE";
                             date: string;
+                            weekday: number;
                         }[];
                     }[];
                 };
             };
         } | null;
     };
+
     errors?: {
         message: string;
     }[];
@@ -165,16 +174,7 @@ export async function GET(request: Request) {
                 .contributionsCollection
                 .contributionCalendar;
             
-        const availableYears = [
-            ...new Set(
-                calendar.weeks.flatMap((week) =>
-                    week.contributionDays.map(
-                        (day) =>
-                            new Date(day.date).getUTCFullYear(),
-                    ),
-                ),
-            ),
-        ].sort((a, b) => b - a);
+
         return Response.json({
             calendar: {
                 totalContributions:
@@ -192,13 +192,17 @@ export async function GET(request: Request) {
                                         getLevel(
                                             day.contributionLevel,
                                         ),
+                                    weekday: day.weekday,
                                 }),
                             ),
                     }),
                 ),
             },
         
-            availableYears,
+            availableYears:
+                result.data.user
+                    .contributionsCollection
+                    .contributionYears,
         });
         
     } catch (error) {
