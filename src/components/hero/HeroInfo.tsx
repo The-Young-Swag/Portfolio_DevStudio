@@ -13,7 +13,7 @@ export function HeroInfo() {
                     gap-1.5
                     font-mono
                     text-[11px]
-                    text-[var(--graphite)]
+                    text-(--graphite)
                 "
             >
                 <span
@@ -47,15 +47,15 @@ export function HeroInfo() {
             <div
                 className="
                     mt-7
-                    max-w-[520px]
+                    max-w-130
                     space-y-4
                     font-sans
                     text-[14.5px]
                     leading-relaxed
-                    text-[var(--graphite)]
+                    text-(--graphite)
                 "
             >
-                <Text className="text-[14.5px] leading-relaxed text-[var(--graphite)]">
+                <Text className="text-[14.5px] leading-relaxed text-(--graphite)">
                     {profile.description}
                 </Text>
             </div>
@@ -80,10 +80,10 @@ export function HeroInfo() {
                         inline-flex
                         items-center
                         gap-1
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         transition-colors
                         duration-150
-                        hover:text-[#059669]
+                        hover:text-(--accent-strong)
                     "
                 >
                     github ↗
@@ -97,10 +97,10 @@ export function HeroInfo() {
                         inline-flex
                         items-center
                         gap-1
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         transition-colors
                         duration-150
-                        hover:text-[#059669]
+                        hover:text-(--accent-strong)
                     "
                 >
                     linkedin ↗
@@ -114,10 +114,10 @@ export function HeroInfo() {
                         inline-flex
                         items-center
                         gap-1
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         transition-colors
                         duration-150
-                        hover:text-[#059669]
+                        hover:text-(--accent-strong)
                     "
                 >
                     résumé ↗
@@ -126,10 +126,10 @@ export function HeroInfo() {
                 <a
                     href={`mailto:${profile.email}`}
                     className="
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         transition-colors
                         duration-150
-                        hover:text-[#059669]
+                        hover:text-(--accent-strong)
                     "
                 >
                     email

@@ -3,12 +3,14 @@ import type { LucideIcon } from "lucide-react";
 type StatItemProps = {
     label: string;
     value: string;
+    suffix?: string;
     icon: LucideIcon;
 };
 
 export function StatItem({
     label,
     value,
+    suffix,
     icon: Icon,
 }: StatItemProps) {
     const isCoffeeStat = label === "Coffees Consumed";
@@ -56,6 +58,9 @@ export function StatItem({
             <p
                 className={`
                     mt-2
+                    flex
+                    items-baseline
+                    gap-2
                     font-display
                     text-[25px]
                     leading-none
@@ -64,12 +69,23 @@ export function StatItem({
                     duration-150
                     ${
                         isCoffeeStat
-                        ? "text-(--accent-strong) group-hover:text-(--ink)"
-                        : "text-(--ink)"
+                            ? "text-(--accent-strong) group-hover:text-(--ink)"
+                            : "text-(--ink)"
                     }
                 `}
             >
-                {value}
+                <span>{value}</span>
+                {suffix && (
+                    <span
+                        className="
+                            text-[19px]
+                            font-normal
+                            text-(--accent-strong)
+                        "
+                    >
+                        {suffix}
+                    </span>
+                )}
             </p>
         </div>
     );
