@@ -32,17 +32,17 @@ export function StatItem({
                     text-[12px]
                     uppercase
                     tracking-[0.08em]
-                    text-[var(--graphite)]
+                    text-(--graphite)
                     transition-colors
                     duration-150
-                    group-hover:text-[#059669]
+                    group-hover:text-(--accent-strong)
                 "
             >
                 <Icon
                     size={15}
                     strokeWidth={1.8}
                     className="
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         transition-colors
                         duration-150
                         group-hover:text-[#059669]
@@ -64,8 +64,8 @@ export function StatItem({
                     duration-150
                     ${
                         isCoffeeStat
-                            ? "text-[#059669] group-hover:text-neutral-950"
-                            : "text-neutral-950"
+                        ? "text-(--accent-strong) group-hover:text-(--ink)"
+                        : "text-(--ink)"
                     }
                 `}
             >
