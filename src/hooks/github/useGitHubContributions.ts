@@ -1,4 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import {
+    keepPreviousData,
+    useQuery,
+} from "@tanstack/react-query";
 
 import type {
     ContributionPeriodId,
@@ -7,6 +10,8 @@ import type {
 import {
     getGitHubContributions,
 } from "@/services/github/github";
+
+
 
 export function useGitHubContributions(
     period: ContributionPeriodId,
@@ -22,5 +27,8 @@ export function useGitHubContributions(
             getGitHubContributions(period),
 
         staleTime: 1000 * 60 * 10,
+
+        placeholderData:
+            keepPreviousData,
     });
 }

@@ -15,11 +15,12 @@ export type ContributionLevel =
     | 3
     | 4;
 
-export type ContributionDay = {
-    date: string;
-    count: number;
-    level: ContributionLevel;
-};
+    export type ContributionDay = {
+        date: string;
+        count: number;
+        level: ContributionLevel;
+        weekday: number;
+    };
 
 export type ContributionWeek = {
     days: ContributionDay[];
