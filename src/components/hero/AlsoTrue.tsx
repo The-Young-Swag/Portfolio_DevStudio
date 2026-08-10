@@ -21,7 +21,7 @@ const items = [
 
 export function AlsoTrue() {
     return (
-        <div className="border-t border-neutral-200 px-1 py-5 sm:py-6">
+        <div className="border-t hairline px-1 py-5 sm:py-6">
             <p
                 className="
                     mb-3
@@ -44,33 +44,33 @@ export function AlsoTrue() {
                         inline-flex
                         items-center
                         gap-2
-                        rounded-[12px]
+                        rounded-xl
                         border
-                        border-white/70
-                        bg-white/30
+                        border-(--glass-border)
+                        bg-(--glass-bg)
                         px-3
                         py-1.5
                         font-mono
                         text-[12.5px]
-                        text-[var(--graphite)]
+                        text-(--graphite)
                         shadow-[0_6px_20px_rgba(31,38,135,0.06)]
-                        backdrop-blur-[12px]
-                        backdrop-saturate-[140%]
+                        backdrop-blur-md
+                        backdrop-saturate-140
                         transition-colors
                         duration-150
-                        hover:border-[#059669]
-                        hover:text-[#059669]
+                        hover:border-(--accent-strong)
+                        hover:text-(--accent-strong)
                     "
                     >
                         <Icon
                             size={15}
                             strokeWidth={1.8}
                             className="
-                            text-[var(--graphite)]
-                            transition-colors
-                            duration-150
-                            group-hover:text-[#059669]
-                        "
+                                text-(--graphite)
+                                transition-colors
+                                duration-150
+                                group-hover:text-(--accent-strong)
+                            "
                         />
 
                         {text}

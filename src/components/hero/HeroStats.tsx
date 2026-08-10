@@ -9,9 +9,9 @@ import { AlsoTrue } from "./AlsoTrue";
 
 export function HeroStats() {
     return (
-        <div className="mt-10 border-t border-neutral-200">
+        <div className="mt-10 border-t hairline">
             <div className="grid grid-cols-3">
-                <div className="border-r border-neutral-200">
+                <div className="border-r hairline">
                     <StatItem
                         label="Experience"
                         value="--"
@@ -19,7 +19,7 @@ export function HeroStats() {
                     />
                 </div>
 
-                <div className="border-r border-neutral-200">
+                <div className="border-r hairline">
                     <StatItem
                         label="Commits / Year"
                         value="--"

@@ -7,11 +7,11 @@ export function HeroPortrait() {
                 overflow-hidden
                 rounded-[20px]
                 border
-                border-white/70
-                bg-white/30
+                border-(--glass-border)
+                bg-(--glass-bg)
                 shadow-[0_18px_45px_rgba(31,38,135,0.10)]
                 backdrop-blur-[18px]
-                backdrop-saturate-[140%]
+                backdrop-saturate-140
             "
         >
             <img
