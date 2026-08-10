@@ -23,9 +23,9 @@
 
     /* Build log */
     --heatmap-0: #E6E6E9;
-    --heatmap-1: #C6F0DE;
-    --heatmap-2: #8AD9B5;
-    --heatmap-3: #42B683;
+    --heatmap-1: #72D0A5;
+    --heatmap-2: #32B77E;
+    --heatmap-3: #18AA74;
     --heatmap-4: #059669;
 }
 
@@ -49,9 +49,9 @@ html.dark {
 
     /* Build log */
     --heatmap-0: #1F2321;
-    --heatmap-1: #123328;
-    --heatmap-2: #1C5940;
-    --heatmap-3: #278562;
+    --heatmap-1: #216A49;
+    --heatmap-2: #2B956B;
+    --heatmap-3: #2EB682;
     --heatmap-4: #34D399;
 }
 

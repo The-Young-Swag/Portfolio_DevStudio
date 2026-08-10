@@ -1,85 +1,22 @@
-import type { ContributionPeriodId } from "./types";
+import type { ContributionCalendar } from "./types";
 import { ActivityLegend } from "./ActivityLegend";
 
-import { useGitHubContributions } from "@/hooks/github/useGitHubContributions";
-
 const CONTRIBUTION_LEVEL_CLASSES = [
-    "bg-[#E6E6E9] dark:bg-[#1F2321]",
-    "bg-[#C6F0DE] dark:bg-[#123328]",
-    "bg-[#8AD9B5] dark:bg-[#1C5940]",
-    "bg-[#42B683] dark:bg-[#278562]",
-    "bg-[#059669] dark:bg-[#34D399]",
+    "bg-(--heatmap-0)",
+    "bg-(--heatmap-1)",
+    "bg-(--heatmap-2)",
+    "bg-(--heatmap-3)",
+    "bg-(--heatmap-4)",
 ] as const;
 
 type ContributionHeatmapProps = {
-    period: ContributionPeriodId;
+    calendar: ContributionCalendar;
 };
 
 export function ContributionHeatmap({
-    period,
+    calendar,
 }: ContributionHeatmapProps) {
-    const {
-        data,
-        isPending,
-        isError,
-        error,
-    } = useGitHubContributions(period);
 
-    if (isPending) {
-        return (
-            <div
-                className="
-                    overflow-hidden
-                    rounded-[26px]
-                    glass
-                    p-7
-                    sm:p-9
-                "
-            >
-                <p
-                    className="
-                        font-mono
-                        text-[10.5px]
-                        text-(--graphite)
-                    "
-                >
-                    Loading GitHub activity...
-                </p>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <div
-                className="
-                    overflow-hidden
-                    rounded-[26px]
-                    glass
-                    p-7
-                    sm:p-9
-                "
-            >
-                <p
-                    className="
-                        font-mono
-                        text-[10.5px]
-                        text-(--graphite)
-                    "
-                >
-                    {error instanceof Error
-                        ? error.message
-                        : "Unable to load GitHub activity."}
-                </p>
-            </div>
-        );
-    }
-
-    if (!data) {
-        return null;
-    }
-
-    const { calendar } = data;
     type Week = (typeof calendar.weeks)[number];
     type Day = Week["days"][number];
 

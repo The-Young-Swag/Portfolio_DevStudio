@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import { useGitHubContributions } from "@/hooks/github/useGitHubContributions";
+
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 
@@ -7,37 +9,80 @@ import { ContributionHeatmap } from "./ContributionHeatmap";
 import { YearSelector } from "./YearSelector";
 
 import type {
-    ContributionPeriod,
     ContributionPeriodId,
 } from "./types";
 
-const availablePeriods: ContributionPeriod[] = [
-    {
-        id: "last-12-months",
-        label: "Last 12 Months",
-    },
-    {
-        id: "2025",
-        label: "2025",
-        year: 2025,
-    },
-    {
-        id: "2024",
-        label: "2024",
-        year: 2024,
-    },
-    {
-        id: "2023",
-        label: "2023",
-        year: 2023,
-    },
-];
+
 
 export function GitHubActivitySection() {
     const [selectedPeriod, setSelectedPeriod] =
         useState<ContributionPeriodId>(
             "last-12-months",
         );
+
+        const {
+            data,
+            isPending,
+            isError,
+            error,
+        } = useGitHubContributions(
+            selectedPeriod,
+        );
+
+        if (isPending && !data) {
+            return (
+                <Section id="build-log">
+                    <Container>
+                        <SectionHeading
+                            number="01"
+                            title="Build log"
+                        />
+        
+                        <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
+                            Loading GitHub activity...
+                        </p>
+                    </Container>
+                </Section>
+            );
+        }
+        
+        if (isError) {
+            return (
+                <Section id="build-log">
+                    <Container>
+                        <SectionHeading
+                            number="01"
+                            title="Build log"
+                        />
+        
+                        <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
+                            {error instanceof Error
+                                ? error.message
+                                : "Unable to load GitHub activity."}
+                        </p>
+                    </Container>
+                </Section>
+            );
+        }
+        
+        if (!data) {
+            return null;
+        }
+
+        const availablePeriods = [
+            {
+                id: "last-12-months" as const,
+                label: "Last 12 Months",
+            },
+        
+            ...data.availableYears.map(
+                (year) => ({
+                    id: String(year) as ContributionPeriodId,
+                    label: String(year),
+                    year,
+                }),
+            ),
+        ];
 
     return (
         <Section id="build-log">
@@ -56,7 +101,7 @@ export function GitHubActivitySection() {
 
                     <div className="mt-6">
                         <ContributionHeatmap
-                            period={selectedPeriod}
+                        calendar={data.calendar}
                         />
                     </div>
                 </div>

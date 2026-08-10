@@ -1,4 +1,5 @@
 import type {
+    ContributionCalendar,
     ContributionPeriod,
     ContributionPeriodId,
 } from "./types";
@@ -10,12 +11,14 @@ type BuildLogProps = {
     periods: ContributionPeriod[];
     selectedPeriod: ContributionPeriodId;
     onPeriodChange: (periodId: ContributionPeriodId) => void;
+    calendar: ContributionCalendar;
 };
 
 export function BuildLog({
     periods,
     selectedPeriod,
     onPeriodChange,
+    calendar,
 }: BuildLogProps) {
     return (
         <>
@@ -27,7 +30,7 @@ export function BuildLog({
 
             <div className="mt-6">
                 <ContributionHeatmap
-                    period={selectedPeriod}
+                    calendar={calendar}
                 />
             </div>
         </>

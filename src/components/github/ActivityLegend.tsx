@@ -1,9 +1,9 @@
 const LEGEND_LEVEL_CLASSES = [
-    "bg-[#E6E6E9] dark:bg-[#1F2321]",
-    "bg-[#C6F0DE] dark:bg-[#123328]",
-    "bg-[#8AD9B5] dark:bg-[#1C5940]",
-    "bg-[#42B683] dark:bg-[#278562]",
-    "bg-[#059669] dark:bg-[#34D399]",
+    "bg-(--heatmap-0)",
+    "bg-(--heatmap-1)",
+    "bg-(--heatmap-2)",
+    "bg-(--heatmap-3)",
+    "bg-(--heatmap-4)",
 ] as const;
 
 export function ActivityLegend() {
