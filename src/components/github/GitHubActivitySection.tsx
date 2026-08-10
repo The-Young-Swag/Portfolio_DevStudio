@@ -35,7 +35,9 @@ const availablePeriods: ContributionPeriod[] = [
 
 export function GitHubActivitySection() {
     const [selectedPeriod, setSelectedPeriod] =
-        useState<ContributionPeriodId>("last-12-months");
+        useState<ContributionPeriodId>(
+            "last-12-months",
+        );
 
     return (
         <Section id="build-log">

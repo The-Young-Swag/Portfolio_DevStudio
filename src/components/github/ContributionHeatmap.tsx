@@ -1,6 +1,8 @@
 import type { ContributionPeriodId } from "./types";
 import { ActivityLegend } from "./ActivityLegend";
 
+import { useGitHubContributions } from "@/hooks/github/useGitHubContributions";
+
 const CONTRIBUTION_LEVEL_CLASSES = [
     "bg-[#E6E6E9] dark:bg-[#1F2321]",
     "bg-[#C6F0DE] dark:bg-[#123328]",
@@ -13,80 +15,73 @@ type ContributionHeatmapProps = {
     period: ContributionPeriodId;
 };
 
-type ContributionCell = {
-    count: number;
-    level: number;
-};
-
-const WEEKS = 52;
-const DAYS_PER_WEEK = 7;
-
-function getContributionLevel(count: number) {
-    if (count === 0) return 0;
-    if (count <= 2) return 1;
-    if (count <= 5) return 2;
-    if (count <= 9) return 3;
-
-    return 4;
-}
-
-function generateContributionData(
-    period: ContributionPeriodId,
-): ContributionCell[] {
-    const cells: ContributionCell[] = [];
-
-    for (let week = 0; week < WEEKS; week++) {
-        for (
-            let day = 0;
-            day < DAYS_PER_WEEK;
-            day++
-        ) {
-            const seed = Math.abs(
-                Math.sin(
-                    week * 12.9898 +
-                        day * 78.233 +
-                        period.length * 37.17,
-                ),
-            );
-
-            const count =
-                seed > 0.82
-                    ? 10 + Math.floor(seed * 8)
-                    : seed > 0.66
-                      ? 6 + Math.floor(seed * 4)
-                      : seed > 0.46
-                        ? 3 + Math.floor(seed * 3)
-                        : seed > 0.28
-                          ? 1 + Math.floor(seed * 2)
-                          : 0;
-
-            cells.push({
-                count,
-                level: getContributionLevel(count),
-            });
-        }
-    }
-
-    return cells;
-}
-
-function getTotalContributions(
-    contributions: ContributionCell[],
-) {
-    return contributions.reduce(
-        (total, day) => total + day.count,
-        0,
-    );
-}
-
 export function ContributionHeatmap({
     period,
 }: ContributionHeatmapProps) {
-    const contributions =
-        generateContributionData(period);
+    const {
+        data,
+        isPending,
+        isError,
+        error,
+    } = useGitHubContributions(period);
 
-    const totalContributions =
-        getTotalContributions(contributions);
+    if (isPending) {
+        return (
+            <div
+                className="
+                    overflow-hidden
+                    rounded-[26px]
+                    glass
+                    p-7
+                    sm:p-9
+                "
+            >
+                <p
+                    className="
+                        font-mono
+                        text-[10.5px]
+                        text-(--graphite)
+                    "
+                >
+                    Loading GitHub activity...
+                </p>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div
+                className="
+                    overflow-hidden
+                    rounded-[26px]
+                    glass
+                    p-7
+                    sm:p-9
+                "
+            >
+                <p
+                    className="
+                        font-mono
+                        text-[10.5px]
+                        text-(--graphite)
+                    "
+                >
+                    {error instanceof Error
+                        ? error.message
+                        : "Unable to load GitHub activity."}
+                </p>
+            </div>
+        );
+    }
+
+    if (!data) {
+        return null;
+    }
+
+    const { calendar } = data;
+    type Week = (typeof calendar.weeks)[number];
+    type Day = Week["days"][number];
 
     return (
         <div
@@ -117,8 +112,8 @@ export function ContributionHeatmap({
                         text-(--ink)
                     "
                 >
-                    {totalContributions.toLocaleString()}{" "}
-                    contributions in the last year
+                    {calendar.totalContributions.toLocaleString()}{" "}
+                    contributions
                 </p>
 
                 <ActivityLegend />
@@ -134,45 +129,32 @@ export function ContributionHeatmap({
                             px-2
                         "
                         role="grid"
-                        aria-label="Contribution activity"
+                        aria-label="GitHub contribution activity"
                     >
-                    {Array.from({ length: WEEKS }).map(
-                        (_, weekIndex) => (
-                            <div
-                                key={weekIndex}
-                                className="flex flex-col gap-0.75"
-                            >
-                                {Array.from({
-                                    length: DAYS_PER_WEEK,
-                                }).map((_, dayIndex) => {
-                                    const day =
-                                        contributions[
-                                            weekIndex *
-                                                DAYS_PER_WEEK +
-                                                dayIndex
-                                        ];
-
-                                    return (
-                                        <div
-                                            key={`${weekIndex}-${dayIndex}`}
-                                            title={`${day.count} contributions`}
-                                            role="gridcell"
-                                            aria-label={`${day.count} contributions`}
-                                            className={`
-                                                h-2.75
-                                                w-2.75
-                                                shrink-0
-                                                rounded-sm
-                                                ${CONTRIBUTION_LEVEL_CLASSES[day.level]}
-                                            `}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ),
-                    )}
+                    {calendar.weeks.map((week: Week, weekIndex: number) => (
+                        <div
+                            key={weekIndex}
+                            className="flex flex-col gap-0.75"
+                        >
+                            {week.days.map((day: Day) => (
+                                <div
+                                    key={day.date}
+                                    title={`${day.count} contributions — ${day.date}`}
+                                    role="gridcell"
+                                    aria-label={`${day.count} contributions on ${day.date}`}
+                                    className={`
+                                        h-2.75
+                                        w-2.75
+                                        shrink-0
+                                        rounded-sm
+                                        ${CONTRIBUTION_LEVEL_CLASSES[day.level]}
+                                    `}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                    </div>
                 </div>
-            </div>
             </div>
 
             {/* Activity summary */}

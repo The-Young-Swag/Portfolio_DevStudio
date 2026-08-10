@@ -6,7 +6,9 @@ import type {
 type YearSelectorProps = {
     periods: ContributionPeriod[];
     selectedPeriod: ContributionPeriodId;
-    onPeriodChange: (periodId: ContributionPeriodId) => void;
+    onPeriodChange: (
+        periodId: ContributionPeriodId,
+    ) => void;
 };
 
 export function YearSelector({
@@ -42,16 +44,16 @@ export function YearSelector({
                             ${
                                 isSelected
                                     ? `
-                                        border-[#059669]
-                                        bg-[#059669]
+                                        border-(--accent-strong)
+                                        bg-(--accent-strong)
                                         text-white
                                     `
                                     : `
-                                        border-white/70
-                                        bg-white/30
+                                        border-(--glass-border)
+                                        bg-(--glass-bg)
                                         text-(--graphite)
-                                        hover:border-[#42B683]
-                                        hover:text-[#059669]
+                                        hover:border-(--accent-strong)
+                                        hover:text-(--accent-strong)
                                     `
                             }
                         `}
