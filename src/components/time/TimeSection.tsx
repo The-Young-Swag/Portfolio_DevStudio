@@ -341,84 +341,73 @@ export function TimeSection() {
 
                         {/* Left forest */}
                         <g fill="#06100F">
-                            <g
-                                transform="translate(18,178) scale(1.45)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(18,178) scale(1.45)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(58,154) scale(1.95)"
-                                className="time-tree time-tree-slow"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(58,154) scale(1.95)">
+                                <g className="time-tree time-tree-slow">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(110,184) scale(1.18)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(110,184) scale(1.18)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(150,164) scale(1.78)"
-                                className="time-tree time-tree-slow"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(150,164) scale(1.78)">
+                                <g className="time-tree time-tree-slow">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(200,176) scale(1.52)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(200,176) scale(1.52)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(248,196) scale(0.95)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(248,196) scale(0.95)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
                         </g>
 
                         {/* Right forest */}
                         <g fill="#06100F">
-                            <g
-                                transform="translate(660,190) scale(1.02)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(660,190) scale(1.02)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(708,176) scale(1.48)"
-                                className="time-tree time-tree-slow"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(708,176) scale(1.48)">
+                                <g className="time-tree time-tree-slow">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(760,154) scale(1.92)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(760,154) scale(1.92)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(822,180) scale(1.36)"
-                                className="time-tree time-tree-slow"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(822,180) scale(1.36)">
+                                <g className="time-tree time-tree-slow">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
 
-                            <g
-                                transform="translate(872,152) scale(2.02)"
-                                className="time-tree"
-                            >
-                                <use href="#pineTree" />
+                            <g transform="translate(872,152) scale(2.02)">
+                                <g className="time-tree">
+                                    <use href="#pineTree" />
+                                </g>
                             </g>
                         </g>
                     </svg>
@@ -444,7 +433,7 @@ export function TimeSection() {
                                     font-mono
                                     text-[10.5px]
                                     uppercase
-                                    tracking-[0.1em]
+                                    tracking-widest
                                     text-neutral-500
                                 "
                             >
@@ -498,8 +487,7 @@ export function TimeSection() {
                         text-neutral-500
                     "
                 >
-                    "Time is an illusion. Lunchtime doubly so."
-                    — Douglas Adams
+                    "Seize the day, then let it go."
                 </p>
             </Container>
         </Section>

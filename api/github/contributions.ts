@@ -7,32 +7,29 @@ const CONTRIBUTIONS_QUERY = `
         $from: DateTime!
         $to: DateTime!
     ) {
-        user(login: $login) {
-            contributionsCollection(
-                from: $from
-                to: $to
-            ) {
-                contributionCalendar {
-                    totalContributions
-                    weeks {
-                        contributionDays {
-                            contributionCount
-                            contributionLevel
-                            date
-                        }
-                    }
+    user(login: $login) {
+    contributionsCollection(
+        from: $from
+        to: $to
+    ) {
+        contributionCalendar {
+            totalContributions
+            weeks {
+                contributionDays {
+                    contributionCount
+                    contributionLevel
+                    date
                 }
             }
-
-            contributionYears
         }
+    }
+}
     }
 `;
 
 type GitHubResponse = {
     data?: {
         user: {
-            contributionYears: number[];
             contributionsCollection: {
                 contributionCalendar: {
                     totalContributions: number;
@@ -87,29 +84,14 @@ function getDateRange(period: string) {
     };
 }
 
-export default async function handler(
-    request: Request,
-) {
-    if (request.method !== "GET") {
-        return Response.json(
-            {
-                error: "Method not allowed",
-            },
-            {
-                status: 405,
-            },
-        );
-    }
-
+export async function GET(request: Request) {
     const token = process.env.GITHUB_TOKEN;
-    const username =
-        process.env.GITHUB_USERNAME;
+    const username = process.env.GITHUB_USERNAME;
 
     if (!token || !username) {
         return Response.json(
             {
-                error:
-                    "GitHub API configuration is missing.",
+                error: "GitHub API configuration is missing.",
             },
             {
                 status: 500,
@@ -140,8 +122,7 @@ export default async function handler(
                     query: CONTRIBUTIONS_QUERY,
                     variables: {
                         login: username,
-                        from:
-                            from.toISOString(),
+                        from: from.toISOString(),
                         to: to.toISOString(),
                     },
                 }),
@@ -170,8 +151,7 @@ export default async function handler(
             return Response.json(
                 {
                     error:
-                        result.errors?.[0]
-                            ?.message ??
+                        result.errors?.[0]?.message ??
                         "GitHub user not found.",
                 },
                 {
@@ -184,34 +164,49 @@ export default async function handler(
             result.data.user
                 .contributionsCollection
                 .contributionCalendar;
-
+            
+        const availableYears = [
+            ...new Set(
+                calendar.weeks.flatMap((week) =>
+                    week.contributionDays.map(
+                        (day) =>
+                            new Date(day.date).getUTCFullYear(),
+                    ),
+                ),
+            ),
+        ].sort((a, b) => b - a);
         return Response.json({
             calendar: {
                 totalContributions:
                     calendar.totalContributions,
-
+        
                 weeks: calendar.weeks.map(
                     (week) => ({
-                        days: week.contributionDays.map(
-                            (day) => ({
-                                date: day.date,
-                                count:
-                                    day.contributionCount,
-                                level:
-                                    getLevel(
-                                        day.contributionLevel,
-                                    ),
-                            }),
-                        ),
+                        days:
+                            week.contributionDays.map(
+                                (day) => ({
+                                    date: day.date,
+                                    count:
+                                        day.contributionCount,
+                                    level:
+                                        getLevel(
+                                            day.contributionLevel,
+                                        ),
+                                }),
+                            ),
                     }),
                 ),
             },
-
-            availableYears:
-                result.data.user
-                    .contributionYears,
+        
+            availableYears,
         });
-    } catch {
+        
+    } catch (error) {
+        console.error(
+            "GitHub contributions error:",
+            error,
+        );
+
         return Response.json(
             {
                 error:
