@@ -98,8 +98,8 @@ export function SidebarFooter() {
                         ${
                             isDark
                                 ? `
-                                    border-[#4ACB86]
-                                    bg-[#4ACB86]
+                                    border-(--accent-strong)
+                                    bg-(--accent-strong)
                                     shadow-none
                                 `
                                 : `
@@ -131,7 +131,7 @@ export function SidebarFooter() {
                                     `
                                     : `
                                         translate-x-0
-                                        bg-[#40826D]
+                                        bg-(--accent-strong)
                                         text-white
                                     `
                             }
