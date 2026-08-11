@@ -1,10 +1,7 @@
 import { useState } from "react";
 
-import {
-    getContributionStats,
-} from "./ContributionStats";
-
-import { useGitHubContributions } from "@/hooks/github/useGitHubContributions";
+import { getContributionStats } from "./ContributionStats";
+import { useAllGitHubContributions } from "@/hooks/github/useGitHubContributions";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
@@ -12,34 +9,19 @@ import { SectionHeading } from "@/components/ui";
 import { ContributionHeatmap } from "./ContributionHeatmap";
 import { YearSelector } from "./YearSelector";
 
-import type {
-    ContributionPeriodId,
-} from "./types";
+import type { ContributionPeriodId } from "./types";
 
 export function GitHubActivitySection() {
     const [selectedPeriod, setSelectedPeriod] =
-        useState<ContributionPeriodId>(
-            "last-12-months",
-        );
+        useState<ContributionPeriodId>("last-12-months");
 
-    const {
-        data,
-        isPending,
-        isError,
-        error,
-    } = useGitHubContributions(
-        selectedPeriod,
-    );
+    const { data, isPending, isError, error } = useAllGitHubContributions();
 
-    if (isPending && !data) {
+    if (isPending) {
         return (
             <Section id="build-log">
                 <Container>
-                    <SectionHeading
-                        number="01"
-                        title="Build log"
-                    />
-
+                    <SectionHeading number="01" title="Build log" />
                     <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
                         Loading GitHub activity...
                     </p>
@@ -48,15 +30,11 @@ export function GitHubActivitySection() {
         );
     }
 
-    if (isError && !data) {
+    if (isError || !data) {
         return (
             <Section id="build-log">
                 <Container>
-                    <SectionHeading
-                        number="01"
-                        title="Build log"
-                    />
-
+                    <SectionHeading number="01" title="Build log" />
                     <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
                         {error instanceof Error
                             ? error.message
@@ -67,54 +45,37 @@ export function GitHubActivitySection() {
         );
     }
 
-    if (!data) {
+    const calendar = data.calendarsByPeriod[selectedPeriod];
+
+    if (!calendar) {
         return null;
     }
 
-    const contributionStats =
-        getContributionStats(data.calendar);
+    const contributionStats = getContributionStats(calendar);
 
     const availablePeriods = [
-        {
-            id: "last-12-months" as const,
-            label: "Last 12 Months",
-        },
-
-        ...data.availableYears.map(
-            (year) => ({
-                id: String(
-                    year,
-                ) as ContributionPeriodId,
-                label: String(year),
-                year,
-            }),
-        ),
+        { id: "last-12-months" as const, label: "Last 12 Months" },
+        ...data.availableYears.map((year) => ({
+            id: String(year) as ContributionPeriodId,
+            label: String(year),
+            year,
+        })),
     ];
 
     return (
         <Section id="build-log">
             <Container>
-                <SectionHeading
-                    number="01"
-                    title="Build log"
-                />
+                <SectionHeading number="01" title="Build log" />
 
                 <div className="mt-8">
                     <YearSelector
                         periods={availablePeriods}
-                        selectedPeriod={
-                            selectedPeriod
-                        }
-                        onPeriodChange={
-                            setSelectedPeriod
-                        }
+                        selectedPeriod={selectedPeriod}
+                        onPeriodChange={setSelectedPeriod}
                     />
 
                     <div className="mt-6">
-                        <ContributionHeatmap
-                            calendar={ data.calendar }
-                            stats={ contributionStats }
-                        />
+                        <ContributionHeatmap calendar={calendar} stats={contributionStats} />
                     </div>
                 </div>
             </Container>

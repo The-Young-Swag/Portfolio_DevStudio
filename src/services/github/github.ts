@@ -1,23 +1,28 @@
 import type {
-    ContributionPeriodId,
     GitHubContributionsResponse,
 } from "@/components/github/types";
 
-export async function getGitHubContributions(
-    period: ContributionPeriodId,
-): Promise<GitHubContributionsResponse> {
+export async function getGitHubContributions(): Promise<GitHubContributionsResponse> {
     const response = await fetch(
-        `/api/github/contributions?period=${encodeURIComponent(
-            period,
-        )}`,
+        "/api/github/contributions",
+        {
+            method: "GET",
+            headers: {
+                Accept:
+                    "application/json",
+            },
+        },
     );
 
     if (!response.ok) {
-        const body = (await response
-            .json()
-            .catch(() => null)) as {
-            error?: string;
-        } | null;
+        const body =
+            (await response
+                .json()
+                .catch(
+                    () => null,
+                )) as {
+                error?: string;
+            } | null;
 
         throw new Error(
             body?.error ??

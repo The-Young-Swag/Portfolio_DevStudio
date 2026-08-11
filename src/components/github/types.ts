@@ -8,19 +8,14 @@ export type ContributionPeriod = {
     year?: number;
 };
 
-export type ContributionLevel =
-    | 0
-    | 1
-    | 2
-    | 3
-    | 4;
+export type ContributionLevel = 0 | 1 | 2 | 3 | 4;
 
-    export type ContributionDay = {
-        date: string;
-        count: number;
-        level: ContributionLevel;
-        weekday: number;
-    };
+export type ContributionDay = {
+    date: string;
+    count: number;
+    level: ContributionLevel;
+    weekday: number;
+};
 
 export type ContributionWeek = {
     days: ContributionDay[];
@@ -31,7 +26,8 @@ export type ContributionCalendar = {
     weeks: ContributionWeek[];
 };
 
+// NEW: all periods fetched and cached in a single response
 export type GitHubContributionsResponse = {
-    calendar: ContributionCalendar;
+    calendarsByPeriod: Record<ContributionPeriodId, ContributionCalendar>;
     availableYears: number[];
 };
