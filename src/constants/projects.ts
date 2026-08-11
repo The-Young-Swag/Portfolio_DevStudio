@@ -1,3 +1,7 @@
+import arcHiveThumbnail from "@/assets/images/projects/arc-hive.webp";
+import libraryAttendanceThumbnail from "@/assets/images/projects/library-attendance.webp";
+import luminoesisThumbnail from "@/assets/images/projects/luminoesis.webp";
+
 export const projects = [
     {
         title: "Arc-Hive",
@@ -5,6 +9,8 @@ export const projects = [
             "Document archival system designed to digitize and organize physical document records.",
         stack: ["PHP", "MySQL", "Tesseract OCR"],
         year: 2026,
+        category: "DOCUMENT ARCHIVAL",
+        thumbnail: arcHiveThumbnail,
     },
     {
         title: "Library Attendance Monitoring System",
@@ -12,6 +18,9 @@ export const projects = [
             "Real-time library attendance monitoring system developed during internship.",
         stack: ["PHP", "MSSQL", "jQuery AJAX"],
         year: 2026,
+        category: "REAL-TIME SYSTEM",
+        thumbnail:
+            libraryAttendanceThumbnail,
     },
     {
         title: "LumiNoesis AI",
@@ -19,5 +28,7 @@ export const projects = [
             "AI-powered educational platform designed to help students learn through contextual tutoring, quizzes, and flashcards.",
         stack: ["React", "PHP", "FastAPI"],
         year: 2026,
+        category: "AI / EDUCATION",
+        thumbnail: luminoesisThumbnail,
     },
 ];
