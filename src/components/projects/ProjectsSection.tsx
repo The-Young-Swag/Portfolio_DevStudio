@@ -1,7 +1,7 @@
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
+import { ProjectCarousel } from "./ProjectCarousel";
 
-import { ProjectsGrid } from "./ProjectsGrid";
 
 export function ProjectsSection() {
     return (
@@ -13,7 +13,7 @@ export function ProjectsSection() {
                 />
 
                 <div className="mt-5">
-                    <ProjectsGrid />
+                    <ProjectCarousel />
                 </div>
 
                 <a
