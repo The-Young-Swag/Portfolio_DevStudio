@@ -25,9 +25,13 @@ function getInitialTheme(): Theme {
         return savedTheme;
     }
 
-    return document.documentElement.classList.contains("dark")
-        ? "dark"
-        : "light";
+    /*
+     * First visit: pick the theme from the viewer's time of day —
+     * 7 AM to 5 PM reads as light, everything else as dark.
+     */
+    const hour = new Date().getHours();
+
+    return hour >= 7 && hour < 17 ? "light" : "dark";
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(
