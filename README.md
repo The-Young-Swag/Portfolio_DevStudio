@@ -6,7 +6,8 @@ Certifications) plus a live GitHub contribution log.
 
 ## Getting started
 
-Requires **Node.js 20+**.
+Requires **Node.js 22.18+** (Vite 8 uses the native runtime to load
+`vite.config.ts`; the dev container runs Node 24).
 
 ```bash
 npm install
@@ -16,6 +17,10 @@ npm run dev
 Open **http://localhost:4975** in your browser. The dev server is configured
 for the repository's VS Code dev container (port `4975` is forwarded to the
 host automatically).
+
+To run through Vercel locally instead, use `vercel dev` — the project's
+`vercel.json` sets the dev command to `vite --port $PORT --configLoader
+native`.
 
 ### GitHub contribution log (optional)
 
@@ -39,6 +44,11 @@ route uses the configured environment variables.
 | `npm run build`     | Type-check and build for production            |
 | `npm run preview`   | Preview the production build locally           |
 | `npm run lint`      | Run ESLint                                     |
+
+All Vite commands use `--configLoader native`, which loads the config with
+Node's runtime instead of bundling it with Rolldown. This is required on
+Windows, where the default Rolldown config loader fails to resolve
+`vite.config.ts`.
 
 ## Structure
 
