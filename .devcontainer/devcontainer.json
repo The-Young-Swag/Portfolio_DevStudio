@@ -4,5 +4,12 @@
   "containerEnv": {
     "AGENT_BROWSER_EXECUTABLE_PATH": "/usr/bin/chromium"
   },
-  "postCreateCommand": "bash .devcontainer/setup.sh"
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "forwardPorts": [4975],
+  "portsAttributes": {
+    "4975": {
+      "label": "Portfolio dev server",
+      "onAutoForward": "notify"
+    }
+  }
 }
