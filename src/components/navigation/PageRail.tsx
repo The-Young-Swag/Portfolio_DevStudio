@@ -1,67 +1,60 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 
-const sections = [
-    {
-        id: "overview",
-        label: "Overview",
-    },
-    {
-        id: "build-log",
-        label: "Build log",
-    },
-    {
-        id: "projects",
-        label: "Projects",
-    },
-    {
-        id: "experience",
-        label: "Experience",
-    },
-    {
-        id: "stack",
-        label: "Stack",
-    },
-    {
-        id: "certification",
-        label: "Certification",
-    },
-    {
-        id: "time",
-        label: "Right now",
-    },
-    {
-        id: "contact",
-        label: "Contact",
-    },
-];
+const homeSections = [
+    { id: "overview", label: "Overview" },
+    { id: "build-log", label: "Build log" },
+    { id: "projects", label: "Projects" },
+    { id: "experience", label: "Experience" },
+    { id: "stack", label: "Stack" },
+    { id: "certification", label: "Certification" },
+    { id: "time", label: "Right now" },
+    { id: "contact", label: "Contact" },
+] as const;
 
-function getActiveSection(): string {
+const pageSections: Record<string, readonly { id: string; label: string }[]> = {
+    "/projects": [
+        { id: "overview", label: "Overview" },
+        { id: "showcase", label: "Showcase" },
+        { id: "details", label: "Details" },
+    ],
+    "/experience": [
+        { id: "overview", label: "Overview" },
+        { id: "timeline", label: "Timeline" },
+        { id: "receipts", label: "Receipts" },
+    ],
+    "/stack": [
+        { id: "overview", label: "Overview" },
+        { id: "tools", label: "Tools" },
+        { id: "notes", label: "Notes" },
+    ],
+    "/certifications": [
+        { id: "overview", label: "Overview" },
+        { id: "credentials", label: "Credentials" },
+        { id: "verify", label: "Verify" },
+    ],
+};
+
+function getActiveSection(sections: readonly { id: string; label: string }[]) {
     const elements = sections
         .map(({ id }) => document.getElementById(id))
-        .filter(
-            (element): element is HTMLElement =>
-                element !== null,
-        );
+        .filter((element): element is HTMLElement => element !== null);
 
     if (elements.length === 0) {
-        return "overview";
+        return sections[0]?.id ?? "";
     }
 
     /*
-     * Contact is the final section.
-     *
-     * When the user reaches the bottom of the document,
-     * explicitly activate Contact. This prevents the last
-     * section from being skipped by viewport-based detection.
+     * The final section of a page: when the user reaches the
+     * bottom of the document, explicitly activate it. This
+     * prevents the last section from being skipped by
+     * viewport-based detection.
      */
-    const scrollPosition =
-        window.scrollY + window.innerHeight;
-
-    const documentHeight =
-        document.documentElement.scrollHeight;
+    const scrollPosition = window.scrollY + window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
 
     if (scrollPosition >= documentHeight - 8) {
-        return "contact";
+        return sections[sections.length - 1].id;
     }
 
     /*
@@ -69,16 +62,12 @@ function getActiveSection(): string {
      * reference line. The last section whose top has crossed
      * that line is the active section.
      */
-    const activationLine =
-        window.innerHeight * 0.2;
+    const activationLine = window.innerHeight * 0.2;
 
     let activeSection = elements[0].id;
 
     for (const element of elements) {
-        if (
-            element.getBoundingClientRect().top <=
-            activationLine
-        ) {
+        if (element.getBoundingClientRect().top <= activationLine) {
             activeSection = element.id;
         } else {
             break;
@@ -88,23 +77,18 @@ function getActiveSection(): string {
     return activeSection;
 }
 
-function useActiveSection() {
-    const [activeSection, setActiveSection] =
-        useState("overview");
+function useActiveSection(sections: readonly { id: string; label: string }[]) {
+    const [activeSection, setActiveSection] = useState(() => sections[0]?.id ?? "");
 
     useEffect(() => {
         let frameId: number | null = null;
 
         const updateActiveSection = () => {
             frameId = null;
-
-            const nextSection = getActiveSection();
-
-            setActiveSection((currentSection) =>
-                currentSection === nextSection
-                    ? currentSection
-                    : nextSection,
-            );
+            setActiveSection((currentSection) => {
+                const nextSection = getActiveSection(sections);
+                return currentSection === nextSection ? currentSection : nextSection;
+            });
         };
 
         const handleScroll = () => {
@@ -112,49 +96,32 @@ function useActiveSection() {
                 return;
             }
 
-            frameId = window.requestAnimationFrame(
-                updateActiveSection,
-            );
+            frameId = window.requestAnimationFrame(updateActiveSection);
         };
 
-        /*
-         * Determine the correct section immediately on mount.
-         */
         updateActiveSection();
 
-        window.addEventListener(
-            "scroll",
-            handleScroll,
-            { passive: true },
-        );
-
-        window.addEventListener(
-            "resize",
-            handleScroll,
-        );
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        window.addEventListener("resize", handleScroll);
 
         return () => {
-            window.removeEventListener(
-                "scroll",
-                handleScroll,
-            );
-
-            window.removeEventListener(
-                "resize",
-                handleScroll,
-            );
+            window.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("resize", handleScroll);
 
             if (frameId !== null) {
                 window.cancelAnimationFrame(frameId);
             }
         };
-    }, []);
+    }, [sections]);
 
     return activeSection;
 }
 
 export function PageRail() {
-    const activeSection = useActiveSection();
+    const { pathname } = useLocation();
+
+    const sections = pageSections[pathname] ?? homeSections;
+    const activeSection = useActiveSection(sections);
 
     return (
         <aside
@@ -195,18 +162,13 @@ export function PageRail() {
                 "
             >
                 {sections.map((section) => {
-                    const isActive =
-                        activeSection === section.id;
+                    const isActive = activeSection === section.id;
 
                     return (
                         <a
                             key={section.id}
                             href={`#${section.id}`}
-                            aria-current={
-                                isActive
-                                    ? "location"
-                                    : undefined
-                            }
+                            aria-current={isActive ? "location" : undefined}
                             className={`
                                 relative
                                 block

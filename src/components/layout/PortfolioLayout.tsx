@@ -1,11 +1,7 @@
-import type { PropsWithChildren } from "react";
+import { Outlet } from "react-router";
 import { PageRail, Sidebar } from "@/components/navigation";
 
-type PortfolioLayoutProps = PropsWithChildren;
-
-export function PortfolioLayout({
-    children,
-}: PortfolioLayoutProps) {
+export function PortfolioLayout() {
     return (
         <div className="relative min-h-screen">
             {/* Background image / atmosphere */}
@@ -26,7 +22,7 @@ export function PortfolioLayout({
                         lg:mr-70
                     "
                 >
-                    {children}
+                    <Outlet />
                 </main>
 
                 {/* Right page navigation */}

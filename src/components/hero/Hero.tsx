@@ -8,7 +8,7 @@ export function Hero() {
     return (
         <Section id="overview" className="pt-8 md:pt-10">
             <Container>
-                <Breadcrumb />
+                <Breadcrumb current="Profile" />
 
                 <div
                     className="
