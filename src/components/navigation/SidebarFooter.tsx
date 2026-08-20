@@ -1,45 +1,8 @@
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
-
-function getInitialTheme(): Theme {
-    if (typeof document === "undefined") {
-        return "light";
-    }
-
-    const savedTheme = localStorage.getItem("theme");
-
-    if (
-        savedTheme === "light" ||
-        savedTheme === "dark"
-    ) {
-        return savedTheme;
-    }
-
-    return document.documentElement.classList.contains(
-        "dark",
-    )
-        ? "dark"
-        : "light";
-}
+import { useTheme } from "@/context/theme";
 
 export function SidebarFooter() {
-    const [theme, setTheme] =
-        useState<Theme>(getInitialTheme);
-
-    useEffect(() => {
-        document.documentElement.classList.toggle(
-            "dark",
-            theme === "dark",
-        );
-    }, [theme]);
-
-    function toggleTheme() {
-        setTheme((currentTheme) =>
-            currentTheme === "dark" ? "light" : "dark",
-        );
-    }
+    const { theme, toggleTheme } = useTheme();
 
     const isDark = theme === "dark";
 

@@ -1,4 +1,5 @@
 export * from "./Sidebar";
+export * from "./MobileNav";
 export * from "./NavigationList";
 export * from "./ConnectList";
 export * from "./SidebarFooter";

@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { PageRail, Sidebar } from "@/components/navigation";
+import { MobileNav, PageRail, Sidebar } from "@/components/navigation";
 
 export function PortfolioLayout() {
     return (
@@ -14,6 +14,9 @@ export function PortfolioLayout() {
                 {/* Left glass navigation rail */}
                 <Sidebar />
 
+                {/* Mobile navigation */}
+                <MobileNav />
+
                 {/* Main content */}
                 <main
                     className="
@@ -22,6 +25,9 @@ export function PortfolioLayout() {
                         lg:mr-70
                     "
                 >
+                    {/* Clearance for the fixed mobile bar */}
+                    <div className="h-[80px] lg:hidden" aria-hidden="true" />
+
                     <Outlet />
                 </main>
 

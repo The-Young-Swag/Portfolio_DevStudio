@@ -32,12 +32,11 @@ export function HeroInfo() {
             <Heading
                 level={1}
                 className="
-                    whitespace-nowrap
-                    text-[42px]
+                    text-balance
                     font-semibold
                     leading-[0.98]
                     tracking-tight
-                    sm:text-[48px]
+                    sm:whitespace-nowrap
                 "
             >
                 {profile.name}
