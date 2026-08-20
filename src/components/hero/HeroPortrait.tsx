@@ -1,4 +1,4 @@
-import profileDefault from "@/assets/images/profile-default.png";
+import profileDefault from "@/assets/images/profile-default.webp";
 
 export function HeroPortrait() {
     return (
@@ -17,6 +17,8 @@ export function HeroPortrait() {
             <img
                 src={profileDefault}
                 alt="Portrait of Ivan Harvey Rivera"
+                fetchPriority="high"
+                decoding="async"
                 className="
                     aspect-square
                     h-full

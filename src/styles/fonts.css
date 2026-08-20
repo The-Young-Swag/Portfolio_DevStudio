@@ -1,0 +1,55 @@
+/* Latin-only font faces.
+ *
+ * The @fontsource packages ship every unicode subset (cyrillic, greek,
+ * vietnamese, latin-ext, ...). This site only ever renders Latin text, so we
+ * declare just the latin faces directly — the browser downloads exactly the
+ * weights and styles the UI uses instead of the full font catalogs.
+ */
+
+/* Inter Variable — body/UI */
+@font-face {
+    font-family: "Inter Variable";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+        format("woff2-variations");
+}
+
+/* Fraunces Variable — display headings */
+@font-face {
+    font-family: "Fraunces Variable";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2")
+        format("woff2-variations");
+}
+
+/* JetBrains Mono — metadata / technical labels */
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-italic.woff2")
+        format("woff2");
+}
+
+@font-face {
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("../../node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2")
+        format("woff2");
+}
