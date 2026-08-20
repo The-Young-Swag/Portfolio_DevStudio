@@ -6,7 +6,7 @@ export function Footer() {
         <footer
             className="
                 border-t
-                border-neutral-200
+                border-(--line)
                 py-6
             "
         >
@@ -20,16 +20,16 @@ export function Footer() {
                         gap-4
                     "
                 >
-                    <p
-                        className="
-                            font-mono
-                            text-[10.5px]
-                            text-neutral-500
-                        "
-                    >
-                        © 2026 Ivan Harvey Rivera — probably
-                        still debugging something.
-                    </p>
+<p
+                            className="
+                                font-mono
+                                text-[10.5px]
+                                text-(--graphite-soft)
+                            "
+                        >
+                            © 2026 Ivan Harvey Rivera — probably
+                            still debugging something.
+                        </p>
 
                     <div
                         className="
@@ -38,7 +38,7 @@ export function Footer() {
                             gap-4
                             font-mono
                             text-[10.5px]
-                            text-neutral-500
+                            text-(--graphite-soft)
                         "
                     >
                         <a
@@ -48,7 +48,7 @@ export function Footer() {
                             className="
                                 transition-colors
                                 duration-150
-                                hover:text-[#059669]
+                                hover:text-(--accent-strong)
                             "
                         >
                             GitHub
@@ -61,7 +61,7 @@ export function Footer() {
                             className="
                                 transition-colors
                                 duration-150
-                                hover:text-[#059669]
+                                hover:text-(--accent-strong)
                             "
                         >
                             LinkedIn

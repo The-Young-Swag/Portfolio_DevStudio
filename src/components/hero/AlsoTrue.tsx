@@ -22,16 +22,16 @@ const items = [
 export function AlsoTrue() {
     return (
         <div className="border-t hairline px-1 py-5 sm:py-6">
-            <p
-                className="
-                    mb-3
-                    font-mono
-                    text-[12px]
-                    uppercase
-                    tracking-[0.08em]
-                    text-neutral-500
-                "
-            >
+<p
+                    className="
+                        mb-3
+                        font-mono
+                        text-[12px]
+                        uppercase
+                        tracking-[0.08em]
+                        text-(--graphite-soft)
+                    "
+                >
                 Also true
             </p>
 

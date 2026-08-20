@@ -21,7 +21,7 @@ export function HeroInfo() {
                         h-1.5
                         w-1.5
                         rounded-full
-                        bg-[#059669]
+                        bg-(--accent-strong)
                     "
                 />
 

@@ -11,7 +11,7 @@ export function Button({
   return (
     <a
       className={clsx(
-        "inline-flex items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-neutral-100",
+        "inline-flex items-center justify-center rounded-lg border border-(--glass-border) bg-(--glass-bg) px-4 py-2 text-sm font-medium text-(--ink) transition-colors shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-md hover:border-(--accent-strong) hover:text-(--accent-strong)",
         className,
       )}
       {...props}

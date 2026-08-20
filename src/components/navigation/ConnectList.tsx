@@ -3,17 +3,17 @@ import { socialLinks } from "@/constants/socialLinks";
 export function ConnectList() {
     return (
         <div className="mt-6">
-            <p
-                className="
-                    px-3
-                    pb-3
-                    font-mono
-                    text-[10.5px]
-                    uppercase
-                    tracking-[0.11em]
-                    text-neutral-500
-                "
-            >
+<p
+                    className="
+                        px-3
+                        pb-3
+                        font-mono
+                        text-[10.5px]
+                        uppercase
+                        tracking-[0.11em]
+                        text-(--graphite-soft)
+                    "
+                >
                 Connect
             </p>
 
@@ -44,10 +44,11 @@ export function ConnectList() {
                             py-2.5
                             font-mono
                             text-[12px]
-                            text-[var(--graphite)]
+                            text-(--graphite)
                             transition-colors
                             duration-150
-                            hover:text-[var(--ink)]
+                            hover:bg-(--glass-bg)
+                            hover:text-(--ink)
                         "
                         >
                             <Icon

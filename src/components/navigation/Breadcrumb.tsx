@@ -1,4 +1,12 @@
-export function Breadcrumb() {
+type BreadcrumbProps = {
+    parent?: string;
+    current?: string;
+};
+
+export function Breadcrumb({
+    parent = "Portfolio",
+    current = "Profile",
+}: BreadcrumbProps) {
     return (
         <nav
             aria-label="Breadcrumb"
@@ -11,19 +19,19 @@ export function Breadcrumb() {
                 leading-none
             "
         >
-            <span className="text-neutral-500">
-                Portfolio
+            <span className="text-(--graphite)">
+                {parent}
             </span>
 
             <span
                 aria-hidden="true"
-                className="text-neutral-400"
+                className="text-(--graphite-soft)"
             >
                 &gt;
             </span>
 
-            <span className="hairline">
-                Profile
+            <span className="text-(--ink)">
+                {current}
             </span>
         </nav>
     );

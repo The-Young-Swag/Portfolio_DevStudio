@@ -14,7 +14,7 @@ export function SectionHeading({
                 font-display
                 text-2xl
                 leading-tight
-                text-neutral-950
+                text-(--ink)
             "
         >
             {number}
@@ -26,7 +26,7 @@ export function SectionHeading({
                 className="
                     ml-2
                     text-sm
-                    text-neutral-400
+                    text-(--graphite-soft)
                     opacity-0
                     transition-opacity
                     group-hover:opacity-100

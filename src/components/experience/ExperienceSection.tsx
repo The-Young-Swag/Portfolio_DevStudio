@@ -8,23 +8,14 @@ export function ExperienceSection() {
         <Section id="experience">
             <Container>
                 <div className="flex items-baseline justify-between">
-                    <SectionHeading
-                        number="03"
-                        title="Experience"
-                    />
+                    <SectionHeading number="03" title="Experience" />
 
-                    <span
-                        className="
-                            font-mono
-                            text-[10.5px]
-                            text-neutral-500
-                        "
-                    >
-                        2026 — present
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-(--graphite-soft)">
+                        2024 — present
                     </span>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-6">
                     <ExperienceList />
                 </div>
             </Container>

@@ -1,9 +1,25 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef } from "react";
 
 import { certifications } from "@/constants/certifications";
 import { CertificationItem } from "./CertificationItem";
 
 export function CertificationList() {
+    const trackRef = useRef<HTMLDivElement>(null);
+
+    const scrollTrack = (direction: 1 | -1) => {
+        const track = trackRef.current;
+
+        if (!track) {
+            return;
+        }
+
+        track.scrollBy({
+            left: direction * track.clientWidth * 0.8,
+            behavior: "smooth",
+        });
+    };
+
     return (
         <div className="mt-4">
             <div className="relative">
@@ -11,6 +27,7 @@ export function CertificationList() {
                 <button
                     type="button"
                     aria-label="Previous certifications"
+                    onClick={() => scrollTrack(-1)}
                     className="
                         absolute
                         -left-3
@@ -24,13 +41,15 @@ export function CertificationList() {
                         justify-center
                         rounded-full
                         border
-                        border-neutral-200
-                        bg-white
-                        text-neutral-500
+                        border-(--glass-border)
+                        bg-(--glass-bg)
+                        text-(--graphite)
+                        shadow-[inset_0_1px_0_var(--glass-highlight)]
+                        backdrop-blur-md
                         transition-colors
                         duration-150
-                        hover:border-[#059669]
-                        hover:text-[#059669]
+                        hover:border-(--accent-strong)
+                        hover:text-(--accent-strong)
                         sm:flex
                     "
                 >
@@ -39,6 +58,7 @@ export function CertificationList() {
 
                 {/* Track */}
                 <div
+                    ref={trackRef}
                     className="
                         flex
                         gap-3
@@ -60,6 +80,7 @@ export function CertificationList() {
                 <button
                     type="button"
                     aria-label="Next certifications"
+                    onClick={() => scrollTrack(1)}
                     className="
                         absolute
                         -right-3
@@ -73,13 +94,15 @@ export function CertificationList() {
                         justify-center
                         rounded-full
                         border
-                        border-neutral-200
-                        bg-white
-                        text-neutral-500
+                        border-(--glass-border)
+                        bg-(--glass-bg)
+                        text-(--graphite)
+                        shadow-[inset_0_1px_0_var(--glass-highlight)]
+                        backdrop-blur-md
                         transition-colors
                         duration-150
-                        hover:border-[#059669]
-                        hover:text-[#059669]
+                        hover:border-(--accent-strong)
+                        hover:text-(--accent-strong)
                         sm:flex
                     "
                 >

@@ -47,7 +47,7 @@ export function StatItem({
                         text-(--graphite)
                         transition-colors
                         duration-150
-                        group-hover:text-[#059669]
+                        group-hover:text-(--accent-strong)
                     "
                 />
 

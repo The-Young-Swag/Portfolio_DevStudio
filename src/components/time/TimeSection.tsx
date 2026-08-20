@@ -95,9 +95,13 @@ export function TimeSection() {
                     className="
                         mt-4
                         overflow-hidden
-                        rounded-lg
+                        rounded-2xl
                         border
-                        border-neutral-200
+                        border-(--glass-border)
+                        bg-(--glass-bg)
+                        shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)]
+                        backdrop-blur-xl
+                        backdrop-saturate-160
                     "
                 >
                     <svg
@@ -421,7 +425,7 @@ export function TimeSection() {
                             justify-between
                             gap-3
                             border-t
-                            border-neutral-200
+                            border-(--line)
                             p-5
                             sm:p-6
                         "
@@ -434,7 +438,7 @@ export function TimeSection() {
                                     text-[10.5px]
                                     uppercase
                                     tracking-widest
-                                    text-neutral-500
+                                    text-(--graphite-soft)
                                 "
                             >
                                 {timeState.phase}
@@ -445,7 +449,7 @@ export function TimeSection() {
                                     font-display
                                     text-[30px]
                                     leading-none
-                                    text-neutral-950
+                                    text-(--ink)
                                 "
                             >
                                 {timeState.time}
@@ -457,7 +461,7 @@ export function TimeSection() {
                                 className="
                                     font-mono
                                     text-[11.5px]
-                                    text-neutral-500
+                                    text-(--graphite)
                                 "
                             >
                                 {timeState.dateLabel}
@@ -468,7 +472,7 @@ export function TimeSection() {
                                     mt-0.5
                                     font-mono
                                     text-[10.5px]
-                                    text-neutral-500
+                                    text-(--graphite-soft)
                                 "
                             >
                                 {TIME_ZONE} ·{" "}
@@ -484,7 +488,7 @@ export function TimeSection() {
                         font-mono
                         text-[11px]
                         italic
-                        text-neutral-500
+                        text-(--graphite-soft)
                     "
                 >
                     "Seize the day, then let it go."

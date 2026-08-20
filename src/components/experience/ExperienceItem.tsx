@@ -23,43 +23,24 @@ export function ExperienceItem({
                     w-2.5
                     rounded-full
                     border-2
-                    border-[#059669]
-                    bg-white
+                    border-(--accent-strong)
+                    bg-(--paper)
+                    shadow-[0_0_0_4px_var(--accent-strong)/15]
                 "
             />
 
             {/* Period */}
-            <p
-                className="
-                    mb-1
-                    font-mono
-                    text-[10.5px]
-                    text-neutral-500
-                "
-            >
+            <p className="mb-1 font-mono text-[10.5px] uppercase tracking-[0.1em] text-(--graphite-soft)">
                 {period}
             </p>
 
             {/* Role */}
-            <h3
-                className="
-                    font-display
-                    text-[16px]
-                    font-medium
-                    text-neutral-950
-                "
-            >
+            <h3 className="font-display text-[17px] font-medium leading-snug text-(--ink)">
                 {role}
             </h3>
 
             {/* Company */}
-            <p
-                className="
-                    font-mono
-                    text-[11.5px]
-                    text-neutral-500
-                "
-            >
+            <p className="mt-0.5 font-mono text-[11.5px] text-(--graphite)">
                 {company}
             </p>
 
@@ -73,7 +54,8 @@ export function ExperienceItem({
                     space-y-1.5
                     text-[13px]
                     leading-relaxed
-                    text-neutral-600
+                    text-(--graphite)
+                    marker:text-(--accent-strong)
                 "
             >
                 {description.map((item, index) => (
