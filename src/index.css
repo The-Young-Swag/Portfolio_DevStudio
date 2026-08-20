@@ -287,10 +287,113 @@ html.dark .app-background::before {
     animation-delay: 1.5s;
 }
 
+.time-sky-stop {
+    transition: stop-color 2s linear;
+}
+
+.time-celestial,
+.time-glow-pulse {
+    transition:
+        fill 1.4s linear,
+        r 0.8s ease;
+}
+
+.time-glow-pulse {
+    animation: time-glow-pulse 4.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+@keyframes time-glow-pulse {
+    0%,
+    100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.42;
+        transform: scale(1.14);
+    }
+}
+
+.time-shooting-star,
+.time-meteor {
+    opacity: 0;
+}
+
+.time-shooting {
+    animation: time-shoot 0.7s ease-out forwards;
+}
+
+.time-meteor-falling {
+    animation-name: time-shoot;
+    animation-duration: 0.7s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: forwards;
+}
+
+@keyframes time-shoot {
+    0% {
+        opacity: 1;
+        stroke-dasharray: 0 130;
+    }
+
+    100% {
+        opacity: 0;
+        stroke-dasharray: 130 0;
+    }
+}
+
+.time-ufo {
+    opacity: 0;
+    transform-box: fill-box;
+}
+
+.time-ufo-flying {
+    animation: time-ufo-fly 5.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+@keyframes time-ufo-fly {
+    0% {
+        transform: translate(-80px, 0) scale(0.9);
+        opacity: 0;
+    }
+
+    8% {
+        opacity: 1;
+    }
+
+    28% {
+        transform: translate(180px, -16px) scale(0.95);
+    }
+
+    50% {
+        transform: translate(450px, 6px) scale(1);
+    }
+
+    72% {
+        transform: translate(720px, -10px) scale(0.96);
+    }
+
+    92% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(980px, 4px) scale(0.9);
+        opacity: 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .time-cloud,
     .time-tree,
-    .time-star {
+    .time-star,
+    .time-glow-pulse,
+    .time-shooting-star,
+    .time-meteor,
+    .time-ufo {
         animation: none;
     }
 }

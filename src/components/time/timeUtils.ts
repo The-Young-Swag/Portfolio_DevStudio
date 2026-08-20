@@ -5,9 +5,6 @@ export type TimePhase = "Dawn" | "Day" | "Dusk" | "Night";
 export type SkyConfig = {
     skyTop: string;
     skyBottom: string;
-    celestialColor: string;
-    celestialY: number;
-    celestialGlow: number;
     starOpacity: number;
     cloudOpacity: number;
 };
@@ -49,17 +46,12 @@ export function getPhase(decimalHour: number): TimePhase {
 
 export function getSkyConfig(
     phase: TimePhase,
-    decimalHour: number,
 ): SkyConfig {
     switch (phase) {
         case "Dawn":
             return {
                 skyTop: "#243447",
                 skyBottom: "#D59A78",
-                celestialColor: "#FFD27D",
-                celestialY:
-                    120 - (decimalHour - 5) * 45,
-                celestialGlow: 0.45,
                 starOpacity: 0.25,
                 cloudOpacity: 0.7,
             };
@@ -68,9 +60,6 @@ export function getSkyConfig(
             return {
                 skyTop: "#75A9C4",
                 skyBottom: "#DCE8E2",
-                celestialColor: "#FFF1B8",
-                celestialY: 70,
-                celestialGlow: 0.6,
                 starOpacity: 0,
                 cloudOpacity: 0.8,
             };
@@ -79,10 +68,6 @@ export function getSkyConfig(
             return {
                 skyTop: "#4B506B",
                 skyBottom: "#D57C67",
-                celestialColor: "#FFD18A",
-                celestialY:
-                    100 + (decimalHour - 17) * 35,
-                celestialGlow: 0.4,
                 starOpacity: 0.35,
                 cloudOpacity: 0.65,
             };
@@ -91,9 +76,6 @@ export function getSkyConfig(
             return {
                 skyTop: "#0B0C14",
                 skyBottom: "#181B2C",
-                celestialColor: "#C7CBDA",
-                celestialY: 105,
-                celestialGlow: 0.2,
                 starOpacity: 1,
                 cloudOpacity: 0.25,
             };
