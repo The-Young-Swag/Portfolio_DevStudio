@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { ProjectCarousel } from "./ProjectCarousel";
@@ -16,8 +18,8 @@ export function ProjectsSection() {
                     <ProjectCarousel />
                 </div>
 
-                <a
-                    href="/projects"
+                <Link
+                    to="/projects"
                     className="
                         mt-5
                         inline-flex
@@ -25,12 +27,15 @@ export function ProjectsSection() {
                         gap-1.5
                         font-mono
                         text-[11.5px]
-                        text-[#059669]
+                        text-(--accent-strong)
+                        transition-colors
+                        duration-150
+                        hover:text-(--accent-deep)
                         hover:underline
                     "
                 >
                     See all projects →
-                </a>
+                </Link>
             </Container>
         </Section>
     );
