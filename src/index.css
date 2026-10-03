@@ -494,3 +494,17 @@ section[id] {
         animation: none;
     }
 }
+
+/* Paused scene: loops freeze when the card is off-screen or the tab
+   is hidden. Driven by the data-scene-active attribute. */
+[data-scene-active="false"] .time-cloud,
+[data-scene-active="false"] .time-cloud-slow,
+[data-scene-active="false"] .time-cloud-fast,
+[data-scene-active="false"] .time-tree,
+[data-scene-active="false"] .time-star,
+[data-scene-active="false"] .time-glow-pulse,
+[data-scene-active="false"] .time-shooting,
+[data-scene-active="false"] .time-meteor-falling,
+[data-scene-active="false"] .time-ufo-flying {
+    animation-play-state: paused;
+}
