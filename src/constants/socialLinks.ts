@@ -2,7 +2,7 @@ import { SiGithub } from "@icons-pack/react-simple-icons";
 import { FaLinkedinIn } from "react-icons/fa6";
 import { Globe, Mail } from "lucide-react";
 import type { ComponentType } from "react";
-import { profile } from "@/constants/profile";
+import { profile } from "./profile.js";
 
 export type SocialIcon = ComponentType<{
     size?: number | string;

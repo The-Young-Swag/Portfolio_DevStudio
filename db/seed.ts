@@ -8,6 +8,7 @@ import { certifications } from "../src/constants/certifications.js";
 import { experiences } from "../src/constants/experience.js";
 import { stack } from "../src/constants/stack.js";
 import { profile } from "../src/constants/profile.js";
+import { socialLinks } from "../src/constants/socialLinks.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -170,9 +171,33 @@ async function seedProfile(): Promise<void> {
     console.log("seeded profile.");
 }
 
+async function seedSocialLinks(): Promise<void> {
+    const db = getDb();
+    const existing = await db.execute("SELECT COUNT(*) AS count FROM social_links");
+    const firstRow = existing.rows[0] as unknown as
+        | Record<string, unknown>
+        | undefined;
+    const count = typeof firstRow?.count === "number" ? firstRow.count : 0;
+
+    if (count > 0) {
+        console.log(`social links already seeded (${count} rows), skipping.`);
+        return;
+    }
+
+    for (const [index, link] of socialLinks.entries()) {
+        await db.execute({
+            sql: "INSERT INTO social_links (label, href, icon, sort_order) VALUES (?, ?, ?, ?)",
+            args: [link.label, link.href, link.icon, index],
+        });
+    }
+
+    console.log(`seeded ${socialLinks.length} social links.`);
+}
+
 await applySchema();
 await seedProjects();
 await seedCertifications();
 await seedExperience();
 await seedStack();
 await seedProfile();
+await seedSocialLinks();
