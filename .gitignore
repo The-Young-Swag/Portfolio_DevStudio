@@ -25,6 +25,13 @@ dist-ssr
 
 .vercel
 .env*
+!.env.example
+
+# Local libSQL database (never commit database files)
+*.db
+*.db-journal
+*.db-wal
+local.db
 
 .agents
 .devcontainer
