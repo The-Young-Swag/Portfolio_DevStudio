@@ -92,7 +92,9 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 </div>
 
                 <div className="mt-auto pt-5">
-                    <AccessLedger project={project} />
+                    <div className="border-t hairline pt-4">
+                        <AccessLedger project={project} />
+                    </div>
                 </div>
 
                 {project.has_case_study && (

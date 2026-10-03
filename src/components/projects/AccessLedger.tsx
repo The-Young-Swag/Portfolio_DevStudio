@@ -1,5 +1,4 @@
 import type { Project } from "@/services/projects/projects";
-
 type SourceState =
     | { kind: "public"; url: string }
     | { kind: "private" }
@@ -86,7 +85,7 @@ export function AccessLedger({ project }: { project: Project }) {
             {source.kind !== "hidden" && (
                 <p className="flex items-center gap-2 font-mono text-[10.5px] text-(--graphite)">
                     <StatusDot kind={source.kind === "public" ? "open" : "restricted"} />
-                    <span className="uppercase tracking-[0.12em] text-(--graphite-soft)">
+                    <span className="w-24 shrink-0 uppercase tracking-[0.12em] text-(--graphite-soft)">
                         Source code
                     </span>
                     {source.kind === "public" ? (
@@ -96,7 +95,7 @@ export function AccessLedger({ project }: { project: Project }) {
                             rel="noreferrer"
                             className="text-(--accent-strong) hover:underline"
                         >
-                            Public repository ↗
+                            View repository ↗
                         </a>
                     ) : (
                         <span className="text-(--ink)">Private</span>
@@ -109,7 +108,7 @@ export function AccessLedger({ project }: { project: Project }) {
                     <StatusDot
                         kind={demo.kind === "public" ? "open" : demo.kind === "none" ? "unavailable" : "restricted"}
                     />
-                    <span className="uppercase tracking-[0.12em] text-(--graphite-soft)">
+                    <span className="w-24 shrink-0 uppercase tracking-[0.12em] text-(--graphite-soft)">
                         Live demo
                     </span>
                     {demo.kind === "public" ? (
@@ -119,7 +118,7 @@ export function AccessLedger({ project }: { project: Project }) {
                             rel="noreferrer"
                             className="text-(--accent-strong) hover:underline"
                         >
-                            Live demo ↗
+                            Open live demo ↗
                         </a>
                     ) : (
                         <span className="text-(--ink)">{DEMO_LABELS[demo.kind]}</span>

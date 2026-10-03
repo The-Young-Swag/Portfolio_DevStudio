@@ -4,6 +4,14 @@ import type { Project } from "@/services/projects/projects";
 import { ContentImage, ImageLightbox } from "@/components/ui";
 import { AccessLedger } from "./AccessLedger";
 
+function hasRestrictedAccess(project: Project): boolean {
+    return (
+        project.source_access === "private" ||
+        project.demo_access === "internal" ||
+        project.demo_access === "offline"
+    );
+}
+
 type ProjectDetailsProps = {
     projects: Project[];
 };
@@ -11,14 +19,16 @@ type ProjectDetailsProps = {
 function CaseStudy({ project }: { project: Project }) {
     const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
-    const blocks = [
+    const columns = [
         { label: "Problem", text: project.case_problem },
-        { label: "My role", text: project.case_role },
         { label: "What I built", text: project.case_solution },
         { label: "Result", text: project.case_result },
     ].filter((block) => block.text !== "");
 
-    if (blocks.length === 0 && project.case_screenshots.length === 0) {
+    const showWhyNoLink =
+        hasRestrictedAccess(project) && project.access_note !== "";
+
+    if (columns.length === 0 && project.case_screenshots.length === 0 && !showWhyNoLink) {
         return null;
     }
 
@@ -28,16 +38,38 @@ function CaseStudy({ project }: { project: Project }) {
                 Case study
             </p>
 
-            {blocks.map((block) => (
-                <div key={block.label} className="mt-4">
-                    <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                        {block.label}
-                    </p>
-                    <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-(--graphite)">
-                        {block.text}
-                    </p>
+            <h4 className="mt-2 font-display text-[17px] font-medium leading-snug text-(--ink)">
+                {project.title}
+            </h4>
+
+            <p className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                {project.year}
+                {project.case_role !== "" && ` · ${project.case_role}`}
+            </p>
+
+            {columns.length > 0 && (
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                    {columns.map((block) => (
+                        <div key={block.label}>
+                            <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                {block.label}
+                            </p>
+                            <p className="mt-1 text-[13px] leading-relaxed text-(--graphite)">
+                                {block.text}
+                            </p>
+                        </div>
+                    ))}
                 </div>
-            ))}
+            )}
+
+            {showWhyNoLink && (
+                <p className="mt-4 text-[12.5px] leading-relaxed text-(--graphite)">
+                    <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                        Why there&apos;s no link:{" "}
+                    </span>
+                    {project.access_note}
+                </p>
+            )}
 
             {project.case_screenshots.length > 0 && (
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
