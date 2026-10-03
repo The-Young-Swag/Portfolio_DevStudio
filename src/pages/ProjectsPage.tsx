@@ -2,8 +2,11 @@ import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { ProjectDetails, ProjectsGrid } from "@/components/projects";
 import { SectionHeading } from "@/components/ui";
+import { useProjects } from "@/hooks/projects/useProjects";
 
 export function ProjectsPage() {
+    const { projects, isPending } = useProjects();
+
     return (
         <>
             <PageHeader
@@ -17,7 +20,17 @@ export function ProjectsPage() {
                 <Container>
                     <SectionHeading number="01" title="Showcase" />
 
-                    <ProjectsGrid />
+                    {isPending ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            Loading projects...
+                        </p>
+                    ) : projects.length === 0 ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            No projects yet.
+                        </p>
+                    ) : (
+                        <ProjectsGrid projects={projects} />
+                    )}
                 </Container>
             </Section>
 
@@ -25,7 +38,17 @@ export function ProjectsPage() {
                 <Container>
                     <SectionHeading number="02" title="Details" />
 
-                    <ProjectDetails />
+                    {isPending ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            Loading projects...
+                        </p>
+                    ) : projects.length === 0 ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            No projects yet.
+                        </p>
+                    ) : (
+                        <ProjectDetails projects={projects} />
+                    )}
                 </Container>
             </Section>
 

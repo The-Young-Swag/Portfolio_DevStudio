@@ -1,11 +1,15 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { projects } from "@/constants/projects";
+import type { Project } from "@/services/projects/projects";
 
 import { resolveProjectThumbnail } from "./projectThumbnails";
 
-export function ProjectCarousel() {
+type ProjectCarouselProps = {
+    projects: Project[];
+};
+
+export function ProjectCarousel({ projects }: ProjectCarouselProps) {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const scrollTrack = (direction: 1 | -1) => {
@@ -77,7 +81,7 @@ export function ProjectCarousel() {
             >
                 {projects.map((project) => (
                     <article
-                        key={project.title}
+                        key={project.id}
                         data-project-card
                         className="
                             group

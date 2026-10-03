@@ -1,11 +1,15 @@
-import { projects } from "@/constants/projects";
+import type { Project } from "@/services/projects/projects";
 
-export function ProjectDetails() {
+type ProjectDetailsProps = {
+    projects: Project[];
+};
+
+export function ProjectDetails({ projects }: ProjectDetailsProps) {
     return (
         <div className="mt-6 divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl backdrop-saturate-160">
             {projects.map((project) => (
                 <div
-                    key={project.title}
+                    key={project.id}
                     className="grid gap-4 p-6 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-8 sm:p-7"
                 >
                     <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
