@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS projects (
     category TEXT NOT NULL DEFAULT '',
     thumbnail TEXT NOT NULL DEFAULT '',
     highlights TEXT NOT NULL DEFAULT '[]',
+    repo_url TEXT,
+    live_url TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -20,6 +22,8 @@ CREATE TABLE IF NOT EXISTS certifications (
     badge TEXT NOT NULL DEFAULT '',
     code TEXT NOT NULL DEFAULT '',
     accent TEXT NOT NULL DEFAULT 'blue',
+    image TEXT,
+    link TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -52,7 +56,15 @@ CREATE TABLE IF NOT EXISTS profile (
     github TEXT NOT NULL DEFAULT '',
     linkedin TEXT NOT NULL DEFAULT '',
     email TEXT NOT NULL DEFAULT '',
-    resume TEXT NOT NULL DEFAULT ''
+    resume TEXT NOT NULL DEFAULT '',
+    portrait TEXT,
+    hero_stats TEXT,
+    also_true TEXT,
+    contact_heading TEXT,
+    contact_title TEXT,
+    contact_intro TEXT,
+    contact_email_label TEXT,
+    footer_note TEXT
 );
 
 CREATE TABLE IF NOT EXISTS social_links (
@@ -61,5 +73,13 @@ CREATE TABLE IF NOT EXISTS social_links (
     href TEXT NOT NULL DEFAULT '',
     icon TEXT NOT NULL DEFAULT '',
     sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data BLOB NOT NULL,
+    mime TEXT NOT NULL,
+    size INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
