@@ -36,6 +36,47 @@ GITHUB_USERNAME=your_github_username
 Without a token the section shows an error message locally; on Vercel the
 route uses the configured environment variables.
 
+## Content database (Turso/libSQL)
+
+Projects, experience, stack, certifications, profile, and social links are
+stored in a Turso (libSQL) database and managed through a private admin page
+at `/admin` (unlinked, `noindex`). Public pages read from `/api` and fall
+back to the static constants in `src/constants/` when a request fails.
+
+### Local setup
+
+```bash
+cp .env.example .env.local
+# edit .env.local: set ADMIN_TOKEN to a long random string
+npm run db:seed
+vercel dev
+```
+
+- Local development uses a libSQL file (`TURSO_DATABASE_URL=file:local.db`,
+  the default). Never run the seed or dev scripts against the production
+  database.
+- `npm run db:seed` applies `db/schema.sql` and inserts the current static
+  content. It is idempotent: tables already containing rows are skipped.
+- `vercel dev` serves the frontend plus the `/api` functions. Plain
+  `npm run dev` serves the frontend only.
+
+### Admin
+
+Open `/admin`, enter the `ADMIN_TOKEN`, and manage each section with
+add/edit/delete (profile is a single edit form). The token is kept in
+`sessionStorage` and sent as an `Authorization: Bearer` header; a `401`
+signs you back out.
+
+### Deployment (Vercel, one-time)
+
+1. Create a Turso database and obtain its URL and auth token.
+2. In the Vercel project settings, set `TURSO_DATABASE_URL`,
+   `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, and `GITHUB_USERNAME`.
+3. Against that database **once** (from your own machine, never from an
+   agent session), apply `db/schema.sql` and run the seed:
+   `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`.
+4. Redeploy so the functions pick up the new tables.
+
 ## Scripts
 
 | Command             | What it does                                   |
@@ -44,6 +85,7 @@ route uses the configured environment variables.
 | `npm run build`     | Type-check and build for production            |
 | `npm run preview`   | Preview the production build locally           |
 | `npm run lint`      | Run ESLint                                     |
+| `npm run db:seed`   | Apply schema and seed the database             |
 
 All Vite commands use `--configLoader native`, which loads the config with
 Node's runtime instead of bundling it with Rolldown. This is required on
@@ -53,12 +95,15 @@ Windows, where the default Rolldown config loader fails to resolve
 ## Structure
 
 ```
-api/                  Vercel serverless functions (GitHub contributions)
+api/                  Vercel serverless functions (content CRUD, GitHub contributions)
+api/_lib/             Shared server code (database client, admin auth, validation)
+db/                   SQL schema and seed script
 src/app/              Routing and app providers (React Query, theme)
 src/components/       Layout, navigation, hero, github, projects, …
-src/constants/        Content: profile, navigation, projects, stack, …
+src/constants/        Fallback content: profile, navigation, projects, stack, …
 src/context/          Shared state (theme)
-src/hooks/            TanStack Query hooks for the GitHub API
+src/hooks/            TanStack Query hooks for the content and GitHub APIs
+src/services/         Fetch functions that call `/api`
 src/pages/            Route-level pages (lazy-loaded)
 src/styles/           Fonts and global styles
 ```
