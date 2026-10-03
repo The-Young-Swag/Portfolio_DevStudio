@@ -5,6 +5,7 @@ import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 
 import { ApiError, uploadImage } from "@/services/api";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 import { ImagePlaceholder } from "@/components/ui";
 
 const ACCEPTED_TYPES = ["image/webp", "image/jpeg", "image/png", "image/avif"];
@@ -89,7 +90,6 @@ export function ImageUploadField({
     maxEdge,
 }: ImageUploadFieldProps) {
     const fileRef = useRef<HTMLInputElement>(null);
-    const dialogRef = useRef<HTMLDivElement>(null);
 
     const [cropSrc, setCropSrc] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -97,6 +97,8 @@ export function ImageUploadField({
     const [croppedPixels, setCroppedPixels] = useState<Area | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+
+    const trapRef = useFocusTrap<HTMLDivElement>(cropSrc !== null);
 
     const dialogOpen = cropSrc !== null;
 
@@ -115,39 +117,6 @@ export function ImageUploadField({
         if (event.key === "Escape") {
             event.stopPropagation();
             closeDialog();
-            return;
-        }
-
-        if (event.key !== "Tab") {
-            return;
-        }
-
-        const dialog = dialogRef.current;
-
-        if (!dialog) {
-            return;
-        }
-
-        const focusable = Array.from(
-            dialog.querySelectorAll<HTMLElement>(
-                'button, input, [tabindex]:not([tabindex="-1"])',
-            ),
-        ).filter((element) => !element.hasAttribute("disabled"));
-
-        if (focusable.length === 0) {
-            return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active = document.activeElement;
-
-        if (event.shiftKey && active === first) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && active === last) {
-            event.preventDefault();
-            first.focus();
         }
     }
 
@@ -289,10 +258,7 @@ export function ImageUploadField({
                     onClick={closeDialog}
                 >
                     <div
-                        ref={(element) => {
-                            dialogRef.current = element;
-                            element?.focus();
-                        }}
+                        ref={trapRef}
                         role="dialog"
                         aria-modal="true"
                         aria-label={`Crop ${label}`}

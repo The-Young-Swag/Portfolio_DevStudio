@@ -284,6 +284,19 @@ section[id] {
 }
 
 /*
+   MOBILE DRAWER
+*/
+
+.mobile-drawer a {
+    min-height: 48px;
+}
+
+.mobile-drawer nav a,
+.mobile-drawer button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/*
    ACCESSIBILITY / PERFORMANCE
 */
 
