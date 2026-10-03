@@ -41,3 +41,16 @@ CREATE TABLE IF NOT EXISTS stack (
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS profile (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    name TEXT NOT NULL DEFAULT '',
+    headline TEXT NOT NULL DEFAULT '',
+    location TEXT NOT NULL DEFAULT '',
+    availability TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '',
+    github TEXT NOT NULL DEFAULT '',
+    linkedin TEXT NOT NULL DEFAULT '',
+    email TEXT NOT NULL DEFAULT '',
+    resume TEXT NOT NULL DEFAULT ''
+);
