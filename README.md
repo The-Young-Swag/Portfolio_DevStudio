@@ -80,8 +80,32 @@ URL strings: either an uploaded `/api/images/<id>` URL or any external
 In the admin, each image field offers a file upload with drag-to-crop and
 zoom plus a plain URL input. Crops are re-encoded to WebP: 16:9 capped at
 1280 px wide for project thumbnails, 21:9 capped at 1280 px for certification
-images, square capped at 900 px for portraits. Anything that cannot fit
-under 400 KB is rejected, as are non-image files and SVGs (server-side too).
+images, square capped at 900 px for portraits, badge images square. Upload
+input accepts WebP, JPEG, PNG, and AVIF. Anything that cannot fit under
+400 KB is rejected, as are non-image files and SVGs (server-side too).
+
+### Files (PDFs)
+
+Resumes and certificate PDFs live in the `files` table (`POST /api/files`,
+admin, PDF signature verified, 2 MB cap). The admin PDF control uploads a
+file or accepts an external link, shows the filename and size, and supports
+Replace and Remove. Removing an uploaded file deletes its row server-side.
+
+### Content pages
+
+- **Certifications** support one level of child courses (`parent_id`),
+  certificate PDFs, small badge images with links, and per-certificate
+  Verify buttons. Deleting a program deletes its courses and their uploads.
+- **Resume** is managed in its own admin section (upload, link, remove).
+  An empty resume hides the public Resume button; the button opens the file
+  in a new tab with a separate Download link.
+- **Stack** is a flat list of categorized items (`language`, `framework`,
+  `library`, `database`, `tool`) with text levels (`learning`,
+  `comfortable`, `confident`), an optional since-year, and a core flag. The
+  old grouped `stack` table stays in the database but is no longer used.
+- **Projects** carry access states (public/private source, public/internal/
+  offline/no-demo demo, auto-derived from URLs when unset) shown as an
+  access ledger, plus optional case studies with screenshot galleries.
 
 ### Deployment (Vercel, one-time)
 
@@ -96,7 +120,13 @@ under 400 KB is rejected, as are non-image files and SVGs (server-side too).
    `turso db shell portfolio < db/migrations/0001_content_images.sql`.
    New profile and image columns stay empty until edited in `/admin`; the
    public site falls back to the static content meanwhile.
-5. Redeploy so the functions pick up the new tables.
+5. For a database created before the content-pages feature, apply its
+   one-time migration (run exactly once):
+   `turso db shell portfolio < db/migrations/0002_content_pages.sql`.
+   Then fill the new flat stack table:
+   `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`
+   (existing tables are skipped, only `stack_items` is filled).
+6. Redeploy so the functions pick up the new tables.
 
 ## Scripts
 
