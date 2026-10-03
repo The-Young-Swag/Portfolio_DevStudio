@@ -85,3 +85,31 @@ export async function sendDelete(
         await readErrorMessage(response, fallbackMessage),
     );
 }
+
+export type UploadedImage = {
+    id: number;
+    url: string;
+};
+
+export async function uploadImage(blob: Blob, token: string): Promise<UploadedImage> {
+    const form = new FormData();
+    form.append("file", blob, "image.webp");
+
+    const response = await fetch("/api/images", {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: form,
+    });
+
+    if (!response.ok) {
+        throw new ApiError(
+            response.status,
+            await readErrorMessage(response, "Failed to upload image."),
+        );
+    }
+
+    return response.json() as Promise<UploadedImage>;
+}
