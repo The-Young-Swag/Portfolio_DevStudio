@@ -6,7 +6,7 @@ import { getDb } from "../api/_lib/db.js";
 import { projects } from "../src/constants/projects.js";
 import { certifications } from "../src/constants/certifications.js";
 import { experiences } from "../src/constants/experience.js";
-import { stack, stackItems } from "../src/constants/stack.js";
+import { stackItems } from "../src/constants/stack.js";
 import { profile } from "../src/constants/profile.js";
 import { socialLinks } from "../src/constants/socialLinks.js";
 
@@ -126,29 +126,6 @@ async function seedExperience(): Promise<void> {
     console.log(`seeded ${experiences.length} experience entries.`);
 }
 
-async function seedStack(): Promise<void> {
-    const db = getDb();
-    const existing = await db.execute("SELECT COUNT(*) AS count FROM stack");
-    const firstRow = existing.rows[0] as unknown as
-        | Record<string, unknown>
-        | undefined;
-    const count = typeof firstRow?.count === "number" ? firstRow.count : 0;
-
-    if (count > 0) {
-        console.log(`stack already seeded (${count} rows), skipping.`);
-        return;
-    }
-
-    for (const [index, group] of stack.entries()) {
-        await db.execute({
-            sql: "INSERT INTO stack (group_name, items, sort_order) VALUES (?, ?, ?)",
-            args: [group.group, JSON.stringify(group.items), index],
-        });
-    }
-
-    console.log(`seeded ${stack.length} stack groups.`);
-}
-
 async function seedStackItems(): Promise<void> {
     const db = getDb();
     const existing = await db.execute("SELECT COUNT(*) AS count FROM stack_items");
@@ -240,7 +217,6 @@ await applySchema();
 await seedProjects();
 await seedCertifications();
 await seedExperience();
-await seedStack();
 await seedStackItems();
 await seedProfile();
 await seedSocialLinks();

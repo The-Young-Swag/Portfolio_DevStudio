@@ -3,49 +3,78 @@ import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
-    useCreateStackGroup,
-    useDeleteStackGroup,
-    useUpdateStackGroup,
-} from "@/hooks/stack/useStack";
+    useCreateStackItem,
+    useDeleteStackItem,
+    useUpdateStackItem,
+} from "@/hooks/stack/useStackItems";
 import { ApiError } from "@/services/api";
 import {
-    getStack,
-    type StackGroup,
-    type StackGroupInput,
-} from "@/services/stack/stack";
+    getStackItems,
+    type StackItem,
+    type StackItemCategory,
+    type StackItemInput,
+    type StackItemLevel,
+} from "@/services/stack/stackItems";
 
-type StackManagerProps = {
+type StackItemsManagerProps = {
     token: string;
     onUnauthorized: () => void;
 };
 
-type StackFormFields = {
-    group: string;
-    items: string;
+type StackItemFormFields = {
+    name: string;
+    category: string;
+    level: string;
+    since_year: string;
+    is_core: boolean;
     sort_order: string;
 };
 
-const emptyFields: StackFormFields = {
-    group: "",
-    items: "",
+const emptyFields: StackItemFormFields = {
+    name: "",
+    category: "tool",
+    level: "comfortable",
+    since_year: "",
+    is_core: false,
     sort_order: "",
 };
 
-function toFields(group: StackGroup): StackFormFields {
+const categories: StackItemCategory[] = [
+    "language",
+    "framework",
+    "library",
+    "database",
+    "tool",
+];
+
+const levels: StackItemLevel[] = ["learning", "comfortable", "confident"];
+
+function isCategory(value: string): value is StackItemCategory {
+    return (categories as readonly string[]).includes(value);
+}
+
+function isLevel(value: string): value is StackItemLevel {
+    return (levels as readonly string[]).includes(value);
+}
+
+function toFields(item: StackItem): StackItemFormFields {
     return {
-        group: group.group,
-        items: group.items.join("\n"),
-        sort_order: String(group.sort_order),
+        name: item.name,
+        category: item.category,
+        level: item.level,
+        since_year: item.since_year === null ? "" : String(item.since_year),
+        is_core: item.is_core,
+        sort_order: String(item.sort_order),
     };
 }
 
-function toInput(fields: StackFormFields): StackGroupInput {
+function toInput(fields: StackItemFormFields): StackItemInput {
     return {
-        group: fields.group.trim(),
-        items: fields.items
-            .split("\n")
-            .map((item) => item.trim())
-            .filter((item) => item.length > 0),
+        name: fields.name.trim(),
+        category: isCategory(fields.category) ? fields.category : "tool",
+        level: isLevel(fields.level) ? fields.level : "comfortable",
+        since_year: fields.since_year.trim() === "" ? null : Number(fields.since_year),
+        is_core: fields.is_core,
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
 }
@@ -54,20 +83,20 @@ function isUnauthorized(error: unknown): boolean {
     return error instanceof ApiError && error.status === 401;
 }
 
-export function StackManager({ token, onUnauthorized }: StackManagerProps) {
+export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerProps) {
     const stackQuery = useQuery({
-        queryKey: ["stack"],
-        queryFn: getStack,
+        queryKey: ["stack-items"],
+        queryFn: getStackItems,
         retry: 1,
         refetchOnWindowFocus: false,
     });
 
-    const createMutation = useCreateStackGroup(token);
-    const updateMutation = useUpdateStackGroup(token);
-    const deleteMutation = useDeleteStackGroup(token);
+    const createMutation = useCreateStackItem(token);
+    const updateMutation = useUpdateStackItem(token);
+    const deleteMutation = useDeleteStackItem(token);
 
     const [editingId, setEditingId] = useState<number | "new" | null>(null);
-    const [fields, setFields] = useState<StackFormFields>(emptyFields);
+    const [fields, setFields] = useState<StackItemFormFields>(emptyFields);
     const [formError, setFormError] = useState<string | null>(null);
 
     function handleMutationError(error: unknown) {
@@ -85,9 +114,9 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
         setFormError(null);
     }
 
-    function startEdit(group: StackGroup) {
-        setEditingId(group.id);
-        setFields(toFields(group));
+    function startEdit(item: StackItem) {
+        setEditingId(item.id);
+        setFields(toFields(item));
         setFormError(null);
     }
 
@@ -118,12 +147,12 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
         }
     }
 
-    function handleDelete(group: StackGroup) {
-        if (!window.confirm(`Delete "${group.group}"?`)) {
+    function handleDelete(item: StackItem) {
+        if (!window.confirm(`Delete "${item.name}"?`)) {
             return;
         }
 
-        deleteMutation.mutate(group.id, {
+        deleteMutation.mutate(item.id, {
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
@@ -132,7 +161,7 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
         });
     }
 
-    function setField(name: keyof StackFormFields, value: string) {
+    function setField(name: keyof StackItemFormFields, value: string | boolean) {
         setFields((current) => ({ ...current, [name]: value }));
     }
 
@@ -155,7 +184,7 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
                         hover:underline
                     "
                 >
-                    Add group
+                    Add item
                 </button>
             </div>
 
@@ -177,12 +206,58 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
                     <div className="grid gap-3 sm:grid-cols-2">
                         <label className="block">
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Group
+                                Name
                             </span>
                             <input
-                                value={fields.group}
-                                onChange={(event) => setField("group", event.target.value)}
-                                placeholder="Languages"
+                                value={fields.name}
+                                onChange={(event) => setField("name", event.target.value)}
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Category
+                            </span>
+                            <select
+                                value={fields.category}
+                                onChange={(event) => setField("category", event.target.value)}
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            >
+                                {categories.map((category) => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Level
+                            </span>
+                            <select
+                                value={fields.level}
+                                onChange={(event) => setField("level", event.target.value)}
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            >
+                                {levels.map((level) => (
+                                    <option key={level} value={level}>
+                                        {level}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Since year
+                            </span>
+                            <input
+                                value={fields.since_year}
+                                onChange={(event) => setField("since_year", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="—"
                                 className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                             />
                         </label>
@@ -199,19 +274,19 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
                                 className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                             />
                         </label>
-                    </div>
 
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            Items (one per line)
-                        </span>
-                        <textarea
-                            value={fields.items}
-                            onChange={(event) => setField("items", event.target.value)}
-                            rows={5}
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                        />
-                    </label>
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={fields.is_core}
+                                onChange={(event) => setField("is_core", event.target.checked)}
+                                className="h-4 w-4 accent-(--accent-strong)"
+                            />
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Core stack
+                            </span>
+                        </label>
+                    </div>
 
                     {formError !== null && (
                         <p className="font-mono text-[11px] text-red-500">{formError}</p>
@@ -286,35 +361,41 @@ export function StackManager({ token, onUnauthorized }: StackManagerProps) {
                     </div>
                 ) : stackQuery.data.length === 0 ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
-                        No stack groups yet.
+                        No stack items yet.
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {stackQuery.data.map((group) => (
+                        {stackQuery.data.map((item) => (
                             <li
-                                key={group.id}
+                                key={item.id}
                                 className="flex items-center justify-between gap-4 p-4"
                             >
                                 <div className="min-w-0">
                                     <p className="truncate font-display text-[16px] text-(--ink)">
-                                        {group.group}
+                                        {item.name}
+                                        {item.is_core && (
+                                            <span className="ml-2 font-mono text-[10px] text-(--accent-strong)">
+                                                core
+                                            </span>
+                                        )}
                                     </p>
-                                    <p className="mt-0.5 truncate font-mono text-[10.5px] text-(--graphite-soft)">
-                                        {group.items.join(", ")}
+                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
+                                        {item.category} · {item.level}
+                                        {item.since_year !== null && ` · since ${item.since_year}`}
                                     </p>
                                 </div>
 
                                 <div className="flex shrink-0 gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => startEdit(group)}
+                                        onClick={() => startEdit(item)}
                                         className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
                                     >
                                         Edit
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => handleDelete(group)}
+                                        onClick={() => handleDelete(item)}
                                         disabled={deleteMutation.isPending}
                                         className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
                                     >
