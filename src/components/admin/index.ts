@@ -1,5 +1,7 @@
+export * from "./AlsoTrueManager";
 export * from "./CertificationsManager";
 export * from "./ExperienceManager";
+export * from "./HeroStatsManager";
 export * from "./ImageUploadField";
 export * from "./PortraitManager";
 export * from "./ProfileManager";
