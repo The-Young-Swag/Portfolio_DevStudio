@@ -1,10 +1,14 @@
 import { ArrowUpRight } from "lucide-react";
 
 import { profile } from "@/constants/profile";
-import { experiences } from "@/constants/experience";
+import type { ExperienceEntry } from "@/services/experience/experience";
 import { ExperienceItem } from "./ExperienceItem";
 
-export function ExperienceList() {
+type ExperienceListProps = {
+    experiences: ExperienceEntry[];
+};
+
+export function ExperienceList({ experiences }: ExperienceListProps) {
     return (
         <div className="relative space-y-10 pl-6">
             {/* Timeline line */}
@@ -21,7 +25,7 @@ export function ExperienceList() {
 
             {experiences.map((experience) => (
                 <ExperienceItem
-                    key={`${experience.company}-${experience.role}`}
+                    key={experience.id}
                     {...experience}
                 />
             ))}

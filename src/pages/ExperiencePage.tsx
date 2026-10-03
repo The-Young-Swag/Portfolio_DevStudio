@@ -2,11 +2,14 @@ import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { ExperienceList } from "@/components/experience";
 import { SectionHeading } from "@/components/ui";
+import { useExperience } from "@/hooks/experience/useExperience";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
 import { profile } from "@/constants/profile";
 
 export function ExperiencePage() {
+    const { experience, isPending } = useExperience();
+
     return (
         <>
             <PageHeader
@@ -21,7 +24,17 @@ export function ExperiencePage() {
                     <SectionHeading number="01" title="Timeline" />
 
                     <div className="mt-6">
-                        <ExperienceList />
+                        {isPending ? (
+                            <p className="font-mono text-[10.5px] text-(--graphite)">
+                                Loading experience...
+                            </p>
+                        ) : experience.length === 0 ? (
+                            <p className="font-mono text-[10.5px] text-(--graphite)">
+                                No experience yet.
+                            </p>
+                        ) : (
+                            <ExperienceList experiences={experience} />
+                        )}
                     </div>
                 </Container>
             </Section>
