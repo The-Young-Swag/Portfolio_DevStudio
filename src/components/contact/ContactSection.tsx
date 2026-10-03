@@ -83,7 +83,7 @@ export function ContactSection() {
 
                 <div className="mt-4 flex flex-wrap gap-6 font-mono text-[12px]">
                     {socialLinks
-                        .filter(({ label }) => label !== "Email")
+                        .filter(({ icon }) => icon !== "email")
                         .map(({ label, href, icon }) => {
                             const Icon = resolveSocialIcon(icon);
 

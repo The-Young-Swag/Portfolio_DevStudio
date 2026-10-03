@@ -2,6 +2,36 @@ import { Heading, Text } from "@/components/typography";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
 
+function HeroLink({
+    href,
+    label,
+    external,
+}: {
+    href: string;
+    label: string;
+    external: boolean;
+}) {
+    return (
+        <a
+            href={href}
+            target={external ? "_blank" : undefined}
+            rel={external ? "noreferrer" : undefined}
+            className="
+                inline-flex
+                items-center
+                gap-1
+                text-(--graphite)
+                transition-colors
+                duration-150
+                hover:text-(--accent-strong)
+            "
+        >
+            {label}
+            <span aria-hidden="true">↗</span>
+        </a>
+    );
+}
+
 export function HeroInfo() {
     const { profile } = useProfile();
     const resume = profile.resume ?? staticProfile.resume;
@@ -75,85 +105,15 @@ export function HeroInfo() {
                     text-[12px]
                 "
             >
-                <a
-                    href={profile.github}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        text-(--graphite)
-                        transition-colors
-                        duration-150
-                        hover:text-(--accent-strong)
-                    "
-                >
-                    github ↗
-                </a>
+                <HeroLink href={profile.github} label="github" external />
 
-                <a
-                    href={profile.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        text-(--graphite)
-                        transition-colors
-                        duration-150
-                        hover:text-(--accent-strong)
-                    "
-                >
-                    linkedin ↗
-                </a>
+                <HeroLink href={profile.linkedin} label="linkedin" external />
 
                 {resume !== "" && (
-                    <>
-                        <a
-                            href={resume}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="
-                                inline-flex
-                                items-center
-                                gap-1
-                                text-(--graphite)
-                                transition-colors
-                                duration-150
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            résumé ↗
-                        </a>
-
-                        <a
-                            href={resume}
-                            download="resume.pdf"
-                            className="
-                                text-(--graphite)
-                                transition-colors
-                                duration-150
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            Download
-                        </a>
-                    </>
+                    <HeroLink href={resume} label="résumé" external />
                 )}
 
-                <a
-                    href={`mailto:${profile.email}`}
-                    className="
-                        text-(--graphite)
-                        transition-colors
-                        duration-150
-                        hover:text-(--accent-strong)
-                    "
-                >
-                    email
-                </a>
+                <HeroLink href={`mailto:${profile.email}`} label="email" external={false} />
             </div>
         </div>
     );
