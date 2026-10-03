@@ -2,8 +2,11 @@ import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { StackGrid } from "@/components/stack";
 import { SectionHeading } from "@/components/ui";
+import { useStack } from "@/hooks/stack/useStack";
 
 export function StackPage() {
+    const { stack, isPending } = useStack();
+
     return (
         <>
             <PageHeader
@@ -22,7 +25,17 @@ export function StackPage() {
                         build on, where it lives, and how I keep it honest.
                     </p>
 
-                    <StackGrid />
+                    {isPending ? (
+                        <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
+                            Loading stack...
+                        </p>
+                    ) : stack.length === 0 ? (
+                        <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
+                            No stack yet.
+                        </p>
+                    ) : (
+                        <StackGrid groups={stack} />
+                    )}
                 </Container>
             </Section>
 
