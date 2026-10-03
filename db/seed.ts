@@ -40,7 +40,7 @@ async function seedProjects(): Promise<void> {
 
     for (const [index, project] of projects.entries()) {
         await db.execute({
-            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             args: [
                 project.title,
                 project.description,
@@ -49,6 +49,8 @@ async function seedProjects(): Promise<void> {
                 project.category,
                 project.thumbnail,
                 JSON.stringify(project.highlights),
+                "",
+                "",
                 index,
             ],
         });
@@ -74,7 +76,7 @@ async function seedCertifications(): Promise<void> {
 
     for (const [index, certification] of certifications.entries()) {
         await db.execute({
-            sql: "INSERT INTO certifications (name, issuer, year, credential, badge, code, accent, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            sql: "INSERT INTO certifications (name, issuer, year, credential, badge, code, accent, image, link, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             args: [
                 certification.name,
                 certification.issuer,
@@ -83,6 +85,8 @@ async function seedCertifications(): Promise<void> {
                 certification.badge,
                 certification.code,
                 certification.accent,
+                "",
+                "",
                 index,
             ],
         });
@@ -154,7 +158,7 @@ async function seedProfile(): Promise<void> {
     }
 
     await db.execute({
-        sql: "INSERT INTO profile (id, name, headline, location, availability, description, github, linkedin, email, resume) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        sql: "INSERT INTO profile (id, name, headline, location, availability, description, github, linkedin, email, resume, portrait, hero_stats, also_true, contact_heading, contact_title, contact_intro, contact_email_label, footer_note) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         args: [
             profile.name,
             profile.headline,
@@ -165,6 +169,14 @@ async function seedProfile(): Promise<void> {
             profile.linkedin,
             profile.email,
             profile.resume,
+            JSON.stringify(profile.portrait),
+            JSON.stringify(profile.hero_stats),
+            JSON.stringify(profile.also_true),
+            profile.contact_heading,
+            profile.contact_title,
+            profile.contact_intro,
+            profile.contact_email_label,
+            profile.footer_note,
         ],
     });
 
