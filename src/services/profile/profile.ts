@@ -27,7 +27,7 @@ export type Profile = {
     github: string;
     linkedin: string;
     email: string;
-    resume: string;
+    resume: string | null;
     portrait: Record<string, PortraitState>;
     hero_stats: HeroStat[] | null;
     also_true: AlsoTrueItem[] | null;

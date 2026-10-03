@@ -1,8 +1,10 @@
 import { Heading, Text } from "@/components/typography";
 import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
 
 export function HeroInfo() {
     const { profile } = useProfile();
+    const resume = profile.resume ?? staticProfile.resume;
 
     return (
         <div className="min-w-0 pt-1">
@@ -107,22 +109,39 @@ export function HeroInfo() {
                     linkedin ↗
                 </a>
 
-                <a
-                    href={profile.resume}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        text-(--graphite)
-                        transition-colors
-                        duration-150
-                        hover:text-(--accent-strong)
-                    "
-                >
-                    résumé ↗
-                </a>
+                {resume !== "" && (
+                    <>
+                        <a
+                            href={resume}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="
+                                inline-flex
+                                items-center
+                                gap-1
+                                text-(--graphite)
+                                transition-colors
+                                duration-150
+                                hover:text-(--accent-strong)
+                            "
+                        >
+                            résumé ↗
+                        </a>
+
+                        <a
+                            href={resume}
+                            download="resume.pdf"
+                            className="
+                                text-(--graphite)
+                                transition-colors
+                                duration-150
+                                hover:text-(--accent-strong)
+                            "
+                        >
+                            Download
+                        </a>
+                    </>
+                )}
 
                 <a
                     href={`mailto:${profile.email}`}

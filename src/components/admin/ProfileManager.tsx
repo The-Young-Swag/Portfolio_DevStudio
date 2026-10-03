@@ -24,7 +24,6 @@ type ProfileFormFields = {
     github: string;
     linkedin: string;
     email: string;
-    resume: string;
     contact_heading: string;
     contact_title: string;
     contact_intro: string;
@@ -48,7 +47,6 @@ function toFields(profile: Profile): ProfileFormFields {
         github: profile.github,
         linkedin: profile.linkedin,
         email: profile.email,
-        resume: profile.resume,
         contact_heading: profile.contact_heading ?? "",
         contact_title: profile.contact_title ?? "",
         contact_intro: profile.contact_intro ?? "",
@@ -67,7 +65,7 @@ function toInput(fields: ProfileFormFields, current: Profile): ProfileInput {
         github: fields.github.trim(),
         linkedin: fields.linkedin.trim(),
         email: fields.email.trim(),
-        resume: fields.resume.trim(),
+        resume: current.resume ?? "",
         portrait: current.portrait,
         hero_stats: current.hero_stats,
         also_true: current.also_true,
@@ -227,15 +225,6 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
                                 <input
                                     value={fields.email}
                                     onChange={(event) => setField("email", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
-
-                            <label className="block">
-                                <span className={labelClassName}>Resume URL</span>
-                                <input
-                                    value={fields.resume}
-                                    onChange={(event) => setField("resume", event.target.value)}
                                     className={fieldClassName}
                                 />
                             </label>

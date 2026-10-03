@@ -67,7 +67,7 @@ export type Profile = {
     github: string;
     linkedin: string;
     email: string;
-    resume: string;
+    resume: string | null;
     portrait: Record<string, PortraitState>;
     hero_stats: HeroStat[] | null;
     also_true: AlsoTrueItem[] | null;
@@ -126,7 +126,7 @@ export function toProfile(row: Record<string, unknown>): Profile {
         github: toString(row.github, ""),
         linkedin: toString(row.linkedin, ""),
         email: toString(row.email, ""),
-        resume: toString(row.resume, ""),
+        resume: toNullableString(row.resume),
         portrait: toPortrait(row.portrait),
         hero_stats: toHeroStats(row.hero_stats),
         also_true: toAlsoTrue(row.also_true),

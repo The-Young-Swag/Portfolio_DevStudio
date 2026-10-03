@@ -1,5 +1,6 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
+import { deleteStoredFile } from "../_lib/files.js";
 import { deleteStoredImage } from "../_lib/images.js";
 import {
     collectPortraitImages,
@@ -68,7 +69,7 @@ export async function PUT(request: Request) {
     try {
         const db = getDb();
         const previous = await db.execute({
-            sql: "SELECT portrait FROM profile WHERE id = 1",
+            sql: "SELECT portrait, resume FROM profile WHERE id = 1",
             args: [],
         });
 
@@ -76,10 +77,12 @@ export async function PUT(request: Request) {
             | Record<string, unknown>
             | undefined;
 
-        const previousImages = previousRow ? toProfile(previousRow).portrait : {};
+        const previousProfile = previousRow ? toProfile(previousRow) : null;
+        const previousImages = previousProfile ? previousProfile.portrait : {};
         const removedImages = collectPortraitImages(previousImages).filter(
             (url) => !collectPortraitImages(input.portrait).includes(url),
         );
+        const previousResume = previousProfile?.resume ?? null;
 
         await db.execute({
             sql: "INSERT INTO profile (id, name, headline, location, availability, description, github, linkedin, email, resume, portrait, hero_stats, also_true, contact_heading, contact_title, contact_intro, contact_email_label, footer_note) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = ?, headline = ?, location = ?, availability = ?, description = ?, github = ?, linkedin = ?, email = ?, resume = ?, portrait = ?, hero_stats = ?, also_true = ?, contact_heading = ?, contact_title = ?, contact_intro = ?, contact_email_label = ?, footer_note = ?",
@@ -123,6 +126,10 @@ export async function PUT(request: Request) {
 
         for (const url of removedImages) {
             await deleteStoredImage(db, url);
+        }
+
+        if (previousResume !== input.resume) {
+            await deleteStoredFile(db, previousResume);
         }
 
         const selected = await db.execute({

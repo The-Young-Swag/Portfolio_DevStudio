@@ -7,6 +7,7 @@ export * from "./PdfUploadField";
 export * from "./PortraitManager";
 export * from "./ProfileManager";
 export * from "./ProjectsManager";
+export * from "./ResumeManager";
 export * from "./SocialLinksManager";
 export * from "./StackManager";
 export * from "./TokenGate";
