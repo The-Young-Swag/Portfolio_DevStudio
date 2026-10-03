@@ -25,6 +25,11 @@ type ProfileFormFields = {
     linkedin: string;
     email: string;
     resume: string;
+    contact_heading: string;
+    contact_title: string;
+    contact_intro: string;
+    contact_email_label: string;
+    footer_note: string;
 };
 
 const fieldClassName =
@@ -44,6 +49,11 @@ function toFields(profile: Profile): ProfileFormFields {
         linkedin: profile.linkedin,
         email: profile.email,
         resume: profile.resume,
+        contact_heading: profile.contact_heading ?? "",
+        contact_title: profile.contact_title ?? "",
+        contact_intro: profile.contact_intro ?? "",
+        contact_email_label: profile.contact_email_label ?? "",
+        footer_note: profile.footer_note ?? "",
     };
 }
 
@@ -61,11 +71,11 @@ function toInput(fields: ProfileFormFields, current: Profile): ProfileInput {
         portrait: current.portrait,
         hero_stats: current.hero_stats,
         also_true: current.also_true,
-        contact_heading: current.contact_heading,
-        contact_title: current.contact_title,
-        contact_intro: current.contact_intro,
-        contact_email_label: current.contact_email_label,
-        footer_note: current.footer_note,
+        contact_heading: fields.contact_heading.trim(),
+        contact_title: fields.contact_title.trim(),
+        contact_intro: fields.contact_intro.trim(),
+        contact_email_label: fields.contact_email_label.trim(),
+        footer_note: fields.footer_note.trim(),
     };
 }
 
@@ -237,6 +247,54 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
                                 value={fields.description}
                                 onChange={(event) => setField("description", event.target.value)}
                                 rows={3}
+                                className={fieldClassName}
+                            />
+                        </label>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <label className="block">
+                                <span className={labelClassName}>Contact heading</span>
+                                <input
+                                    value={fields.contact_heading}
+                                    onChange={(event) => setField("contact_heading", event.target.value)}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="block">
+                                <span className={labelClassName}>Contact email button label</span>
+                                <input
+                                    value={fields.contact_email_label}
+                                    onChange={(event) => setField("contact_email_label", event.target.value)}
+                                    className={fieldClassName}
+                                />
+                            </label>
+                        </div>
+
+                        <label className="block">
+                            <span className={labelClassName}>Contact title</span>
+                            <input
+                                value={fields.contact_title}
+                                onChange={(event) => setField("contact_title", event.target.value)}
+                                className={fieldClassName}
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className={labelClassName}>Contact intro</span>
+                            <textarea
+                                value={fields.contact_intro}
+                                onChange={(event) => setField("contact_intro", event.target.value)}
+                                rows={3}
+                                className={fieldClassName}
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className={labelClassName}>Footer note</span>
+                            <input
+                                value={fields.footer_note}
+                                onChange={(event) => setField("footer_note", event.target.value)}
                                 className={fieldClassName}
                             />
                         </label>

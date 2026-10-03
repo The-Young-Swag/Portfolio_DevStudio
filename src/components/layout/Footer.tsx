@@ -1,8 +1,11 @@
 import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
 import { Container } from "./Container";
 
 export function Footer() {
     const { profile } = useProfile();
+    const year = new Date().getFullYear();
+    const note = profile.footer_note ?? staticProfile.footer_note;
 
     return (
         <footer
@@ -29,8 +32,7 @@ export function Footer() {
                                 text-(--graphite-soft)
                             "
                         >
-                            © 2026 Ivan Harvey Rivera — probably
-                            still debugging something.
+                            © {year} {profile.name} — {note}
                         </p>
 
                     <div

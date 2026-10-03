@@ -3,6 +3,7 @@ import { ArrowUpRight, Mail } from "lucide-react";
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
 import { resolveSocialIcon } from "@/constants/socialLinks";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
@@ -10,10 +11,15 @@ export function ContactSection() {
     const { profile } = useProfile();
     const { socialLinks } = useSocialLinks();
 
+    const heading = profile.contact_heading ?? staticProfile.contact_heading;
+    const title = profile.contact_title ?? staticProfile.contact_title;
+    const intro = profile.contact_intro ?? staticProfile.contact_intro;
+    const emailLabel = profile.contact_email_label ?? staticProfile.contact_email_label;
+
     return (
         <Section id="contact">
             <Container>
-                <SectionHeading number="07" title="Contact" />
+                <SectionHeading number="07" title={heading} />
 
                 <div
                     className="
@@ -37,13 +43,11 @@ export function ContactSection() {
                 >
                     <div className="max-w-2xl">
                         <h3 className="font-display text-[20px] font-medium leading-tight text-(--ink)">
-                            Let's build something.
+                            {title}
                         </h3>
 
                         <p className="mt-2 max-w-xl text-[15px] leading-7 text-(--graphite)">
-                            Open to full-time roles and select freelance work.
-                            Usually replies within a day — sooner if it's an
-                            interesting problem, or there's free food involved.
+                            {intro}
                         </p>
                     </div>
 
@@ -73,7 +77,7 @@ export function ContactSection() {
                         "
                     >
                         <Mail size={14} strokeWidth={2} />
-                        Email Ivan
+                        {emailLabel}
                     </a>
                 </div>
 
