@@ -6,6 +6,7 @@ import {
     CertificationGrid,
 } from "@/components/certifications";
 import { SectionHeading } from "@/components/ui";
+import { useCertifications } from "@/hooks/certifications/useCertifications";
 
 const issuers = [
     {
@@ -26,6 +27,8 @@ const issuers = [
 ];
 
 export function CertificationsPage() {
+    const { certifications, isPending } = useCertifications();
+
     return (
         <>
             <PageHeader
@@ -39,7 +42,17 @@ export function CertificationsPage() {
                 <Container>
                     <SectionHeading number="01" title="Credentials" />
 
-                    <CertificationGrid />
+                    {isPending ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            Loading certifications...
+                        </p>
+                    ) : certifications.length === 0 ? (
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            No certifications yet.
+                        </p>
+                    ) : (
+                        <CertificationGrid certifications={certifications} />
+                    )}
                 </Container>
             </Section>
 
