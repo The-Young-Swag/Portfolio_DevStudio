@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -74,12 +74,12 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
     const [fields, setFields] = useState<ProfileFormFields | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [saved, setSaved] = useState(false);
+    const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
 
-    useEffect(() => {
-        if (profileQuery.data && fields === null) {
-            setFields(toFields(profileQuery.data));
-        }
-    }, [profileQuery.data, fields]);
+    if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
+        setSyncedProfile(profileQuery.data);
+        setFields(toFields(profileQuery.data));
+    }
 
     function setField(name: keyof ProfileFormFields, value: string) {
         setSaved(false);
