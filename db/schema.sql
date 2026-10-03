@@ -23,3 +23,13 @@ CREATE TABLE IF NOT EXISTS certifications (
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS experience (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    period TEXT NOT NULL DEFAULT '',
+    role TEXT NOT NULL,
+    company TEXT NOT NULL DEFAULT '',
+    description TEXT NOT NULL DEFAULT '[]',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
