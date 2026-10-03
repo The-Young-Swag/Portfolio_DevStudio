@@ -168,8 +168,11 @@ export function HeroPortrait() {
                 group
                 relative
                 aspect-square
+                mx-auto
                 w-full
+                max-w-60
                 cursor-pointer
+                touch-manipulation
                 overflow-hidden
                 rounded-[20px]
                 border
@@ -182,6 +185,9 @@ export function HeroPortrait() {
                 backdrop-saturate-140
                 ring-1
                 ring-black/[0.04]
+                sm:max-w-70
+                md:mx-0
+                md:max-w-none
                 transition-[box-shadow,border-color]
                 duration-300
                 ease-[cubic-bezier(0.22,1,0.36,1)]

@@ -18,12 +18,14 @@ function HeroLink({
             rel={external ? "noreferrer" : undefined}
             className="
                 inline-flex
+                min-h-[44px]
                 items-center
                 gap-1
                 text-(--graphite)
                 transition-colors
                 duration-150
                 hover:text-(--accent-strong)
+                touch-manipulation
             "
         >
             {label}
