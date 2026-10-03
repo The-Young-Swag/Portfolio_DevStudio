@@ -1,4 +1,4 @@
-import { isAdmin } from "../_lib/auth.js";
+import { requireAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import { stackItemSchema, toStackItem } from "../_lib/stackItems.js";
 
@@ -31,8 +31,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    if (!isAdmin(request)) {
-        return Response.json({ error: "Unauthorized." }, { status: 401 });
+    const authError = requireAdmin(request);
+
+    if (authError) {
+        return authError;
     }
 
     let body: unknown;

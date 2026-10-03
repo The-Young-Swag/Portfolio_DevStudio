@@ -148,3 +148,37 @@ export async function uploadImage(blob: Blob, token: string): Promise<UploadedIm
 
     return response.json() as Promise<UploadedImage>;
 }
+
+export async function checkAdminSession(token: string): Promise<void> {
+    let response: Response;
+
+    try {
+        response = await fetch("/api/admin/session", {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+    } catch {
+        throw new ApiError(0, "Unable to reach the server. Check your connection.");
+    }
+
+    if (response.status === 401) {
+        throw new ApiError(401, "That token was rejected. Try again.");
+    }
+
+    if (response.status === 500) {
+        throw new ApiError(
+            500,
+            "The server is misconfigured (ADMIN_TOKEN is missing).",
+        );
+    }
+
+    if (!response.ok) {
+        throw new ApiError(
+            response.status,
+            await readErrorMessage(response, "Unable to verify the token."),
+        );
+    }
+}

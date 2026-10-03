@@ -1,4 +1,4 @@
-import { isAdmin } from "../_lib/auth.js";
+import { requireAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import { deleteStoredImage } from "../_lib/images.js";
 import { certificationSchema, findParentError, toCertification } from "../_lib/certifications.js";
@@ -22,8 +22,10 @@ function getId(request: Request): number | null {
 }
 
 export async function PUT(request: Request) {
-    if (!isAdmin(request)) {
-        return Response.json({ error: "Unauthorized." }, { status: 401 });
+    const authError = requireAdmin(request);
+
+    if (authError) {
+        return authError;
     }
 
     const id = getId(request);
@@ -142,8 +144,10 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-    if (!isAdmin(request)) {
-        return Response.json({ error: "Unauthorized." }, { status: 401 });
+    const authError = requireAdmin(request);
+
+    if (authError) {
+        return authError;
     }
 
     const id = getId(request);

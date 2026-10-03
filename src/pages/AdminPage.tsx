@@ -10,6 +10,7 @@ export function AdminPage() {
     const [token, setToken] = useState<string | null>(() =>
         sessionStorage.getItem(TOKEN_KEY),
     );
+    const [rejectedNotice, setRejectedNotice] = useState(false);
 
     useEffect(() => {
         const meta = document.createElement("meta");
@@ -24,23 +25,26 @@ export function AdminPage() {
 
     function handleUnlock(nextToken: string) {
         sessionStorage.setItem(TOKEN_KEY, nextToken);
+        setRejectedNotice(false);
         setToken(nextToken);
     }
 
     function handleSignOut() {
         sessionStorage.removeItem(TOKEN_KEY);
+        setRejectedNotice(false);
         setToken(null);
     }
 
     function handleUnauthorized() {
         sessionStorage.removeItem(TOKEN_KEY);
+        setRejectedNotice(true);
         setToken(null);
     }
 
     if (token === null) {
         return (
             <>
-                <TokenGate onUnlock={handleUnlock} />
+                <TokenGate onUnlock={handleUnlock} rejected={rejectedNotice} />
                 <Footer />
             </>
         );

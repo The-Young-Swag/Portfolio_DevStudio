@@ -1,10 +1,12 @@
-import { isAdmin } from "../_lib/auth.js";
+import { requireAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import { isPdfBytes, MAX_FILE_BYTES, sanitizeFilename } from "../_lib/files.js";
 
 export async function POST(request: Request) {
-    if (!isAdmin(request)) {
-        return Response.json({ error: "Unauthorized." }, { status: 401 });
+    const authError = requireAdmin(request);
+
+    if (authError) {
+        return authError;
     }
 
     let form: FormData;
