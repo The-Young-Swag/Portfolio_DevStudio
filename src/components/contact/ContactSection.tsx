@@ -3,10 +3,12 @@ import { ArrowUpRight, Mail } from "lucide-react";
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
-import { resolveSocialIcon, socialLinks } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialLinks";
+import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ContactSection() {
     const { profile } = useProfile();
+    const { socialLinks } = useSocialLinks();
 
     return (
         <Section id="contact">

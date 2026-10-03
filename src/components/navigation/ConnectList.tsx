@@ -1,6 +1,9 @@
-import { resolveSocialIcon, socialLinks } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialLinks";
+import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ConnectList() {
+    const { socialLinks } = useSocialLinks();
+
     return (
         <div className="mt-6">
 <p
