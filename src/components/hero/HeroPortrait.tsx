@@ -177,7 +177,7 @@ export function HeroPortrait() {
                 bg-(--glass-bg)
                 p-0
                 text-left
-                shadow-[inset_0_1px_0_var(--glass-highlight),0_18px_45px_rgba(31,38,135,0.10)]
+                shadow-[inset_0_1px_0_var(--glass-highlight)]
                 backdrop-blur-[18px]
                 backdrop-saturate-140
                 ring-1
@@ -187,7 +187,7 @@ export function HeroPortrait() {
                 ease-[cubic-bezier(0.22,1,0.36,1)]
 
                 hover:border-(--accent-strong)/60
-                hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/25,0_22px_55px_-20px_var(--accent-strong)/35]
+                hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/25]
 
                 focus-visible:outline-none
                 focus-visible:ring-2
