@@ -13,7 +13,7 @@ export function ExperienceSection() {
         <Section id="experience">
             <Container>
                 <div className="flex items-baseline justify-between">
-                    <SectionHeading number="03" title="Experience" />
+                    <SectionHeading number="03" title="Experience" id="experience" />
 
                     <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-(--graphite-soft)">
                         2024 — present

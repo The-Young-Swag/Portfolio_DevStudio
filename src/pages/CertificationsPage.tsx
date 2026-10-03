@@ -20,7 +20,7 @@ export function CertificationsPage() {
 
             <Section id="credentials">
                 <Container>
-                    <SectionHeading number="01" title="Credentials" />
+                    <SectionHeading number="01" title="Credentials" id="credentials" />
 
                     {isPending ? (
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">

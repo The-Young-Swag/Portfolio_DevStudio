@@ -32,7 +32,7 @@ export function StackPage() {
 
             <Section id="tools">
                 <Container>
-                    <SectionHeading number="01" title="Tools" />
+                    <SectionHeading number="01" title="Tools" id="tools" />
 
                     <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
                         Grouped the way I think about them: what I write, what I
@@ -93,7 +93,7 @@ export function StackPage() {
 
             <Section id="notes">
                 <Container>
-                    <SectionHeading number="02" title="Notes" />
+                    <SectionHeading number="02" title="Notes" id="notes" />
 
                     <div className="mt-6 rounded-2xl border border-(--glass-border) bg-(--glass-bg) p-6 shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl backdrop-saturate-160 sm:p-7">
                         <p className="font-display text-[20px] leading-snug text-(--ink)">

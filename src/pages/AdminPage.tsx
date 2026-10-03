@@ -55,7 +55,7 @@ export function AdminPage() {
             <Section id="admin">
                 <Container>
                     <div className="flex items-baseline justify-between">
-                        <SectionHeading number="00" title="Admin" />
+                        <SectionHeading number="00" title="Admin" id="admin" />
 
                         <button
                             type="button"

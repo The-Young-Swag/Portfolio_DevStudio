@@ -19,7 +19,7 @@ export function ContactSection() {
     return (
         <Section id="contact">
             <Container>
-                <SectionHeading number="07" title={heading} />
+                <SectionHeading number="07" title={heading} id="contact" />
 
                 <div
                     className="

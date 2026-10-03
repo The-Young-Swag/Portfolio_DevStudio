@@ -12,7 +12,7 @@ export function StackSection() {
     return (
         <Section id="stack">
             <Container>
-                <SectionHeading number="04" title="Stack" />
+                <SectionHeading number="04" title="Stack" id="stack" />
 
                 <div
                     className="

@@ -552,6 +552,7 @@ export function TimeSection() {
                 <SectionHeading
                     number="06"
                     title="Right Now"
+                    id="time"
                 />
 
                 <div

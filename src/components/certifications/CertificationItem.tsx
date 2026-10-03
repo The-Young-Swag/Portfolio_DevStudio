@@ -33,7 +33,7 @@ export function CertificationItem({
     return (
         <article
             className={clsx(
-                "group w-[260px] shrink-0 overflow-hidden rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)] backdrop-blur-xl backdrop-saturate-160 transition-colors duration-150 hover:border-(--accent-strong)",
+                "group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)] transition-colors duration-150 hover:border-(--accent-strong)",
                 className,
             )}
         >

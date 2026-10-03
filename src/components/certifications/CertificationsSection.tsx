@@ -1,10 +1,11 @@
 import { Link } from "react-router";
 
+import { Carousel } from "@/components/carousel";
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useCertifications } from "@/hooks/certifications/useCertifications";
 
-import { CertificationList } from "./CertificationList";
+import { CertificationItem } from "./CertificationItem";
 
 export function CertificationsSection() {
     const { certifications, isPending } = useCertifications();
@@ -12,23 +13,45 @@ export function CertificationsSection() {
     return (
         <Section id="certification">
             <Container>
-                <SectionHeading number="05" title="Certifications" />
-
-                <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
-                    Credentials earned along the way — proof that I finish
-                    what I start.
-                </p>
-
                 {isPending ? (
-                    <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
-                        Loading certifications...
-                    </p>
+                    <>
+                        <SectionHeading number="05" title="Certifications" id="certification" />
+
+                        <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
+                            Loading certifications...
+                        </p>
+                    </>
                 ) : certifications.length === 0 ? (
-                    <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
-                        No certifications yet.
-                    </p>
+                    <>
+                        <SectionHeading number="05" title="Certifications" id="certification" />
+
+                        <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
+                            No certifications yet.
+                        </p>
+                    </>
                 ) : (
-                    <CertificationList certifications={certifications} />
+                    <Carousel
+                        label="Certifications"
+                        heading={
+                            <>
+                                <SectionHeading number="05" title="Certifications" id="certification" />
+
+                                <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
+                                    Credentials earned along the way — proof that I finish
+                                    what I start.
+                                </p>
+                            </>
+                        }
+                        previousLabel="Previous certifications"
+                        nextLabel="Next certifications"
+                        gap="0.75rem"
+                    >
+                        {certifications.map((certification) => (
+                            <div key={certification.id} className="carousel-card">
+                                <CertificationItem {...certification} />
+                            </div>
+                        ))}
+                    </Carousel>
                 )}
 
                 <Link

@@ -15,15 +15,16 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
         <article
             className="
                 group
+                flex
+                h-full
+                flex-col
                 overflow-hidden
                 rounded-2xl
                 border
                 border-(--glass-border)
                 bg-(--glass-bg)
                 shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)]
-                backdrop-blur-xl
-                backdrop-saturate-160
-                transition-[background-color,box-shadow]
+                transition-[background-color,border-color]
                 duration-500
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
@@ -51,7 +52,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 </span>
             </div>
 
-            <div className="p-5">
+            <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
                     <span>{year}</span>
                     <span aria-hidden="true" className="opacity-40">·</span>
@@ -90,12 +91,12 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                     ))}
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-auto pt-5">
                     <AccessLedger project={project} />
                 </div>
 
                 {project.has_case_study && (
-                    <div className="mt-4">
+                    <div className="mt-3">
                         <Link
                             to={`/projects#project-${project.id}`}
                             className="

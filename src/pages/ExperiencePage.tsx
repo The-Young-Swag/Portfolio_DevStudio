@@ -24,7 +24,7 @@ export function ExperiencePage() {
 
             <Section id="timeline">
                 <Container>
-                    <SectionHeading number="01" title="Timeline" />
+                    <SectionHeading number="01" title="Timeline" id="timeline" />
 
                     <div className="mt-6">
                         {isPending ? (

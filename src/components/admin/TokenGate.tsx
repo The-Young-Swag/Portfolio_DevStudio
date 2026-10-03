@@ -44,7 +44,7 @@ export function TokenGate({ onUnlock, rejected }: TokenGateProps) {
     return (
         <Section id="admin">
             <Container>
-                <SectionHeading number="00" title="Admin" />
+                <SectionHeading number="00" title="Admin" id="admin" />
 
                 <form
                     onSubmit={handleSubmit}
