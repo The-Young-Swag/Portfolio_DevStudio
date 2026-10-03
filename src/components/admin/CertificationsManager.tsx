@@ -13,6 +13,7 @@ import {
     type CertificationInput,
 } from "@/services/certifications/certifications";
 import { ApiError } from "@/services/api";
+import { ImageUploadField } from "./ImageUploadField";
 
 type CertificationsManagerProps = {
     token: string;
@@ -307,17 +308,17 @@ export function CertificationsManager({
                         </label>
                     </div>
 
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            Image URL
-                        </span>
-                        <input
+                    <div>
+                        <ImageUploadField
+                            label="Image"
                             value={fields.image}
-                            onChange={(event) => setField("image", event.target.value)}
-                            placeholder="https://… or /api/images/…"
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            onChange={(url) => setField("image", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            aspect={21 / 9}
+                            maxEdge={1280}
                         />
-                    </label>
+                    </div>
 
                     <label className="block">
                         <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
