@@ -1,7 +1,9 @@
-import { profile } from "@/constants/profile";
+import { useProfile } from "@/hooks/profile/useProfile";
 import { Container } from "./Container";
 
 export function Footer() {
+    const { profile } = useProfile();
+
     return (
         <footer
             className="

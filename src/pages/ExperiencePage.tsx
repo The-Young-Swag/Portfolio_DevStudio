@@ -5,10 +5,11 @@ import { SectionHeading } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
-import { profile } from "@/constants/profile";
+import { useProfile } from "@/hooks/profile/useProfile";
 
 export function ExperiencePage() {
     const { experience, isPending } = useExperience();
+    const { profile } = useProfile();
 
     return (
         <>

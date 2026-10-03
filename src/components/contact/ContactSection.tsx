@@ -2,10 +2,12 @@ import { ArrowUpRight, Mail } from "lucide-react";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
-import { profile } from "@/constants/profile";
+import { useProfile } from "@/hooks/profile/useProfile";
 import { socialLinks } from "@/constants/socialLinks";
 
 export function ContactSection() {
+    const { profile } = useProfile();
+
     return (
         <Section id="contact">
             <Container>

@@ -1,7 +1,9 @@
 import { Heading, Text } from "@/components/typography";
-import { profile } from "@/constants/profile";
+import { useProfile } from "@/hooks/profile/useProfile";
 
 export function HeroInfo() {
+    const { profile } = useProfile();
+
     return (
         <div className="min-w-0 pt-1">
             {/* Availability */}

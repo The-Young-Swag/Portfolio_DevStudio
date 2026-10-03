@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 
-import { profile } from "@/constants/profile";
+import { useProfile } from "@/hooks/profile/useProfile";
 import type { ExperienceEntry } from "@/services/experience/experience";
 import { ExperienceItem } from "./ExperienceItem";
 
@@ -9,6 +9,8 @@ type ExperienceListProps = {
 };
 
 export function ExperienceList({ experiences }: ExperienceListProps) {
+    const { profile } = useProfile();
+
     return (
         <div className="relative space-y-10 pl-6">
             {/* Timeline line */}
