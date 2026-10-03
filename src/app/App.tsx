@@ -28,6 +28,12 @@ const CertificationsPage = lazy(() =>
     })),
 );
 
+const AdminPage = lazy(() =>
+    import("@/pages/AdminPage").then((module) => ({
+        default: module.AdminPage,
+    })),
+);
+
 function ScrollToTop() {
     const { pathname } = useLocation();
 
@@ -84,6 +90,14 @@ export function App() {
                         element={
                             <Suspense fallback={<PageFallback />}>
                                 <CertificationsPage />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="admin"
+                        element={
+                            <Suspense fallback={<PageFallback />}>
+                                <AdminPage />
                             </Suspense>
                         }
                     />
