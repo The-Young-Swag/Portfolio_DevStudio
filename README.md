@@ -63,19 +63,40 @@ vercel dev
 ### Admin
 
 Open `/admin`, enter the `ADMIN_TOKEN`, and manage each section with
-add/edit/delete (profile is a single edit form). The token is kept in
-`sessionStorage` and sent as an `Authorization: Bearer` header; a `401`
-signs you back out.
+add/edit/delete. The profile page edits the basic fields plus the hero
+portrait states, hero stats, "Also true" items, contact copy, and footer
+note. The token is kept in `sessionStorage` and sent as an
+`Authorization: Bearer` header; a `401` signs you back out.
+
+Tip: tapping the footer's © year five times within three seconds also takes
+you to `/admin`.
+
+### Images
+
+Project thumbnails, certification images, and hero portrait states are plain
+URL strings: either an uploaded `/api/images/<id>` URL or any external
+`https://…` URL. A missing or broken image shows a neutral placeholder.
+
+In the admin, each image field offers a file upload with drag-to-crop and
+zoom plus a plain URL input. Crops are re-encoded to WebP: 16:9 capped at
+1280 px wide for project thumbnails, 21:9 capped at 1280 px for certification
+images, square capped at 900 px for portraits. Anything that cannot fit
+under 400 KB is rejected, as are non-image files and SVGs (server-side too).
 
 ### Deployment (Vercel, one-time)
 
 1. Create a Turso database and obtain its URL and auth token.
 2. In the Vercel project settings, set `TURSO_DATABASE_URL`,
    `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, and `GITHUB_USERNAME`.
-3. Against that database **once** (from your own machine, never from an
-   agent session), apply `db/schema.sql` and run the seed:
+3. For a fresh database, apply `db/schema.sql` and run the seed (from your
+   own machine, never from an agent session):
    `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`.
-4. Redeploy so the functions pick up the new tables.
+4. For a database created before the images feature, apply the one-time
+   migration instead (it also clears the legacy thumbnail keys):
+   `turso db shell portfolio < db/migrations/0001_content_images.sql`.
+   New profile and image columns stay empty until edited in `/admin`; the
+   public site falls back to the static content meanwhile.
+5. Redeploy so the functions pick up the new tables.
 
 ## Scripts
 

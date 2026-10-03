@@ -27,11 +27,12 @@ Data flow: `api/` handler, then `services/`, then `hooks/` (React Query), then s
 ## Content model
 - **CRUD content:** projects, experience, stack, certifications, profile, social links (Turso/libSQL).
 - **Static content:** navigation.
-- **Profile** is a single record (`profile` row 1): `GET` reads it, `PUT` (admin) upserts it. No `POST` or `DELETE`.
-- **Social link icons** are stored as portable keys (`github`, `linkedin`, `email`) and resolved to bundled icons client-side, like project thumbnails.
+- **Profile** is a single record (`profile` row 1): `GET` reads it, `PUT` (admin) upserts it. No `POST` or `DELETE`. It also holds JSON text for portrait states, hero stats, "also true" items, contact copy, and the footer note; a `null` field falls back to the static default.
+- **Social link icons** are stored as portable keys (`github`, `linkedin`, `email`) and resolved to bundled icons client-side. Project thumbnails and certification images are plain URL strings (`/api/images/<id>` or `https://…`); a missing or broken image shows the neutral `ContentImage` placeholder.
+- **Images** live in the `images` table: `POST /api/images` (admin, WebP/JPEG/PNG, 400 KB cap) returns `{ id, url }`; public `GET /api/images/<id>` serves immutable bytes. Replacing, clearing, or deleting an owner row deletes its orphaned image row server-side.
 - Public `GET` endpoints are open and cached; `POST`, `PUT`, and `DELETE` require `Authorization: Bearer <ADMIN_TOKEN>`, checked server-side.
 - If an API request fails (network or 5xx), public pages fall back to the static constants. An empty successful response shows an empty state, not the fallback.
-- Images are URL or path strings; there are no uploads.
+- Schema changes ship twice: `db/schema.sql` for fresh databases plus a one-time file under `db/migrations/` for the existing remote database.
 
 ## Environment variables
 - `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, `GITHUB_USERNAME`
