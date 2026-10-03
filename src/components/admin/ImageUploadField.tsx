@@ -7,7 +7,7 @@ import type { Area } from "react-easy-crop";
 import { ApiError, uploadImage } from "@/services/api";
 import { ImagePlaceholder } from "@/components/ui";
 
-const ACCEPTED_TYPES = ["image/webp", "image/jpeg", "image/png"];
+const ACCEPTED_TYPES = ["image/webp", "image/jpeg", "image/png", "image/avif"];
 const MAX_IMAGE_BYTES = 400 * 1024;
 const MAX_INPUT_BYTES = 15 * 1024 * 1024;
 const QUALITIES = [0.82, 0.65, 0.5, 0.35, 0.2];
@@ -160,7 +160,7 @@ export function ImageUploadField({
         }
 
         if (!ACCEPTED_TYPES.includes(file.type)) {
-            setError("Only WebP, JPEG, and PNG files are allowed.");
+            setError("Only WebP, JPEG, PNG, and AVIF files are allowed.");
             return;
         }
 
@@ -266,7 +266,7 @@ export function ImageUploadField({
                 <input
                     ref={fileRef}
                     type="file"
-                    accept="image/webp,image/jpeg,image/png"
+                    accept="image/webp,image/jpeg,image/png,image/avif"
                     onChange={handleFile}
                     className="hidden"
                     aria-label={`Choose ${label} file`}

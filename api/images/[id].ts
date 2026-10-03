@@ -50,7 +50,7 @@ export async function GET(request: Request) {
             headers: {
                 "Content-Type": row.mime,
                 "X-Content-Type-Options": "nosniff",
-                "Cache-Control": "public, max-age=31536000, immutable",
+                "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable",
             },
         });
     } catch (error) {

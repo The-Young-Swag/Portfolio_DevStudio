@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     if (sniffed === null || (file.type !== "" && file.type !== sniffed)) {
         return Response.json(
-            { error: "Only WebP, JPEG, and PNG images are allowed." },
+            { error: "Only WebP, JPEG, PNG, and AVIF images are allowed." },
             { status: 400 },
         );
     }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
     if (!isAllowedImageMime(mime)) {
         return Response.json(
-            { error: "Only WebP, JPEG, and PNG images are allowed." },
+            { error: "Only WebP, JPEG, PNG, and AVIF images are allowed." },
             { status: 400 },
         );
     }
