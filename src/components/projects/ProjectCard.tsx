@@ -1,3 +1,5 @@
+import { resolveProjectThumbnail } from "./projectThumbnails";
+
 type ProjectCardProps = {
     title: string;
     description: string;
@@ -38,7 +40,7 @@ export function ProjectCard({
         >
             <div className="relative aspect-video overflow-hidden border-b border-(--line)">
                 <img
-                    src={thumbnail}
+                    src={resolveProjectThumbnail(thumbnail)}
                     alt={`${title} preview`}
                     loading="lazy"
                     decoding="async"

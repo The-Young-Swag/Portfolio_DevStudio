@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { projects } from "@/constants/projects";
 
+import { resolveProjectThumbnail } from "./projectThumbnails";
+
 export function ProjectCarousel() {
     const trackRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +99,7 @@ export function ProjectCarousel() {
                     >
                         <div className="relative aspect-video overflow-hidden border-b border-(--line)">
                             <img
-                                src={project.thumbnail}
+                                src={resolveProjectThumbnail(project.thumbnail)}
                                 alt={`${project.title} preview`}
                                 loading="lazy"
                                 decoding="async"
