@@ -1,5 +1,6 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
+import { deleteStoredImage } from "../_lib/images.js";
 import { certificationSchema, toCertification } from "../_lib/certifications.js";
 
 function getId(request: Request): number | null {
@@ -51,8 +52,24 @@ export async function PUT(request: Request) {
 
     try {
         const db = getDb();
+        const previous = await db.execute({
+            sql: "SELECT image FROM certifications WHERE id = ?",
+            args: [id],
+        });
+
+        const previousRow = previous.rows[0] as unknown as
+            | Record<string, unknown>
+            | undefined;
+
+        if (!previousRow) {
+            return Response.json(
+                { error: "Certification not found." },
+                { status: 404 },
+            );
+        }
+
         const updated = await db.execute({
-            sql: "UPDATE certifications SET name = ?, issuer = ?, year = ?, credential = ?, badge = ?, code = ?, accent = ?, sort_order = ? WHERE id = ?",
+            sql: "UPDATE certifications SET name = ?, issuer = ?, year = ?, credential = ?, badge = ?, code = ?, accent = ?, image = ?, link = ?, sort_order = ? WHERE id = ?",
             args: [
                 input.name,
                 input.issuer,
@@ -61,6 +78,8 @@ export async function PUT(request: Request) {
                 input.badge,
                 input.code,
                 input.accent,
+                input.image,
+                input.link,
                 input.sort_order,
                 id,
             ],
@@ -73,8 +92,12 @@ export async function PUT(request: Request) {
             );
         }
 
+        if (previousRow.image !== input.image) {
+            await deleteStoredImage(db, previousRow.image);
+        }
+
         const selected = await db.execute({
-            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, sort_order, created_at FROM certifications WHERE id = ?",
+            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, sort_order, created_at FROM certifications WHERE id = ?",
             args: [id],
         });
 
@@ -114,6 +137,22 @@ export async function DELETE(request: Request) {
 
     try {
         const db = getDb();
+        const previous = await db.execute({
+            sql: "SELECT image FROM certifications WHERE id = ?",
+            args: [id],
+        });
+
+        const previousRow = previous.rows[0] as unknown as
+            | Record<string, unknown>
+            | undefined;
+
+        if (!previousRow) {
+            return Response.json(
+                { error: "Certification not found." },
+                { status: 404 },
+            );
+        }
+
         const deleted = await db.execute({
             sql: "DELETE FROM certifications WHERE id = ?",
             args: [id],
@@ -125,6 +164,8 @@ export async function DELETE(request: Request) {
                 { status: 404 },
             );
         }
+
+        await deleteStoredImage(db, previousRow.image);
 
         return new Response(null, { status: 204 });
     } catch (error) {

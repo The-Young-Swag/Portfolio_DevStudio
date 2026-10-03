@@ -66,7 +66,7 @@ export async function PUT(request: Request) {
         }
 
         const updated = await db.execute({
-            sql: "UPDATE projects SET title = ?, description = ?, stack = ?, year = ?, category = ?, thumbnail = ?, highlights = ?, sort_order = ? WHERE id = ?",
+            sql: "UPDATE projects SET title = ?, description = ?, stack = ?, year = ?, category = ?, thumbnail = ?, highlights = ?, repo_url = ?, live_url = ?, sort_order = ? WHERE id = ?",
             args: [
                 input.title,
                 input.description,
@@ -75,6 +75,8 @@ export async function PUT(request: Request) {
                 input.category,
                 input.thumbnail,
                 JSON.stringify(input.highlights),
+                input.repo_url,
+                input.live_url,
                 input.sort_order,
                 id,
             ],
@@ -92,7 +94,7 @@ export async function PUT(request: Request) {
         }
 
         const selected = await db.execute({
-            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, sort_order, created_at FROM projects WHERE id = ?",
+            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects WHERE id = ?",
             args: [id],
         });
 

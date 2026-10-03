@@ -8,6 +8,8 @@ export const certificationSchema = z.object({
     badge: z.string().default(""),
     code: z.string().default(""),
     accent: z.enum(["blue", "purple", "viridian"]).default("blue"),
+    image: z.string().default(""),
+    link: z.string().default(""),
     sort_order: z.number().int().default(0),
 });
 
@@ -22,6 +24,8 @@ export type Certification = {
     badge: string;
     code: string;
     accent: "blue" | "purple" | "viridian";
+    image: string;
+    link: string;
     sort_order: number;
     created_at: string;
 };
@@ -52,6 +56,8 @@ export function toCertification(row: Record<string, unknown>): Certification {
         badge: toString(row.badge, ""),
         code: toString(row.code, ""),
         accent: toAccent(row.accent),
+        image: toString(row.image, ""),
+        link: toString(row.link, ""),
         sort_order: toNumber(row.sort_order, 0),
         created_at: toString(row.created_at, ""),
     };

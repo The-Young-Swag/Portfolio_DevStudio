@@ -47,7 +47,7 @@ function toFields(profile: Profile): ProfileFormFields {
     };
 }
 
-function toInput(fields: ProfileFormFields): ProfileInput {
+function toInput(fields: ProfileFormFields, current: Profile): ProfileInput {
     return {
         name: fields.name.trim(),
         headline: fields.headline.trim(),
@@ -58,6 +58,14 @@ function toInput(fields: ProfileFormFields): ProfileInput {
         linkedin: fields.linkedin.trim(),
         email: fields.email.trim(),
         resume: fields.resume.trim(),
+        portrait: current.portrait,
+        hero_stats: current.hero_stats,
+        also_true: current.also_true,
+        contact_heading: current.contact_heading,
+        contact_title: current.contact_title,
+        contact_intro: current.contact_intro,
+        contact_email_label: current.contact_email_label,
+        footer_note: current.footer_note,
     };
 }
 
@@ -89,14 +97,14 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
 
-        if (fields === null) {
+        if (fields === null || profileQuery.data === undefined) {
             return;
         }
 
         setFormError(null);
         setSaved(false);
 
-        updateMutation.mutate(toInput(fields), {
+        updateMutation.mutate(toInput(fields, profileQuery.data), {
             onSuccess: () => setSaved(true),
             onError: (error: unknown) => {
                 if (error instanceof ApiError && error.status === 401) {

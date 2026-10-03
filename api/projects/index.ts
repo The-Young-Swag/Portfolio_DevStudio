@@ -6,7 +6,7 @@ export async function GET() {
     try {
         const db = getDb();
         const result = await db.execute(
-            "SELECT id, title, description, stack, year, category, thumbnail, highlights, sort_order, created_at FROM projects ORDER BY sort_order ASC, id ASC",
+            "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects ORDER BY sort_order ASC, id ASC",
         );
 
         const projects = result.rows.map((row: unknown) =>
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     try {
         const db = getDb();
         const inserted = await db.execute({
-            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             args: [
                 input.title,
                 input.description,
@@ -61,13 +61,15 @@ export async function POST(request: Request) {
                 input.category,
                 input.thumbnail,
                 JSON.stringify(input.highlights),
+                input.repo_url,
+                input.live_url,
                 input.sort_order,
             ],
         });
 
         const id = Number(inserted.lastInsertRowid);
         const created = await db.execute({
-            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, sort_order, created_at FROM projects WHERE id = ?",
+            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects WHERE id = ?",
             args: [id],
         });
 
