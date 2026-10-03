@@ -1,3 +1,5 @@
+import { getJson, sendDelete, sendJson } from "../api";
+
 export type Certification = {
     id: number;
     name: string;
@@ -12,27 +14,7 @@ export type Certification = {
 };
 
 export async function getCertifications(): Promise<Certification[]> {
-    const response = await fetch("/api/certifications", {
-        method: "GET",
-        headers: {
-            Accept: "application/json",
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to load certifications.");
-    }
-
-    return response.json() as Promise<Certification[]>;
-}
-
-export class ApiError extends Error {
-    status: number;
-
-    constructor(status: number, message: string) {
-        super(message);
-        this.status = status;
-    }
+    return getJson<Certification[]>("/api/certifications", "Failed to load certifications.");
 }
 
 export type CertificationInput = {
@@ -46,41 +28,13 @@ export type CertificationInput = {
     sort_order: number;
 };
 
-async function readErrorMessage(
-    response: Response,
-    fallback: string,
-): Promise<string> {
-    const body = (await response.json().catch(() => null)) as {
-        error?: string;
-    } | null;
-
-    return body?.error ?? fallback;
-}
-
 async function writeCertification(
     path: string,
     token: string,
     method: string,
     input: CertificationInput,
 ): Promise<Certification> {
-    const response = await fetch(path, {
-        method,
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(input),
-    });
-
-    if (!response.ok) {
-        throw new ApiError(
-            response.status,
-            await readErrorMessage(response, "Failed to save certification."),
-        );
-    }
-
-    return response.json() as Promise<Certification>;
+    return sendJson<Certification>(path, token, method, input, "Failed to save certification.");
 }
 
 export function createCertification(
@@ -102,20 +56,5 @@ export async function deleteCertification(
     id: number,
     token: string,
 ): Promise<void> {
-    const response = await fetch(`/api/certifications/${id}`, {
-        method: "DELETE",
-        headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (response.status === 204) {
-        return;
-    }
-
-    throw new ApiError(
-        response.status,
-        await readErrorMessage(response, "Failed to delete certification."),
-    );
+    return sendDelete(`/api/certifications/${id}`, token, "Failed to delete certification.");
 }

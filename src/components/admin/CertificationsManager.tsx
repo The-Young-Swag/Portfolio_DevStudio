@@ -8,11 +8,11 @@ import {
     useUpdateCertification,
 } from "@/hooks/certifications/useCertifications";
 import {
-    ApiError,
     getCertifications,
     type Certification,
     type CertificationInput,
 } from "@/services/certifications/certifications";
+import { ApiError } from "@/services/api";
 
 type CertificationsManagerProps = {
     token: string;

@@ -8,11 +8,11 @@ import {
     useUpdateProject,
 } from "@/hooks/projects/useProjects";
 import {
-    ApiError,
     getProjects,
     type Project,
     type ProjectInput,
 } from "@/services/projects/projects";
+import { ApiError } from "@/services/api";
 
 type ProjectsManagerProps = {
     token: string;
