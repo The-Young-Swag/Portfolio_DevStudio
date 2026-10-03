@@ -25,3 +25,8 @@ dist-ssr
 
 .vercel
 .env*
+
+.agents
+.devcontainer
+AGENTS.md
+opencode.json
