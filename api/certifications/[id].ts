@@ -1,7 +1,8 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import { deleteStoredImage } from "../_lib/images.js";
-import { certificationSchema, toCertification } from "../_lib/certifications.js";
+import { certificationSchema, findParentError, toCertification } from "../_lib/certifications.js";
+import { deleteStoredFile } from "../_lib/files.js";
 
 function getId(request: Request): number | null {
     try {
@@ -53,7 +54,7 @@ export async function PUT(request: Request) {
     try {
         const db = getDb();
         const previous = await db.execute({
-            sql: "SELECT image FROM certifications WHERE id = ?",
+            sql: "SELECT image, pdf, badge_image FROM certifications WHERE id = ?",
             args: [id],
         });
 
@@ -68,8 +69,14 @@ export async function PUT(request: Request) {
             );
         }
 
+        const parentError = await findParentError(db, input.parent_id, id);
+
+        if (parentError !== null) {
+            return Response.json({ error: parentError }, { status: 400 });
+        }
+
         const updated = await db.execute({
-            sql: "UPDATE certifications SET name = ?, issuer = ?, year = ?, credential = ?, badge = ?, code = ?, accent = ?, image = ?, link = ?, sort_order = ? WHERE id = ?",
+            sql: "UPDATE certifications SET name = ?, issuer = ?, year = ?, credential = ?, badge = ?, code = ?, accent = ?, image = ?, link = ?, parent_id = ?, pdf = ?, badge_image = ?, badge_link = ?, sort_order = ? WHERE id = ?",
             args: [
                 input.name,
                 input.issuer,
@@ -80,6 +87,10 @@ export async function PUT(request: Request) {
                 input.accent,
                 input.image,
                 input.link,
+                input.parent_id,
+                input.pdf,
+                input.badge_image,
+                input.badge_link,
                 input.sort_order,
                 id,
             ],
@@ -96,8 +107,16 @@ export async function PUT(request: Request) {
             await deleteStoredImage(db, previousRow.image);
         }
 
+        if (previousRow.pdf !== input.pdf) {
+            await deleteStoredFile(db, previousRow.pdf);
+        }
+
+        if (previousRow.badge_image !== input.badge_image) {
+            await deleteStoredImage(db, previousRow.badge_image);
+        }
+
         const selected = await db.execute({
-            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, sort_order, created_at FROM certifications WHERE id = ?",
+            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, parent_id, pdf, badge_image, badge_link, sort_order, created_at FROM certifications WHERE id = ?",
             args: [id],
         });
 
@@ -138,7 +157,7 @@ export async function DELETE(request: Request) {
     try {
         const db = getDb();
         const previous = await db.execute({
-            sql: "SELECT image FROM certifications WHERE id = ?",
+            sql: "SELECT image, pdf, badge_image FROM certifications WHERE id = ?",
             args: [id],
         });
 
@@ -153,6 +172,23 @@ export async function DELETE(request: Request) {
             );
         }
 
+        const children = await db.execute({
+            sql: "SELECT id, image, pdf, badge_image FROM certifications WHERE parent_id = ?",
+            args: [id],
+        });
+
+        for (const child of children.rows) {
+            const childRow = child as unknown as Record<string, unknown>;
+            await deleteStoredImage(db, childRow.image);
+            await deleteStoredFile(db, childRow.pdf);
+            await deleteStoredImage(db, childRow.badge_image);
+        }
+
+        await db.execute({
+            sql: "DELETE FROM certifications WHERE parent_id = ?",
+            args: [id],
+        });
+
         const deleted = await db.execute({
             sql: "DELETE FROM certifications WHERE id = ?",
             args: [id],
@@ -166,6 +202,8 @@ export async function DELETE(request: Request) {
         }
 
         await deleteStoredImage(db, previousRow.image);
+        await deleteStoredFile(db, previousRow.pdf);
+        await deleteStoredImage(db, previousRow.badge_image);
 
         return new Response(null, { status: 204 });
     } catch (error) {

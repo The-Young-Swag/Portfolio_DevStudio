@@ -1,12 +1,12 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
-import { certificationSchema, toCertification } from "../_lib/certifications.js";
+import { certificationSchema, findParentError, toCertification } from "../_lib/certifications.js";
 
 export async function GET() {
     try {
         const db = getDb();
         const result = await db.execute(
-            "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, sort_order, created_at FROM certifications ORDER BY sort_order ASC, id ASC",
+            "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, parent_id, pdf, badge_image, badge_link, sort_order, created_at FROM certifications ORDER BY sort_order ASC, id ASC",
         );
 
         const certifications = result.rows.map((row: unknown) =>
@@ -51,8 +51,14 @@ export async function POST(request: Request) {
 
     try {
         const db = getDb();
+        const parentError = await findParentError(db, input.parent_id, null);
+
+        if (parentError !== null) {
+            return Response.json({ error: parentError }, { status: 400 });
+        }
+
         const inserted = await db.execute({
-            sql: "INSERT INTO certifications (name, issuer, year, credential, badge, code, accent, image, link, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            sql: "INSERT INTO certifications (name, issuer, year, credential, badge, code, accent, image, link, parent_id, pdf, badge_image, badge_link, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             args: [
                 input.name,
                 input.issuer,
@@ -63,13 +69,17 @@ export async function POST(request: Request) {
                 input.accent,
                 input.image,
                 input.link,
+                input.parent_id,
+                input.pdf,
+                input.badge_image,
+                input.badge_link,
                 input.sort_order,
             ],
         });
 
         const id = Number(inserted.lastInsertRowid);
         const created = await db.execute({
-            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, sort_order, created_at FROM certifications WHERE id = ?",
+            sql: "SELECT id, name, issuer, year, credential, badge, code, accent, image, link, parent_id, pdf, badge_image, badge_link, sort_order, created_at FROM certifications WHERE id = ?",
             args: [id],
         });
 
