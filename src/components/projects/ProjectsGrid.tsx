@@ -11,8 +11,8 @@ export function ProjectsGrid({ projects }: ProjectsGridProps) {
             {projects.map((project, index) => (
                 <ProjectCard
                     key={project.id}
+                    project={project}
                     index={index}
-                    {...project}
                 />
             ))}
         </div>

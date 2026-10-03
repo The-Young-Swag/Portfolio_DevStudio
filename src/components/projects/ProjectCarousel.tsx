@@ -1,9 +1,11 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router";
 
 import type { Project } from "@/services/projects/projects";
 
 import { ContentImage } from "@/components/ui";
+import { AccessLedger } from "./AccessLedger";
 
 type ProjectCarouselProps = {
     projects: Project[];
@@ -156,6 +158,26 @@ export function ProjectCarousel({ projects }: ProjectCarouselProps) {
                                     </span>
                                 ))}
                             </div>
+
+                            <div className="mt-4">
+                                <AccessLedger project={project} />
+                            </div>
+
+                            {project.has_case_study && (
+                                <div className="mt-3">
+                                    <Link
+                                        to={`/projects#project-${project.id}`}
+                                        className="
+                                            font-mono
+                                            text-[11px]
+                                            text-(--accent-strong)
+                                            hover:underline
+                                        "
+                                    >
+                                        Read case study →
+                                    </Link>
+                                </div>
+                            )}
                         </div>
                     </article>
                 ))}

@@ -1,9 +1,86 @@
+import { useState } from "react";
+
 import type { Project } from "@/services/projects/projects";
-import { ContentImage } from "@/components/ui";
+import { ContentImage, ImageLightbox } from "@/components/ui";
+import { AccessLedger } from "./AccessLedger";
 
 type ProjectDetailsProps = {
     projects: Project[];
 };
+
+function CaseStudy({ project }: { project: Project }) {
+    const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+
+    const blocks = [
+        { label: "Problem", text: project.case_problem },
+        { label: "My role", text: project.case_role },
+        { label: "What I built", text: project.case_solution },
+        { label: "Result", text: project.case_result },
+    ].filter((block) => block.text !== "");
+
+    if (blocks.length === 0 && project.case_screenshots.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="mt-6 rounded-xl border border-(--line) p-4 sm:p-5">
+            <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--accent-strong)">
+                Case study
+            </p>
+
+            {blocks.map((block) => (
+                <div key={block.label} className="mt-4">
+                    <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                        {block.label}
+                    </p>
+                    <p className="mt-1 max-w-xl text-[13px] leading-relaxed text-(--graphite)">
+                        {block.text}
+                    </p>
+                </div>
+            ))}
+
+            {project.case_screenshots.length > 0 && (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {project.case_screenshots.map((shot) => (
+                        <figure key={shot.url} className="min-w-0">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setLightbox({
+                                        src: shot.url,
+                                        alt: shot.caption === "" ? `${project.title} screenshot` : shot.caption,
+                                    })
+                                }
+                                className="block w-full overflow-hidden rounded-xl border border-(--line)"
+                            >
+                                <ContentImage
+                                    src={shot.url}
+                                    alt={shot.caption === "" ? `${project.title} screenshot` : shot.caption}
+                                    imageClassName="aspect-video h-full w-full object-cover"
+                                    placeholderClassName="aspect-video w-full"
+                                />
+                            </button>
+
+                            {shot.caption !== "" && (
+                                <figcaption className="mt-1.5 font-mono text-[10.5px] text-(--graphite-soft)">
+                                    {shot.caption}
+                                </figcaption>
+                            )}
+                        </figure>
+                    ))}
+                </div>
+            )}
+
+            {lightbox !== null && (
+                <ImageLightbox
+                    src={lightbox.src}
+                    alt={lightbox.alt}
+                    onClose={() => setLightbox(null)}
+                />
+            )}
+        </div>
+    );
+}
 
 export function ProjectDetails({ projects }: ProjectDetailsProps) {
     return (
@@ -11,7 +88,8 @@ export function ProjectDetails({ projects }: ProjectDetailsProps) {
             {projects.map((project) => (
                 <div
                     key={project.id}
-                    className="grid gap-4 p-6 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-8 sm:p-7"
+                    id={`project-${project.id}`}
+                    className="grid scroll-mt-24 gap-4 p-6 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-8 sm:p-7"
                 >
                     <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                         <div className="relative aspect-video overflow-hidden rounded-xl border border-(--line)">
@@ -64,31 +142,11 @@ export function ProjectDetails({ projects }: ProjectDetailsProps) {
                             ))}
                         </div>
 
-                        {(project.repo_url !== "" || project.live_url !== "") && (
-                            <div className="mt-4 flex gap-4 font-mono text-[11px]">
-                                {project.repo_url !== "" && (
-                                    <a
-                                        href={project.repo_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-(--accent-strong) hover:underline"
-                                    >
-                                        Repo ↗
-                                    </a>
-                                )}
+                        <div className="mt-4">
+                            <AccessLedger project={project} />
+                        </div>
 
-                                {project.live_url !== "" && (
-                                    <a
-                                        href={project.live_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-(--accent-strong) hover:underline"
-                                    >
-                                        Live ↗
-                                    </a>
-                                )}
-                            </div>
-                        )}
+                        {project.has_case_study && <CaseStudy project={project} />}
                     </div>
                 </div>
             ))}

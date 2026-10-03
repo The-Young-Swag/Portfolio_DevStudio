@@ -1,28 +1,16 @@
+import { Link } from "react-router";
+
 import { ContentImage } from "@/components/ui";
+import type { Project } from "@/services/projects/projects";
+import { AccessLedger } from "./AccessLedger";
 
 type ProjectCardProps = {
-    title: string;
-    description: string;
-    stack: string[];
-    year: number;
-    category: string;
-    thumbnail: string;
-    repo_url: string;
-    live_url: string;
+    project: Project;
     index: number;
 };
 
-export function ProjectCard({
-    title,
-    description,
-    stack,
-    year,
-    category,
-    thumbnail,
-    repo_url,
-    live_url,
-    index,
-}: ProjectCardProps) {
+export function ProjectCard({ project, index }: ProjectCardProps) {
+    const { title, description, stack, year, category, thumbnail } = project;
     return (
         <article
             className="
@@ -102,29 +90,23 @@ export function ProjectCard({
                     ))}
                 </div>
 
-                {(repo_url !== "" || live_url !== "") && (
-                    <div className="mt-4 flex gap-4 font-mono text-[11px]">
-                        {repo_url !== "" && (
-                            <a
-                                href={repo_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-(--accent-strong) hover:underline"
-                            >
-                                Repo ↗
-                            </a>
-                        )}
+                <div className="mt-5">
+                    <AccessLedger project={project} />
+                </div>
 
-                        {live_url !== "" && (
-                            <a
-                                href={live_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-(--accent-strong) hover:underline"
-                            >
-                                Live ↗
-                            </a>
-                        )}
+                {project.has_case_study && (
+                    <div className="mt-4">
+                        <Link
+                            to={`/projects#project-${project.id}`}
+                            className="
+                                font-mono
+                                text-[11px]
+                                text-(--accent-strong)
+                                hover:underline
+                            "
+                        >
+                            Read case study →
+                        </Link>
                     </div>
                 )}
             </div>
