@@ -86,6 +86,41 @@ export async function sendDelete(
     );
 }
 
+export type UploadedFile = {
+    id: number;
+    url: string;
+    filename: string;
+    size: number;
+};
+
+export async function uploadFile(
+    file: File,
+    fallbackName: string,
+    token: string,
+): Promise<UploadedFile> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("fallbackName", fallbackName);
+
+    const response = await fetch("/api/files", {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: form,
+    });
+
+    if (!response.ok) {
+        throw new ApiError(
+            response.status,
+            await readErrorMessage(response, "Failed to upload file."),
+        );
+    }
+
+    return response.json() as Promise<UploadedFile>;
+}
+
 export type UploadedImage = {
     id: number;
     url: string;

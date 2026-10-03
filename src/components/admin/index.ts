@@ -3,6 +3,7 @@ export * from "./CertificationsManager";
 export * from "./ExperienceManager";
 export * from "./HeroStatsManager";
 export * from "./ImageUploadField";
+export * from "./PdfUploadField";
 export * from "./PortraitManager";
 export * from "./ProfileManager";
 export * from "./ProjectsManager";
