@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
-import { TokenGate } from "@/components/admin";
+import { ProjectsManager, TokenGate } from "@/components/admin";
 
 const TOKEN_KEY = "admin-token";
 
@@ -28,6 +28,11 @@ export function AdminPage() {
     }
 
     function handleSignOut() {
+        sessionStorage.removeItem(TOKEN_KEY);
+        setToken(null);
+    }
+
+    function handleUnauthorized() {
         sessionStorage.removeItem(TOKEN_KEY);
         setToken(null);
     }
@@ -65,9 +70,7 @@ export function AdminPage() {
                         </button>
                     </div>
 
-                    <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
-                        Content sections will appear here.
-                    </p>
+                    <ProjectsManager token={token} onUnauthorized={handleUnauthorized} />
                 </Container>
             </Section>
 
