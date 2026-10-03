@@ -9,6 +9,15 @@ CREATE TABLE IF NOT EXISTS projects (
     highlights TEXT NOT NULL DEFAULT '[]',
     repo_url TEXT,
     live_url TEXT,
+    source_access TEXT,
+    demo_access TEXT,
+    access_note TEXT,
+    has_case_study INTEGER,
+    case_problem TEXT,
+    case_role TEXT,
+    case_solution TEXT,
+    case_result TEXT,
+    case_screenshots TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -24,6 +33,10 @@ CREATE TABLE IF NOT EXISTS certifications (
     accent TEXT NOT NULL DEFAULT 'blue',
     image TEXT,
     link TEXT,
+    parent_id INTEGER,
+    pdf TEXT,
+    badge_image TEXT,
+    badge_link TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -42,6 +55,17 @@ CREATE TABLE IF NOT EXISTS stack (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_name TEXT NOT NULL,
     items TEXT NOT NULL DEFAULT '[]',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS stack_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL,
+    level TEXT NOT NULL DEFAULT 'comfortable',
+    since_year INTEGER,
+    is_core INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -80,6 +104,15 @@ CREATE TABLE IF NOT EXISTS images (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     data BLOB NOT NULL,
     mime TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    data BLOB NOT NULL,
     size INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
