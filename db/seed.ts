@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { getDb } from "../api/_lib/db.js";
 import { projects } from "../src/constants/projects.js";
 import { certifications } from "../src/constants/certifications.js";
+import { experiences } from "../src/constants/experience.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -87,6 +88,38 @@ async function seedCertifications(): Promise<void> {
     console.log(`seeded ${certifications.length} certifications.`);
 }
 
+async function seedExperience(): Promise<void> {
+    const db = getDb();
+    const existing = await db.execute(
+        "SELECT COUNT(*) AS count FROM experience",
+    );
+    const firstRow = existing.rows[0] as unknown as
+        | Record<string, unknown>
+        | undefined;
+    const count = typeof firstRow?.count === "number" ? firstRow.count : 0;
+
+    if (count > 0) {
+        console.log(`experience already seeded (${count} rows), skipping.`);
+        return;
+    }
+
+    for (const [index, entry] of experiences.entries()) {
+        await db.execute({
+            sql: "INSERT INTO experience (period, role, company, description, sort_order) VALUES (?, ?, ?, ?, ?)",
+            args: [
+                entry.period,
+                entry.role,
+                entry.company,
+                JSON.stringify(entry.description),
+                index,
+            ],
+        });
+    }
+
+    console.log(`seeded ${experiences.length} experience entries.`);
+}
+
 await applySchema();
 await seedProjects();
 await seedCertifications();
+await seedExperience();
