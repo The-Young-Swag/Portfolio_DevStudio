@@ -1,5 +1,6 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
+import { deleteStoredImage } from "../_lib/images.js";
 import { projectSchema, toProject } from "../_lib/projects.js";
 
 function getId(request: Request): number | null {
@@ -48,6 +49,22 @@ export async function PUT(request: Request) {
 
     try {
         const db = getDb();
+        const previous = await db.execute({
+            sql: "SELECT thumbnail FROM projects WHERE id = ?",
+            args: [id],
+        });
+
+        const previousRow = previous.rows[0] as unknown as
+            | Record<string, unknown>
+            | undefined;
+
+        if (!previousRow) {
+            return Response.json(
+                { error: "Project not found." },
+                { status: 404 },
+            );
+        }
+
         const updated = await db.execute({
             sql: "UPDATE projects SET title = ?, description = ?, stack = ?, year = ?, category = ?, thumbnail = ?, highlights = ?, sort_order = ? WHERE id = ?",
             args: [
@@ -68,6 +85,10 @@ export async function PUT(request: Request) {
                 { error: "Project not found." },
                 { status: 404 },
             );
+        }
+
+        if (previousRow.thumbnail !== input.thumbnail) {
+            await deleteStoredImage(db, previousRow.thumbnail);
         }
 
         const selected = await db.execute({
@@ -108,6 +129,22 @@ export async function DELETE(request: Request) {
 
     try {
         const db = getDb();
+        const previous = await db.execute({
+            sql: "SELECT thumbnail FROM projects WHERE id = ?",
+            args: [id],
+        });
+
+        const previousRow = previous.rows[0] as unknown as
+            | Record<string, unknown>
+            | undefined;
+
+        if (!previousRow) {
+            return Response.json(
+                { error: "Project not found." },
+                { status: 404 },
+            );
+        }
+
         const deleted = await db.execute({
             sql: "DELETE FROM projects WHERE id = ?",
             args: [id],
@@ -119,6 +156,8 @@ export async function DELETE(request: Request) {
                 { status: 404 },
             );
         }
+
+        await deleteStoredImage(db, previousRow.thumbnail);
 
         return new Response(null, { status: 204 });
     } catch (error) {
