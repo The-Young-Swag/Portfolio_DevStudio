@@ -30,7 +30,6 @@ const pageSections: Record<string, readonly { id: string; label: string }[]> = {
     "/certifications": [
         { id: "overview", label: "Overview" },
         { id: "credentials", label: "Credentials" },
-        { id: "verify", label: "Verify" },
     ],
 };
 

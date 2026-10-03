@@ -67,7 +67,7 @@ function toFields(certification: Certification): CertificationFormFields {
     };
 }
 
-function toInput(fields: CertificationFormFields): CertificationInput {
+function toInput(fields: CertificationFormFields, current: Certification | null): CertificationInput {
     return {
         name: fields.name.trim(),
         issuer: fields.issuer.trim(),
@@ -78,6 +78,10 @@ function toInput(fields: CertificationFormFields): CertificationInput {
         accent: isAccent(fields.accent) ? fields.accent : "blue",
         image: fields.image.trim(),
         link: fields.link.trim(),
+        parent_id: current?.parent_id ?? null,
+        pdf: current?.pdf ?? "",
+        badge_image: current?.badge_image ?? "",
+        badge_link: current?.badge_link ?? "",
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
 }
@@ -135,7 +139,11 @@ export function CertificationsManager({
         event.preventDefault();
         setFormError(null);
 
-        const input = toInput(fields);
+        const current =
+            typeof editingId === "number"
+                ? (certificationsQuery.data?.find((item) => item.id === editingId) ?? null)
+                : null;
+        const input = toInput(fields, current);
 
         if (editingId === "new") {
             createMutation.mutate(input, {

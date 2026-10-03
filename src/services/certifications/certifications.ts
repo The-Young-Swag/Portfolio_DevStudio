@@ -11,6 +11,10 @@ export type Certification = {
     accent: "blue" | "purple" | "viridian";
     image: string;
     link: string;
+    parent_id: number | null;
+    pdf: string;
+    badge_image: string;
+    badge_link: string;
     sort_order: number;
     created_at: string;
 };
@@ -29,6 +33,10 @@ export type CertificationInput = {
     accent: "blue" | "purple" | "viridian";
     image: string;
     link: string;
+    parent_id: number | null;
+    pdf: string;
+    badge_image: string;
+    badge_link: string;
     sort_order: number;
 };
 
