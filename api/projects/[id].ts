@@ -1,7 +1,12 @@
 import { isAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import { deleteStoredImage } from "../_lib/images.js";
-import { projectSchema, toProject } from "../_lib/projects.js";
+import {
+    projectSchema,
+    removedScreenshotUrls,
+    screenshotUrls,
+    toProject,
+} from "../_lib/projects.js";
 
 function getId(request: Request): number | null {
     try {
@@ -50,7 +55,7 @@ export async function PUT(request: Request) {
     try {
         const db = getDb();
         const previous = await db.execute({
-            sql: "SELECT thumbnail FROM projects WHERE id = ?",
+            sql: "SELECT thumbnail, case_screenshots FROM projects WHERE id = ?",
             args: [id],
         });
 
@@ -66,7 +71,7 @@ export async function PUT(request: Request) {
         }
 
         const updated = await db.execute({
-            sql: "UPDATE projects SET title = ?, description = ?, stack = ?, year = ?, category = ?, thumbnail = ?, highlights = ?, repo_url = ?, live_url = ?, sort_order = ? WHERE id = ?",
+            sql: "UPDATE projects SET title = ?, description = ?, stack = ?, year = ?, category = ?, thumbnail = ?, highlights = ?, repo_url = ?, live_url = ?, source_access = ?, demo_access = ?, access_note = ?, has_case_study = ?, case_problem = ?, case_role = ?, case_solution = ?, case_result = ?, case_screenshots = ?, sort_order = ? WHERE id = ?",
             args: [
                 input.title,
                 input.description,
@@ -77,6 +82,15 @@ export async function PUT(request: Request) {
                 JSON.stringify(input.highlights),
                 input.repo_url,
                 input.live_url,
+                input.source_access,
+                input.demo_access,
+                input.access_note,
+                input.has_case_study ? 1 : 0,
+                input.case_problem,
+                input.case_role,
+                input.case_solution,
+                input.case_result,
+                JSON.stringify(input.case_screenshots),
                 input.sort_order,
                 id,
             ],
@@ -93,8 +107,12 @@ export async function PUT(request: Request) {
             await deleteStoredImage(db, previousRow.thumbnail);
         }
 
+        for (const url of removedScreenshotUrls(previousRow.case_screenshots, input.case_screenshots)) {
+            await deleteStoredImage(db, url);
+        }
+
         const selected = await db.execute({
-            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects WHERE id = ?",
+            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, source_access, demo_access, access_note, has_case_study, case_problem, case_role, case_solution, case_result, case_screenshots, sort_order, created_at FROM projects WHERE id = ?",
             args: [id],
         });
 
@@ -132,7 +150,7 @@ export async function DELETE(request: Request) {
     try {
         const db = getDb();
         const previous = await db.execute({
-            sql: "SELECT thumbnail FROM projects WHERE id = ?",
+            sql: "SELECT thumbnail, case_screenshots FROM projects WHERE id = ?",
             args: [id],
         });
 
@@ -160,6 +178,10 @@ export async function DELETE(request: Request) {
         }
 
         await deleteStoredImage(db, previousRow.thumbnail);
+
+        for (const url of screenshotUrls(previousRow.case_screenshots)) {
+            await deleteStoredImage(db, url);
+        }
 
         return new Response(null, { status: 204 });
     } catch (error) {

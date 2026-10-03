@@ -61,7 +61,7 @@ function toFields(project: Project): ProjectFormFields {
     };
 }
 
-function toInput(fields: ProjectFormFields): ProjectInput {
+function toInput(fields: ProjectFormFields, current: Project | null): ProjectInput {
     return {
         title: fields.title.trim(),
         description: fields.description.trim(),
@@ -78,6 +78,15 @@ function toInput(fields: ProjectFormFields): ProjectInput {
             .filter((item) => item.length > 0),
         repo_url: fields.repo_url.trim(),
         live_url: fields.live_url.trim(),
+        source_access: current?.source_access ?? null,
+        demo_access: current?.demo_access ?? null,
+        access_note: current?.access_note ?? "",
+        has_case_study: current?.has_case_study ?? false,
+        case_problem: current?.case_problem ?? "",
+        case_role: current?.case_role ?? "",
+        case_solution: current?.case_solution ?? "",
+        case_result: current?.case_result ?? "",
+        case_screenshots: current?.case_screenshots ?? [],
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
 }
@@ -132,7 +141,11 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
         event.preventDefault();
         setFormError(null);
 
-        const input = toInput(fields);
+        const current =
+            typeof editingId === "number"
+                ? (projectsQuery.data?.find((item) => item.id === editingId) ?? null)
+                : null;
+        const input = toInput(fields, current);
 
         if (editingId === "new") {
             createMutation.mutate(input, {

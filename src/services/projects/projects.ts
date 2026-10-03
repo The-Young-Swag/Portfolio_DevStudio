@@ -1,5 +1,10 @@
 import { getJson, sendDelete, sendJson } from "../api";
 
+export type CaseScreenshot = {
+    url: string;
+    caption: string;
+};
+
 export type Project = {
     id: number;
     title: string;
@@ -11,6 +16,15 @@ export type Project = {
     highlights: string[];
     repo_url: string;
     live_url: string;
+    source_access: "public" | "private" | null;
+    demo_access: "public" | "internal" | "offline" | "none" | null;
+    access_note: string;
+    has_case_study: boolean;
+    case_problem: string;
+    case_role: string;
+    case_solution: string;
+    case_result: string;
+    case_screenshots: CaseScreenshot[];
     sort_order: number;
     created_at: string;
 };
@@ -29,6 +43,15 @@ export type ProjectInput = {
     highlights: string[];
     repo_url: string;
     live_url: string;
+    source_access: "public" | "private" | null;
+    demo_access: "public" | "internal" | "offline" | "none" | null;
+    access_note: string;
+    has_case_study: boolean;
+    case_problem: string;
+    case_role: string;
+    case_solution: string;
+    case_result: string;
+    case_screenshots: CaseScreenshot[];
     sort_order: number;
 };
 

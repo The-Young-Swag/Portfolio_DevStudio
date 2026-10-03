@@ -6,7 +6,7 @@ export async function GET() {
     try {
         const db = getDb();
         const result = await db.execute(
-            "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects ORDER BY sort_order ASC, id ASC",
+            "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, source_access, demo_access, access_note, has_case_study, case_problem, case_role, case_solution, case_result, case_screenshots, sort_order, created_at FROM projects ORDER BY sort_order ASC, id ASC",
         );
 
         const projects = result.rows.map((row: unknown) =>
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     try {
         const db = getDb();
         const inserted = await db.execute({
-            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            sql: "INSERT INTO projects (title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, source_access, demo_access, access_note, has_case_study, case_problem, case_role, case_solution, case_result, case_screenshots, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             args: [
                 input.title,
                 input.description,
@@ -63,13 +63,22 @@ export async function POST(request: Request) {
                 JSON.stringify(input.highlights),
                 input.repo_url,
                 input.live_url,
+                input.source_access,
+                input.demo_access,
+                input.access_note,
+                input.has_case_study ? 1 : 0,
+                input.case_problem,
+                input.case_role,
+                input.case_solution,
+                input.case_result,
+                JSON.stringify(input.case_screenshots),
                 input.sort_order,
             ],
         });
 
         const id = Number(inserted.lastInsertRowid);
         const created = await db.execute({
-            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, sort_order, created_at FROM projects WHERE id = ?",
+            sql: "SELECT id, title, description, stack, year, category, thumbnail, highlights, repo_url, live_url, source_access, demo_access, access_note, has_case_study, case_problem, case_role, case_solution, case_result, case_screenshots, sort_order, created_at FROM projects WHERE id = ?",
             args: [id],
         });
 
