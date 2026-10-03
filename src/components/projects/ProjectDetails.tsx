@@ -1,6 +1,5 @@
 import type { Project } from "@/services/projects/projects";
 import { ContentImage } from "@/components/ui";
-import { resolveProjectThumbnail } from "./projectThumbnails";
 
 type ProjectDetailsProps = {
     projects: Project[];
@@ -17,7 +16,7 @@ export function ProjectDetails({ projects }: ProjectDetailsProps) {
                     <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                         <div className="relative aspect-video overflow-hidden rounded-xl border border-(--line)">
                             <ContentImage
-                                src={resolveProjectThumbnail(project.thumbnail)}
+                                src={project.thumbnail}
                                 alt={`${project.title} preview`}
                                 imageClassName="h-full w-full object-cover"
                                 placeholderClassName="h-full w-full"

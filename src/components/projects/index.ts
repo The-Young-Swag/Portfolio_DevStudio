@@ -3,4 +3,3 @@ export * from "./ProjectCarousel";
 export * from "./ProjectDetails";
 export * from "./ProjectsGrid";
 export * from "./ProjectsSection";
-export * from "./projectThumbnails";

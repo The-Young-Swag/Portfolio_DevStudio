@@ -243,12 +243,12 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
 
                         <label className="block">
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Thumbnail (key or URL)
+                                Thumbnail URL
                             </span>
                             <input
                                 value={fields.thumbnail}
                                 onChange={(event) => setField("thumbnail", event.target.value)}
-                                placeholder="arc-hive"
+                                placeholder="https://… or /api/images/…"
                                 className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                             />
                         </label>

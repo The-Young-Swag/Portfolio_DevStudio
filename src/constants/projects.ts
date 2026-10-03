@@ -6,7 +6,7 @@ export const projects = [
         stack: ["PHP", "MySQL", "Tesseract OCR"],
         year: 2026,
         category: "DOCUMENT ARCHIVAL",
-        thumbnail: "arc-hive",
+        thumbnail: "",
         highlights: [
             "Scans and OCRs physical records into a searchable digital index.",
             "Role-based access keeps sensitive archives restricted to staff.",
@@ -20,7 +20,7 @@ export const projects = [
         stack: ["PHP", "MSSQL", "jQuery AJAX"],
         year: 2026,
         category: "REAL-TIME SYSTEM",
-        thumbnail: "library-attendance",
+        thumbnail: "",
         highlights: [
             "Replaced paper sign-in sheets with live terminal-based logging.",
             "AJAX updates keep multiple stations in sync without full reloads.",
@@ -34,7 +34,7 @@ export const projects = [
         stack: ["React", "PHP", "FastAPI"],
         year: 2026,
         category: "AI / EDUCATION",
-        thumbnail: "luminoesis",
+        thumbnail: "",
         highlights: [
             "Contextual tutoring engine adapts questions to the learner.",
             "Flashcards and quizzes persist progress per student.",
@@ -48,7 +48,7 @@ export const projects = [
         stack: ["React", "TypeScript", "Vite", "Tailwind CSS"],
         year: 2026,
         category: "PORTFOLIO",
-        thumbnail: "portfolio",
+        thumbnail: "",
         highlights: [
             "React Router pages with route-level code splitting.",
             "Live GitHub contribution graph fed by a serverless API route.",

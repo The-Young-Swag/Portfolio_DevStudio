@@ -1,5 +1,4 @@
 import { ContentImage } from "@/components/ui";
-import { resolveProjectThumbnail } from "./projectThumbnails";
 
 type ProjectCardProps = {
     title: string;
@@ -45,7 +44,7 @@ export function ProjectCard({
         >
             <div className="relative aspect-video overflow-hidden border-b border-(--line)">
                 <ContentImage
-                    src={resolveProjectThumbnail(thumbnail)}
+                    src={thumbnail}
                     alt={`${title} preview`}
                     imageClassName="
                         h-full
