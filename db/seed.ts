@@ -7,6 +7,7 @@ import { projects } from "../src/constants/projects.js";
 import { certifications } from "../src/constants/certifications.js";
 import { experiences } from "../src/constants/experience.js";
 import { stack } from "../src/constants/stack.js";
+import { profile } from "../src/constants/profile.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -143,8 +144,35 @@ async function seedStack(): Promise<void> {
     console.log(`seeded ${stack.length} stack groups.`);
 }
 
+async function seedProfile(): Promise<void> {
+    const db = getDb();
+    const existing = await db.execute("SELECT id FROM profile WHERE id = 1");
+    if (existing.rows.length > 0) {
+        console.log("profile already seeded, skipping.");
+        return;
+    }
+
+    await db.execute({
+        sql: "INSERT INTO profile (id, name, headline, location, availability, description, github, linkedin, email, resume) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        args: [
+            profile.name,
+            profile.headline,
+            profile.location,
+            profile.availability,
+            profile.description,
+            profile.github,
+            profile.linkedin,
+            profile.email,
+            profile.resume,
+        ],
+    });
+
+    console.log("seeded profile.");
+}
+
 await applySchema();
 await seedProjects();
 await seedCertifications();
 await seedExperience();
 await seedStack();
+await seedProfile();
