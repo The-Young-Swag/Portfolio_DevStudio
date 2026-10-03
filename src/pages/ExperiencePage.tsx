@@ -1,11 +1,17 @@
+import { Download } from "lucide-react";
+
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { ExperienceList } from "@/components/experience";
 import { SectionHeading } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
+import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
 
 export function ExperiencePage() {
     const { experience, isPending } = useExperience();
+    const { profile } = useProfile();
+    const resume = profile.resume ?? staticProfile.resume;
 
     return (
         <>
@@ -33,6 +39,37 @@ export function ExperiencePage() {
                             <ExperienceList experiences={experience} />
                         )}
                     </div>
+
+                    {resume !== "" && (
+                        <div className="mt-6">
+                            <a
+                                href={resume}
+                                download="resume.pdf"
+                                className="
+                                    inline-flex
+                                    items-center
+                                    gap-1.5
+                                    rounded-lg
+                                    border
+                                    border-(--accent-strong)
+                                    bg-(--accent-strong)
+                                    px-4
+                                    py-2
+                                    text-[12.5px]
+                                    font-medium
+                                    text-white
+                                    shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]
+                                    transition-colors
+                                    duration-150
+                                    hover:bg-(--accent-deep)
+                                    hover:border-(--accent-deep)
+                                "
+                            >
+                                Download resume
+                                <Download size={13} strokeWidth={2} />
+                            </a>
+                        </div>
+                    )}
                 </Container>
             </Section>
 
