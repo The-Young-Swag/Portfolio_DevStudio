@@ -3,7 +3,7 @@ import { ArrowUpRight, Mail } from "lucide-react";
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
-import { socialLinks } from "@/constants/socialLinks";
+import { resolveSocialIcon, socialLinks } from "@/constants/socialLinks";
 
 export function ContactSection() {
     const { profile } = useProfile();
@@ -78,27 +78,31 @@ export function ContactSection() {
                 <div className="mt-4 flex flex-wrap gap-6 font-mono text-[12px]">
                     {socialLinks
                         .filter(({ label }) => label !== "Email")
-                        .map(({ label, href, icon: Icon }) => (
-                            <a
-                                key={label}
-                                href={href}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="
-                                    inline-flex
-                                    items-center
-                                    gap-1.5
-                                    text-(--graphite)
-                                    transition-colors
-                                    duration-150
-                                    hover:text-(--accent-strong)
-                                "
-                            >
-                                <Icon size={13} strokeWidth={1.75} />
-                                {label}
-                                <ArrowUpRight size={12} strokeWidth={1.75} />
-                            </a>
-                        ))}
+                        .map(({ label, href, icon }) => {
+                            const Icon = resolveSocialIcon(icon);
+
+                            return (
+                                <a
+                                    key={label}
+                                    href={href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="
+                                        inline-flex
+                                        items-center
+                                        gap-1.5
+                                        text-(--graphite)
+                                        transition-colors
+                                        duration-150
+                                        hover:text-(--accent-strong)
+                                    "
+                                >
+                                    <Icon size={13} strokeWidth={1.75} />
+                                    {label}
+                                    <ArrowUpRight size={12} strokeWidth={1.75} />
+                                </a>
+                            );
+                        })}
                 </div>
             </Container>
         </Section>

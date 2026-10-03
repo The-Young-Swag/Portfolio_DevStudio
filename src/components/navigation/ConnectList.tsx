@@ -1,4 +1,4 @@
-import { socialLinks } from "@/constants/socialLinks";
+import { resolveSocialIcon, socialLinks } from "@/constants/socialLinks";
 
 export function ConnectList() {
     return (
@@ -19,7 +19,7 @@ export function ConnectList() {
 
             <div className="space-y-0.5">
                 {socialLinks.map((item) => {
-                    const Icon = item.icon;
+                    const Icon = resolveSocialIcon(item.icon);
 
                     return (
                         <a
