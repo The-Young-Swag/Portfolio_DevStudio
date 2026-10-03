@@ -9,6 +9,8 @@ export type Project = {
     category: string;
     thumbnail: string;
     highlights: string[];
+    repo_url: string;
+    live_url: string;
     sort_order: number;
     created_at: string;
 };
@@ -25,6 +27,8 @@ export type ProjectInput = {
     category: string;
     thumbnail: string;
     highlights: string[];
+    repo_url: string;
+    live_url: string;
     sort_order: number;
 };
 

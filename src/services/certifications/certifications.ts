@@ -9,6 +9,8 @@ export type Certification = {
     badge: string;
     code: string;
     accent: "blue" | "purple" | "viridian";
+    image: string;
+    link: string;
     sort_order: number;
     created_at: string;
 };
@@ -25,6 +27,8 @@ export type CertificationInput = {
     badge: string;
     code: string;
     accent: "blue" | "purple" | "viridian";
+    image: string;
+    link: string;
     sort_order: number;
 };
 

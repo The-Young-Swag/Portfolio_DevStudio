@@ -14,6 +14,8 @@ const fallbackCertifications: Certification[] = staticCertifications.map(
     (certification, index) => ({
         ...certification,
         id: -(index + 1),
+        image: "",
+        link: "",
         sort_order: index,
         created_at: "",
     }),

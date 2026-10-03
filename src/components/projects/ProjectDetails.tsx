@@ -1,4 +1,6 @@
 import type { Project } from "@/services/projects/projects";
+import { ContentImage } from "@/components/ui";
+import { resolveProjectThumbnail } from "./projectThumbnails";
 
 type ProjectDetailsProps = {
     projects: Project[];
@@ -13,7 +15,16 @@ export function ProjectDetails({ projects }: ProjectDetailsProps) {
                     className="grid gap-4 p-6 sm:grid-cols-[120px_minmax(0,1fr)] sm:gap-8 sm:p-7"
                 >
                     <div className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                        <p>{project.year}</p>
+                        <div className="relative aspect-video overflow-hidden rounded-xl border border-(--line)">
+                            <ContentImage
+                                src={resolveProjectThumbnail(project.thumbnail)}
+                                alt={`${project.title} preview`}
+                                imageClassName="h-full w-full object-cover"
+                                placeholderClassName="h-full w-full"
+                            />
+                        </div>
+
+                        <p className="mt-3">{project.year}</p>
                         <p className="mt-1 text-(--accent-strong)">
                             {project.category}
                         </p>
@@ -53,6 +64,32 @@ export function ProjectDetails({ projects }: ProjectDetailsProps) {
                                 </span>
                             ))}
                         </div>
+
+                        {(project.repo_url !== "" || project.live_url !== "") && (
+                            <div className="mt-4 flex gap-4 font-mono text-[11px]">
+                                {project.repo_url !== "" && (
+                                    <a
+                                        href={project.repo_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-(--accent-strong) hover:underline"
+                                    >
+                                        Repo ↗
+                                    </a>
+                                )}
+
+                                {project.live_url !== "" && (
+                                    <a
+                                        href={project.live_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-(--accent-strong) hover:underline"
+                                    >
+                                        Live ↗
+                                    </a>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             ))}

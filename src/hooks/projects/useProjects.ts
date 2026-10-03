@@ -13,6 +13,8 @@ import {
 const fallbackProjects: Project[] = staticProjects.map((project, index) => ({
     ...project,
     id: -(index + 1),
+    repo_url: "",
+    live_url: "",
     sort_order: index,
     created_at: "",
 }));

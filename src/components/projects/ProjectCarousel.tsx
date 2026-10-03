@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Project } from "@/services/projects/projects";
 
+import { ContentImage } from "@/components/ui";
 import { resolveProjectThumbnail } from "./projectThumbnails";
 
 type ProjectCarouselProps = {
@@ -102,12 +103,10 @@ export function ProjectCarousel({ projects }: ProjectCarouselProps) {
                         "
                     >
                         <div className="relative aspect-video overflow-hidden border-b border-(--line)">
-                            <img
+                            <ContentImage
                                 src={resolveProjectThumbnail(project.thumbnail)}
                                 alt={`${project.title} preview`}
-                                loading="lazy"
-                                decoding="async"
-                                className="
+                                imageClassName="
                                     h-full
                                     w-full
                                     object-cover
@@ -116,6 +115,7 @@ export function ProjectCarousel({ projects }: ProjectCarouselProps) {
                                     ease-[cubic-bezier(0.22,1,0.36,1)]
                                     group-hover:scale-[1.04]
                                 "
+                                placeholderClassName="h-full w-full"
                             />
                         </div>
 

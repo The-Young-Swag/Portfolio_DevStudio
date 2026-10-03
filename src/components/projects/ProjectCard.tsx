@@ -1,3 +1,4 @@
+import { ContentImage } from "@/components/ui";
 import { resolveProjectThumbnail } from "./projectThumbnails";
 
 type ProjectCardProps = {
@@ -7,6 +8,8 @@ type ProjectCardProps = {
     year: number;
     category: string;
     thumbnail: string;
+    repo_url: string;
+    live_url: string;
     index: number;
 };
 
@@ -17,6 +20,8 @@ export function ProjectCard({
     year,
     category,
     thumbnail,
+    repo_url,
+    live_url,
     index,
 }: ProjectCardProps) {
     return (
@@ -39,12 +44,10 @@ export function ProjectCard({
             "
         >
             <div className="relative aspect-video overflow-hidden border-b border-(--line)">
-                <img
+                <ContentImage
                     src={resolveProjectThumbnail(thumbnail)}
                     alt={`${title} preview`}
-                    loading="lazy"
-                    decoding="async"
-                    className="
+                    imageClassName="
                         h-full
                         w-full
                         object-cover
@@ -53,6 +56,7 @@ export function ProjectCard({
                         ease-[cubic-bezier(0.22,1,0.36,1)]
                         group-hover:scale-[1.04]
                     "
+                    placeholderClassName="h-full w-full"
                 />
 
                 <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-white backdrop-blur-md">
@@ -98,6 +102,32 @@ export function ProjectCard({
                         </span>
                     ))}
                 </div>
+
+                {(repo_url !== "" || live_url !== "") && (
+                    <div className="mt-4 flex gap-4 font-mono text-[11px]">
+                        {repo_url !== "" && (
+                            <a
+                                href={repo_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-(--accent-strong) hover:underline"
+                            >
+                                Repo ↗
+                            </a>
+                        )}
+
+                        {live_url !== "" && (
+                            <a
+                                href={live_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-(--accent-strong) hover:underline"
+                            >
+                                Live ↗
+                            </a>
+                        )}
+                    </div>
+                )}
             </div>
         </article>
     );

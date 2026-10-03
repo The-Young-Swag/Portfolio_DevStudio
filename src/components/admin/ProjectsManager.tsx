@@ -27,6 +27,8 @@ type ProjectFormFields = {
     category: string;
     thumbnail: string;
     highlights: string;
+    repo_url: string;
+    live_url: string;
     sort_order: string;
 };
 
@@ -38,6 +40,8 @@ const emptyFields: ProjectFormFields = {
     category: "",
     thumbnail: "",
     highlights: "",
+    repo_url: "",
+    live_url: "",
     sort_order: "",
 };
 
@@ -50,6 +54,8 @@ function toFields(project: Project): ProjectFormFields {
         category: project.category,
         thumbnail: project.thumbnail,
         highlights: project.highlights.join("\n"),
+        repo_url: project.repo_url,
+        live_url: project.live_url,
         sort_order: String(project.sort_order),
     };
 }
@@ -69,6 +75,8 @@ function toInput(fields: ProjectFormFields): ProjectInput {
             .split("\n")
             .map((item) => item.trim())
             .filter((item) => item.length > 0),
+        repo_url: fields.repo_url.trim(),
+        live_url: fields.live_url.trim(),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
 }
@@ -253,6 +261,30 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
                                 value={fields.stack}
                                 onChange={(event) => setField("stack", event.target.value)}
                                 placeholder="React, TypeScript, Vite"
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Repo URL
+                            </span>
+                            <input
+                                value={fields.repo_url}
+                                onChange={(event) => setField("repo_url", event.target.value)}
+                                placeholder="https://github.com/…"
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                            />
+                        </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Live URL
+                            </span>
+                            <input
+                                value={fields.live_url}
+                                onChange={(event) => setField("live_url", event.target.value)}
+                                placeholder="https://…"
                                 className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                             />
                         </label>

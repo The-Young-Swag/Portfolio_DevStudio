@@ -27,6 +27,8 @@ type CertificationFormFields = {
     badge: string;
     code: string;
     accent: string;
+    image: string;
+    link: string;
     sort_order: string;
 };
 
@@ -38,6 +40,8 @@ const emptyFields: CertificationFormFields = {
     badge: "",
     code: "",
     accent: "blue",
+    image: "",
+    link: "",
     sort_order: "",
 };
 
@@ -56,6 +60,8 @@ function toFields(certification: Certification): CertificationFormFields {
         badge: certification.badge,
         code: certification.code,
         accent: certification.accent,
+        image: certification.image,
+        link: certification.link,
         sort_order: String(certification.sort_order),
     };
 }
@@ -69,6 +75,8 @@ function toInput(fields: CertificationFormFields): CertificationInput {
         badge: fields.badge.trim(),
         code: fields.code.trim(),
         accent: isAccent(fields.accent) ? fields.accent : "blue",
+        image: fields.image.trim(),
+        link: fields.link.trim(),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
 }
@@ -298,6 +306,30 @@ export function CertificationsManager({
                             />
                         </label>
                     </div>
+
+                    <label className="block">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                            Image URL
+                        </span>
+                        <input
+                            value={fields.image}
+                            onChange={(event) => setField("image", event.target.value)}
+                            placeholder="https://… or /api/images/…"
+                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                        />
+                    </label>
+
+                    <label className="block">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                            Verify link URL
+                        </span>
+                        <input
+                            value={fields.link}
+                            onChange={(event) => setField("link", event.target.value)}
+                            placeholder="https://…"
+                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                        />
+                    </label>
 
                     {formError !== null && (
                         <p className="font-mono text-[11px] text-red-500">{formError}</p>

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 
-type CertificationAccent = "blue" | "purple" | "viridian";
+import { ContentImage } from "@/components/ui";
 
 type CertificationItemProps = {
     name: string;
@@ -9,14 +9,9 @@ type CertificationItemProps = {
     credential: string;
     badge: string;
     code: string;
-    accent: CertificationAccent;
+    image: string;
+    link: string;
     className?: string;
-};
-
-const BADGE_GRADIENTS: Record<CertificationAccent, string> = {
-    blue: "from-[#209dd7] to-[#1672a8]",
-    purple: "from-[#753991] to-[#4c2164]",
-    viridian: "from-[#34d399] to-[#047857]",
 };
 
 export function CertificationItem({
@@ -26,7 +21,8 @@ export function CertificationItem({
     credential,
     badge,
     code,
-    accent,
+    image,
+    link,
     className,
 }: CertificationItemProps) {
     return (
@@ -36,22 +32,25 @@ export function CertificationItem({
                 className,
             )}
         >
-            {/* Credential tile — a monogram header, kin to the project
-                thumbnails but with its own identity (a branded tile
-                instead of a screenshot). */}
-            <div
-                className={clsx(
-                    "relative flex h-28 items-center justify-center border-b border-(--line) bg-gradient-to-br",
-                    BADGE_GRADIENTS[accent],
-                )}
-            >
-                <span className="font-display text-[30px] font-semibold tracking-tight text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
-                    {badge}
-                </span>
+            <div className="relative h-28 overflow-hidden border-b border-(--line)">
+                <ContentImage
+                    src={image}
+                    alt={`${name} certificate`}
+                    imageClassName="absolute inset-0 h-full w-full object-cover"
+                    placeholderClassName="absolute inset-0"
+                />
 
-                <span className="absolute right-2.5 top-2.5 rounded-full border border-white/25 bg-black/20 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-white backdrop-blur-md">
-                    {code}
-                </span>
+                {badge !== "" && (
+                    <span className="absolute left-2.5 top-2.5 rounded-full border border-white/20 bg-black/30 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-white backdrop-blur-md">
+                        {badge}
+                    </span>
+                )}
+
+                {code !== "" && (
+                    <span className="absolute right-2.5 top-2.5 rounded-full border border-white/20 bg-black/30 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-white backdrop-blur-md">
+                        {code}
+                    </span>
+                )}
             </div>
 
             <div className="p-5">
@@ -66,6 +65,17 @@ export function CertificationItem({
                 <p className="mt-2 font-mono text-[11px] leading-relaxed text-(--graphite)">
                     {issuer}
                 </p>
+
+                {link !== "" && (
+                    <a
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-3 inline-block font-mono text-[11px] text-(--accent-strong) hover:underline"
+                    >
+                        Verify ↗
+                    </a>
+                )}
             </div>
         </article>
     );
