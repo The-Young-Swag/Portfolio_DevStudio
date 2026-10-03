@@ -6,7 +6,7 @@ import { getDb } from "../api/_lib/db.js";
 import { projects } from "../src/constants/projects.js";
 import { certifications } from "../src/constants/certifications.js";
 import { experiences } from "../src/constants/experience.js";
-import { stack } from "../src/constants/stack.js";
+import { stack, stackItems } from "../src/constants/stack.js";
 import { profile } from "../src/constants/profile.js";
 import { socialLinks } from "../src/constants/socialLinks.js";
 
@@ -149,6 +149,36 @@ async function seedStack(): Promise<void> {
     console.log(`seeded ${stack.length} stack groups.`);
 }
 
+async function seedStackItems(): Promise<void> {
+    const db = getDb();
+    const existing = await db.execute("SELECT COUNT(*) AS count FROM stack_items");
+    const firstRow = existing.rows[0] as unknown as
+        | Record<string, unknown>
+        | undefined;
+    const count = typeof firstRow?.count === "number" ? firstRow.count : 0;
+
+    if (count > 0) {
+        console.log(`stack items already seeded (${count} rows), skipping.`);
+        return;
+    }
+
+    for (const [index, item] of stackItems.entries()) {
+        await db.execute({
+            sql: "INSERT INTO stack_items (name, category, level, since_year, is_core, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [
+                item.name,
+                item.category,
+                item.level,
+                item.since_year,
+                item.is_core ? 1 : 0,
+                index,
+            ],
+        });
+    }
+
+    console.log(`seeded ${stackItems.length} stack items.`);
+}
+
 async function seedProfile(): Promise<void> {
     const db = getDb();
     const existing = await db.execute("SELECT id FROM profile WHERE id = 1");
@@ -211,5 +241,6 @@ await seedProjects();
 await seedCertifications();
 await seedExperience();
 await seedStack();
+await seedStackItems();
 await seedProfile();
 await seedSocialLinks();
