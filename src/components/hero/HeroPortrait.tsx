@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import profileDefault from "@/assets/images/profile-default.webp";
 import profileGoodMorning from "@/assets/images/profile-GoodMorning.png";
@@ -6,21 +6,17 @@ import profileSleep from "@/assets/images/profile-Sleep.png";
 import profileAwake from "@/assets/images/profile-WokeUp.png";
 
 import { useTheme } from "@/context/theme";
+import { useProfile } from "@/hooks/profile/useProfile";
 
-type ProfileState =
+export type PortraitState =
     | "profile-default"
     | "profile-good-morning"
     | "profile-sleep"
     | "profile-awake";
 
-const PORTRAITS: Record<ProfileState, string> = {
-    "profile-default": profileDefault,
-    "profile-good-morning": profileGoodMorning,
-    "profile-sleep": profileSleep,
-    "profile-awake": profileAwake,
-};
+const DEFAULT_ALT = "Portrait of Ivan Harvey Rivera";
 
-function advanceState(state: ProfileState): ProfileState {
+function advanceState(state: PortraitState): PortraitState {
     switch (state) {
         case "profile-good-morning":
         case "profile-awake":
@@ -38,6 +34,32 @@ function sourceMatches(img: HTMLImageElement, src: string) {
 
 export function HeroPortrait() {
     const { theme } = useTheme();
+    const { profile } = useProfile();
+
+    const images = useMemo<Record<PortraitState, string>>(
+        () => ({
+            "profile-default":
+                profile.portrait["profile-default"]?.image || profileDefault,
+            "profile-good-morning":
+                profile.portrait["profile-good-morning"]?.image || profileGoodMorning,
+            "profile-sleep":
+                profile.portrait["profile-sleep"]?.image || profileSleep,
+            "profile-awake":
+                profile.portrait["profile-awake"]?.image || profileAwake,
+        }),
+        [profile.portrait],
+    );
+
+    const alts: Record<PortraitState, string> = {
+        "profile-default":
+            profile.portrait["profile-default"]?.alt || DEFAULT_ALT,
+        "profile-good-morning":
+            profile.portrait["profile-good-morning"]?.alt || DEFAULT_ALT,
+        "profile-sleep":
+            profile.portrait["profile-sleep"]?.alt || DEFAULT_ALT,
+        "profile-awake":
+            profile.portrait["profile-awake"]?.alt || DEFAULT_ALT,
+    };
 
     /*
      * Easter-egg state machine:
@@ -46,7 +68,7 @@ export function HeroPortrait() {
      *     portrait (one click returns to default); Light -> Dark shows the
      *     sleeping portrait (click -> awake -> default).
      */
-    const [state, setState] = useState<ProfileState>("profile-default");
+    const [state, setState] = useState<PortraitState>("profile-default");
 
     const [previousTheme, setPreviousTheme] = useState(theme);
 
@@ -63,20 +85,20 @@ export function HeroPortrait() {
     const overlayImgRef = useRef<HTMLImageElement>(null);
     const promoteTimerRef = useRef<number | null>(null);
 
-    /* Preload the prepared portraits so the first click is instant. */
+    /* Preload the portraits so the first click is instant. */
     useEffect(() => {
-        Object.values(PORTRAITS).forEach((src) => {
+        Object.values(images).forEach((src) => {
             const image = new Image();
             image.src = src;
         });
-    }, []);
+    }, [images]);
 
     /* Crossfade the portrait whenever the state changes. This touches the
      * DOM directly (an external system) rather than staging more React state,
      * so each transition is a smooth two-layer fade between the prepared
      * images. */
     useEffect(() => {
-        const target = PORTRAITS[state];
+        const target = images[state];
         const base = baseImgRef.current;
         const overlay = overlayImgRef.current;
 
@@ -121,7 +143,7 @@ export function HeroPortrait() {
             overlay.style.transform = "scale(1)";
             overlay.removeAttribute("src");
         }, 520);
-    }, [state]);
+    }, [state, images]);
 
     useEffect(
         () => () => {
@@ -177,8 +199,8 @@ export function HeroPortrait() {
             <div className="relative h-full w-full">
                 <img
                     ref={baseImgRef}
-                    src={PORTRAITS["profile-default"]}
-                    alt="Portrait of Ivan Harvey Rivera"
+                    src={images["profile-default"]}
+                    alt={alts[state]}
                     fetchPriority="high"
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover"

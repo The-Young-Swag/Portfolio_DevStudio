@@ -1,6 +1,7 @@
 export * from "./CertificationsManager";
 export * from "./ExperienceManager";
 export * from "./ImageUploadField";
+export * from "./PortraitManager";
 export * from "./ProfileManager";
 export * from "./ProjectsManager";
 export * from "./SocialLinksManager";

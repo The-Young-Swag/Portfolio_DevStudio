@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
-import { CertificationsManager, ExperienceManager, ProfileManager, ProjectsManager, SocialLinksManager, StackManager, TokenGate } from "@/components/admin";
+import { CertificationsManager, ExperienceManager, PortraitManager, ProfileManager, ProjectsManager, SocialLinksManager, StackManager, TokenGate } from "@/components/admin";
 
 const TOKEN_KEY = "admin-token";
 
@@ -71,6 +71,8 @@ export function AdminPage() {
                     </div>
 
                     <ProfileManager token={token} onUnauthorized={handleUnauthorized} />
+
+                    <PortraitManager token={token} onUnauthorized={handleUnauthorized} />
 
                     <ProjectsManager token={token} onUnauthorized={handleUnauthorized} />
 
