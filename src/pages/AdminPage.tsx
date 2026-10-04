@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsManager, PortraitManager, ProfileManager, ProjectsManager, ResumeManager, SocialLinksManager, StackItemsManager, TokenGate } from "@/components/admin";
+import { checkAdminSession } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
 
 export function AdminPage() {
-    const [token, setToken] = useState<string | null>(() =>
-        sessionStorage.getItem(TOKEN_KEY),
+    const [token, setToken] = useState<string | null>(null);
+    const [checkingStoredToken, setCheckingStoredToken] = useState(
+        () => sessionStorage.getItem(TOKEN_KEY) !== null,
     );
     const [rejectedNotice, setRejectedNotice] = useState(false);
 
@@ -20,6 +22,40 @@ export function AdminPage() {
 
         return () => {
             document.head.removeChild(meta);
+        };
+    }, []);
+
+    useEffect(() => {
+        const stored = sessionStorage.getItem(TOKEN_KEY);
+
+        if (!stored) {
+            return;
+        }
+
+        let cancelled = false;
+
+        checkAdminSession(stored).then(
+            () => {
+                if (cancelled) {
+                    return;
+                }
+
+                setToken(stored);
+                setCheckingStoredToken(false);
+            },
+            () => {
+                if (cancelled) {
+                    return;
+                }
+
+                sessionStorage.removeItem(TOKEN_KEY);
+                setRejectedNotice(true);
+                setCheckingStoredToken(false);
+            },
+        );
+
+        return () => {
+            cancelled = true;
         };
     }, []);
 
@@ -39,6 +75,24 @@ export function AdminPage() {
         sessionStorage.removeItem(TOKEN_KEY);
         setRejectedNotice(true);
         setToken(null);
+    }
+
+    if (checkingStoredToken) {
+        return (
+            <>
+                <Section id="admin">
+                    <Container>
+                        <SectionHeading number="00" title="Admin" />
+
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            Checking session…
+                        </p>
+                    </Container>
+                </Section>
+
+                <Footer />
+            </>
+        );
     }
 
     if (token === null) {
