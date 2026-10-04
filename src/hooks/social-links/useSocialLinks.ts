@@ -23,7 +23,7 @@ export function useSocialLinks() {
         queryFn: getSocialLinks,
         staleTime: 1000 * 60,
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
     });
 
     return { socialLinks: data ?? fallbackSocialLinks };

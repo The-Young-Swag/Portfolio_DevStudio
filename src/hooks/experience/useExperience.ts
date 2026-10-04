@@ -25,7 +25,7 @@ export function useExperience() {
         queryFn: getExperience,
         staleTime: 1000 * 60,
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
     });
 
     return { experience: data ?? fallbackExperience, isPending };

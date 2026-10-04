@@ -31,7 +31,7 @@ export function useCertifications() {
         queryFn: getCertifications,
         staleTime: 1000 * 60,
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
     });
 
     return { certifications: data ?? fallbackCertifications, isPending };

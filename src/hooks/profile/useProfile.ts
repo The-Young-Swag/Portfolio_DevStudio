@@ -13,7 +13,7 @@ export function useProfile() {
         queryFn: getProfile,
         staleTime: 1000 * 60,
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
     });
 
     return { profile: data ?? staticProfile };
