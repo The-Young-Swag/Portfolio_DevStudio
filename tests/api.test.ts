@@ -760,47 +760,40 @@ describe("files", () => {
 });
 
 describe("seed", () => {
-    it("works on a fresh database, then skips non-empty tables", { timeout: 700_000 }, async () => {
-        const { execFileSync } = await import("node:child_process");
-        const { fileURLToPath } = await import("node:url");
-        const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+    it("works on a fresh database, then skips non-empty tables", async () => {
+        const { resetDbClient } = await import("../api/_lib/db.js");
+        const { runSeed } = await import("../db/seed.js");
         const freshDb = join(tmpdir(), `portfolio-seed-test-${process.pid}.db`);
-        const env = {
-            ...process.env,
-            TURSO_DATABASE_URL: `file:${freshDb}`,
-            ADMIN_TOKEN,
-        };
-        const run = () =>
-            execFileSync("node_modules/.bin/tsx", ["db/seed.ts"], {
-                cwd: projectRoot,
-                env,
-                stdio: "pipe",
-                timeout: 600_000,
-            }).toString();
+        const previousUrl = process.env.TURSO_DATABASE_URL;
+
+        async function count(table: string): Promise<number> {
+            const result = await getDb().execute({
+                sql: `SELECT COUNT(*) AS n FROM ${table}`,
+                args: [],
+            });
+            return (result.rows[0] as unknown as { n: number }).n;
+        }
 
         try {
-            const first = run();
-            assert.match(first, /seeded/);
+            process.env.TURSO_DATABASE_URL = `file:${freshDb}`;
+            resetDbClient();
+            await runSeed();
 
-            const { createClient } = await import("@libsql/client");
-            const fresh = createClient({ url: `file:${freshDb}` });
-            const count = async (table: string) => {
-                const result = await fresh.execute({
-                    sql: `SELECT COUNT(*) AS n FROM ${table}`,
-                    args: [],
-                });
-                return (result.rows[0] as unknown as { n: number }).n;
-            };
             assert.ok((await count("projects")) > 0);
             assert.ok((await count("stack_items")) > 0);
             assert.equal(await count("profile"), 1);
             const projectsBefore = await count("projects");
 
-            const second = run();
-            assert.match(second, /skipping/);
+            await runSeed();
             assert.equal(await count("projects"), projectsBefore);
-            fresh.close();
         } finally {
+            if (previousUrl === undefined) {
+                delete process.env.TURSO_DATABASE_URL;
+            } else {
+                process.env.TURSO_DATABASE_URL = previousUrl;
+            }
+            resetDbClient();
+
             try {
                 unlinkSync(freshDb);
             } catch {

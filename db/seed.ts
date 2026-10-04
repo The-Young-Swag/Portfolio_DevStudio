@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { getDb } from "../api/_lib/db.js";
 import { projects } from "../src/constants/projects.js";
@@ -11,6 +11,18 @@ import { profile } from "../src/constants/profile.js";
 import { socialLinks } from "../src/constants/socialLinks.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function describeTarget(url: string): string {
+    if (url.startsWith("file:")) {
+        return `local file (${url})`;
+    }
+
+    try {
+        return `remote host (${new URL(url).host})`;
+    } catch {
+        return "remote database";
+    }
+}
 
 async function applySchema(): Promise<void> {
     const schema = readFileSync(join(rootDir, "db", "schema.sql"), "utf8");
@@ -213,10 +225,28 @@ async function seedSocialLinks(): Promise<void> {
     console.log(`seeded ${socialLinks.length} social links.`);
 }
 
-await applySchema();
-await seedProjects();
-await seedCertifications();
-await seedExperience();
-await seedStackItems();
-await seedProfile();
-await seedSocialLinks();
+export async function runSeed(): Promise<void> {
+    if (!process.env.TURSO_DATABASE_URL) {
+        process.env.TURSO_DATABASE_URL = "file:local.db";
+    }
+
+    console.log(
+        `Seed targeting ${describeTarget(process.env.TURSO_DATABASE_URL)}.`,
+    );
+
+    await applySchema();
+    await seedProjects();
+    await seedCertifications();
+    await seedExperience();
+    await seedStackItems();
+    await seedProfile();
+    await seedSocialLinks();
+}
+
+const invokedAsScript =
+    process.argv[1] !== undefined &&
+    import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (invokedAsScript) {
+    await runSeed();
+}
