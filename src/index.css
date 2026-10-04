@@ -195,6 +195,12 @@ html.dark .app-background::before {
     transition: opacity 120ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .section-anchor {
+        transition: none;
+    }
+}
+
 .group:hover .section-anchor,
 .section-anchor:focus-visible {
     opacity: 1;

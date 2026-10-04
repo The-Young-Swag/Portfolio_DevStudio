@@ -84,8 +84,9 @@ export function Footer() {
                                 className={`
                                     inline-flex
                                     text-(--accent-strong)
-                                    transition-all
+                                    transition-[opacity,transform]
                                     duration-500
+                                    motion-reduce:transition-none
                                     ${unlocked ? "scale-100 opacity-100" : "scale-75 opacity-0"}
                                 `}
                             >

@@ -122,6 +122,7 @@ export function PdfUploadField({
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input
                     value={value}
+                    aria-label={`${label} URL`}
                     onChange={(event) => onChange(event.target.value)}
                     placeholder="https://… or /api/files/…"
                     className="w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
