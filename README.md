@@ -60,7 +60,10 @@ set -a; source .env.local; set +a; vercel dev
   `.env.local`, this sourcing step was skipped.
 - If `.env.local` was edited on Windows, check for CRLF line endings: a
   stray `\r` becomes part of the value (for example the token sent as
-  `secret\r` never matches). Save the file with LF endings.
+  `secret\r` never matches). Save the file with LF endings. Also use no
+  spaces around the `=` (`KEY=value`, not `KEY= value`): under
+  `set -a; source .env.local` a leading space becomes part of the value
+  and the database login fails.
 - Local development uses a libSQL file (`TURSO_DATABASE_URL=file:local.db`,
   the default). Never run the seed or dev scripts against the production
   database.
