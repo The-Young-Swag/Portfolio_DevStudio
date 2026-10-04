@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import type { ReactNode } from "react";
 
 import { ContentImage } from "@/components/ui";
 
@@ -10,8 +11,10 @@ type CertificationItemProps = {
     badge: string;
     code: string;
     image: string;
-    link: string;
+    badge_image: string;
+    badge_link: string;
     className?: string;
+    actions?: ReactNode;
 };
 
 export function CertificationItem({
@@ -22,13 +25,15 @@ export function CertificationItem({
     badge,
     code,
     image,
-    link,
+    badge_image,
+    badge_link,
     className,
+    actions,
 }: CertificationItemProps) {
     return (
         <article
             className={clsx(
-                "group w-[260px] shrink-0 overflow-hidden rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)] backdrop-blur-xl backdrop-saturate-160 transition-colors duration-150 hover:border-(--accent-strong)",
+                "group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)] transition-colors duration-150 hover:border-(--accent-strong)",
                 className,
             )}
         >
@@ -66,15 +71,30 @@ export function CertificationItem({
                     {issuer}
                 </p>
 
-                {link !== "" && (
-                    <a
-                        href={link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-3 inline-block font-mono text-[11px] text-(--accent-strong) hover:underline"
-                    >
-                        Verify ↗
-                    </a>
+                {badge_image !== "" && (
+                    <div className="mt-3">
+                        {badge_link !== "" ? (
+                            <a href={badge_link} target="_blank" rel="noreferrer">
+                                <ContentImage
+                                    src={badge_image}
+                                    alt={`${issuer} badge`}
+                                    imageClassName="h-8 w-auto rounded-md border border-(--line) object-contain"
+                                    placeholderClassName="h-8 w-8 rounded-md border border-(--line)"
+                                />
+                            </a>
+                        ) : (
+                            <ContentImage
+                                src={badge_image}
+                                alt={`${issuer} badge`}
+                                imageClassName="h-8 w-auto rounded-md border border-(--line) object-contain"
+                                placeholderClassName="h-8 w-8 rounded-md border border-(--line)"
+                            />
+                        )}
+                    </div>
+                )}
+
+                {actions !== undefined && (
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2">{actions}</div>
                 )}
             </div>
         </article>

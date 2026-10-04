@@ -49,14 +49,24 @@ back to the static constants in `src/constants/` when a request fails.
 cp .env.example .env.local
 # edit .env.local: set ADMIN_TOKEN to a long random string
 npm run db:seed
-vercel dev
+set -a; source .env.local; set +a; vercel dev
 ```
 
+- `vercel dev` does not always pass `.env.local` values into functions on
+  its own. Sourcing the file into the environment first (the `set -a`
+  line above) makes sure the API sees the same variables you do. If the
+  admin keeps reporting "Server is missing ADMIN_TOKEN" or
+  "Server is missing TURSO_DATABASE_URL" while the values exist in
+  `.env.local`, this sourcing step was skipped.
+- If `.env.local` was edited on Windows, check for CRLF line endings: a
+  stray `\r` becomes part of the value (for example the token sent as
+  `secret\r` never matches). Save the file with LF endings.
 - Local development uses a libSQL file (`TURSO_DATABASE_URL=file:local.db`,
   the default). Never run the seed or dev scripts against the production
   database.
 - `npm run db:seed` applies `db/schema.sql` and inserts the current static
   content. It is idempotent: tables already containing rows are skipped.
+  It prints which database it targets and never prints tokens.
 - `vercel dev` serves the frontend plus the `/api` functions. Plain
   `npm run dev` serves the frontend only.
 
@@ -64,9 +74,12 @@ vercel dev
 
 Open `/admin`, enter the `ADMIN_TOKEN`, and manage each section with
 add/edit/delete. The profile page edits the basic fields plus the hero
-portrait states, hero stats, "Also true" items, contact copy, and footer
-note. The token is kept in `sessionStorage` and sent as an
-`Authorization: Bearer` header; a `401` signs you back out.
+portrait states, hero stats, "Also true" items, contact copy, resume, and
+footer note. The token is verified against `GET /api/admin/session`
+on sign-in and only then stored; a wrong token, a missing server
+`ADMIN_TOKEN`, and network failures each show their own message. The token
+is kept in `sessionStorage` and sent as an `Authorization: Bearer` header;
+only a real `401` on save signs you back out.
 
 Tip: tapping the footer's © year five times within three seconds also takes
 you to `/admin`.
@@ -80,14 +93,41 @@ URL strings: either an uploaded `/api/images/<id>` URL or any external
 In the admin, each image field offers a file upload with drag-to-crop and
 zoom plus a plain URL input. Crops are re-encoded to WebP: 16:9 capped at
 1280 px wide for project thumbnails, 21:9 capped at 1280 px for certification
-images, square capped at 900 px for portraits. Anything that cannot fit
-under 400 KB is rejected, as are non-image files and SVGs (server-side too).
+images, square capped at 900 px for portraits, badge images square. Upload
+input accepts WebP, JPEG, PNG, and AVIF. Anything that cannot fit under
+400 KB is rejected, as are non-image files and SVGs (server-side too).
+
+### Files (PDFs)
+
+Resumes and certificate PDFs live in the `files` table (`POST /api/files`,
+admin, PDF signature verified, 2 MB cap). The admin PDF control uploads a
+file or accepts an external link, shows the filename and size, and supports
+Replace and Remove. Removing an uploaded file deletes its row server-side.
+
+### Content pages
+
+- **Certifications** support one level of child courses (`parent_id`),
+  certificate PDFs, small badge images with links, and per-certificate
+  Verify buttons. Deleting a program deletes its courses and their uploads.
+- **Resume** is managed in its own admin section (upload, link, remove).
+  An empty resume hides the public Resume button; the button opens the file
+  in a new tab with a separate Download link.
+- **Stack** is a flat list of categorized items (`language`, `framework`,
+  `library`, `database`, `tool`) with text levels (`learning`,
+  `comfortable`, `confident`), an optional since-year, and a core flag. The
+  old grouped `stack` table stays in the database but is no longer used.
+- **Projects** carry access states (public/private source, public/internal/
+  offline/no-demo demo, auto-derived from URLs when unset) shown as an
+  access ledger, plus optional case studies with screenshot galleries.
 
 ### Deployment (Vercel, one-time)
 
 1. Create a Turso database and obtain its URL and auth token.
 2. In the Vercel project settings, set `TURSO_DATABASE_URL`,
    `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, and `GITHUB_USERNAME`.
+   Set them for Development (used by `vercel dev` when it pulls env),
+   Preview (deploy previews), and Production as needed; at minimum
+   Production and Development must each have all five.
 3. For a fresh database, apply `db/schema.sql` and run the seed (from your
    own machine, never from an agent session):
    `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`.
@@ -96,7 +136,13 @@ under 400 KB is rejected, as are non-image files and SVGs (server-side too).
    `turso db shell portfolio < db/migrations/0001_content_images.sql`.
    New profile and image columns stay empty until edited in `/admin`; the
    public site falls back to the static content meanwhile.
-5. Redeploy so the functions pick up the new tables.
+5. For a database created before the content-pages feature, apply its
+   one-time migration (run exactly once):
+   `turso db shell portfolio < db/migrations/0002_content_pages.sql`.
+   Then fill the new flat stack table:
+   `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`
+   (existing tables are skipped, only `stack_items` is filled).
+6. Redeploy so the functions pick up the new tables.
 
 ## Scripts
 
@@ -107,6 +153,7 @@ under 400 KB is rejected, as are non-image files and SVGs (server-side too).
 | `npm run preview`   | Preview the production build locally           |
 | `npm run lint`      | Run ESLint                                     |
 | `npm run db:seed`   | Apply schema and seed the database             |
+| `npm run test:api`  | API suite (`tests/`, node:test via tsx, isolated local file) |
 
 All Vite commands use `--configLoader native`, which loads the config with
 Node's runtime instead of bundling it with Rolldown. This is required on
@@ -116,9 +163,12 @@ Windows, where the default Rolldown config loader fails to resolve
 ## Structure
 
 ```
-api/                  Vercel serverless functions (content CRUD, GitHub contributions)
+api/[...path].ts      Single catch-all function routing all CRUD (Hobby limit: 12 functions)
+api/github/           GitHub contributions function (standalone, wins over catch-all)
 api/_lib/             Shared server code (database client, admin auth, validation)
+api/_routes/          Handler logic per resource (underscore-prefixed, not deployed)
 db/                   SQL schema and seed script
+```
 src/app/              Routing and app providers (React Query, theme)
 src/components/       Layout, navigation, hero, github, projects, …
 src/constants/        Fallback content: profile, navigation, projects, stack, …

@@ -1,11 +1,25 @@
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
-import { StackGrid } from "@/components/stack";
+import { StackCategorySection } from "@/components/stack";
 import { SectionHeading } from "@/components/ui";
-import { useStack } from "@/hooks/stack/useStack";
+import { useStackItems } from "@/hooks/stack/useStackItems";
+import type { StackItem, StackItemCategory } from "@/services/stack/stackItems";
+
+const CATEGORY_ORDER: { category: StackItemCategory; title: string }[] = [
+    { category: "language", title: "Languages" },
+    { category: "framework", title: "Frameworks" },
+    { category: "library", title: "Libraries" },
+    { category: "database", title: "Databases" },
+    { category: "tool", title: "Tools" },
+];
+
+function byCategory(items: StackItem[], category: StackItemCategory): StackItem[] {
+    return items.filter((item) => item.category === category);
+}
 
 export function StackPage() {
-    const { stack, isPending } = useStack();
+    const { stackItems, isPending } = useStackItems();
+    const coreItems = stackItems.filter((item) => item.is_core);
 
     return (
         <>
@@ -18,7 +32,7 @@ export function StackPage() {
 
             <Section id="tools">
                 <Container>
-                    <SectionHeading number="01" title="Tools" />
+                    <SectionHeading number="01" title="Tools" id="tools" />
 
                     <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
                         Grouped the way I think about them: what I write, what I
@@ -29,19 +43,57 @@ export function StackPage() {
                         <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
                             Loading stack...
                         </p>
-                    ) : stack.length === 0 ? (
+                    ) : stackItems.length === 0 ? (
                         <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
                             No stack yet.
                         </p>
                     ) : (
-                        <StackGrid groups={stack} />
+                        <>
+                            {coreItems.length > 0 && (
+                                <div className="mt-6">
+                                    <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--accent-strong)">
+                                        Core stack
+                                    </p>
+
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {coreItems.map((item) => (
+                                            <span
+                                                key={item.id}
+                                                className="
+                                                    inline-flex
+                                                    items-center
+                                                    rounded-md
+                                                    border
+                                                    border-(--accent-strong)/50
+                                                    px-2.5
+                                                    py-1
+                                                    font-mono
+                                                    text-[11px]
+                                                    text-(--graphite)
+                                                "
+                                            >
+                                                {item.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {CATEGORY_ORDER.map(({ category, title }) => (
+                                <StackCategorySection
+                                    key={category}
+                                    title={title}
+                                    items={byCategory(stackItems, category)}
+                                />
+                            ))}
+                        </>
                     )}
                 </Container>
             </Section>
 
             <Section id="notes">
                 <Container>
-                    <SectionHeading number="02" title="Notes" />
+                    <SectionHeading number="02" title="Notes" id="notes" />
 
                     <div className="mt-6 rounded-2xl border border-(--glass-border) bg-(--glass-bg) p-6 shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl backdrop-saturate-160 sm:p-7">
                         <p className="font-display text-[20px] leading-snug text-(--ink)">

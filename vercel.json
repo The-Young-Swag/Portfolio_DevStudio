@@ -1,3 +1,9 @@
 {
-  "devCommand": "vite --port $PORT --configLoader native"
+  "devCommand": "vite --port $PORT --configLoader native",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

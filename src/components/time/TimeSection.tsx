@@ -174,6 +174,7 @@ function getTimeState(): TimeState {
 export function TimeSection() {
     const [timeState, setTimeState] =
         useState<TimeState>(getTimeState);
+    const [sceneActive, setSceneActive] = useState(true);
 
     const svgRef = useRef<SVGSVGElement>(null);
     const celestialRef = useRef<SVGCircleElement>(null);
@@ -217,6 +218,8 @@ export function TimeSection() {
 
         // Debounced visibility gate: only the *stable* in-view state may
         // start a night session, so a mid-scroll flicker never resets it.
+        // The same signal drives the scene-active flag that pauses the
+        // CSS loops and the frame loop below.
         let isIntersecting = false;
         let cardVisible = false;
         let visibilityDebounceTimer: number | undefined;
@@ -339,6 +342,11 @@ export function TimeSection() {
             ufo.classList.remove("time-ufo-flying");
             void ufo.getBoundingClientRect();
             ufo.classList.add("time-ufo-flying");
+            ufo.addEventListener(
+                "animationend",
+                () => ufo.classList.remove("time-ufo-flying"),
+                { once: true },
+            );
         }
 
         function setCelestialState(
@@ -362,6 +370,11 @@ export function TimeSection() {
         function tick(now: number) {
             const dt = Math.min(now - lastFrameTs, 100);
             lastFrameTs = now;
+
+            if (!cardVisible) {
+                rafId = requestAnimationFrame(tick);
+                return;
+            }
 
             const t =
                 ((Date.now() + MANILA_OFFSET_MS) / 3600000) %
@@ -521,6 +534,7 @@ export function TimeSection() {
                     visibilityDebounceTimer =
                         window.setTimeout(() => {
                             cardVisible = isIntersecting;
+                            setSceneActive(isIntersecting);
                         }, VISIBILITY_DEBOUNCE_MS);
                 },
                 { threshold: 0.3 },
@@ -531,12 +545,42 @@ export function TimeSection() {
             cardVisible = true;
         }
 
+        function handleVisibilityChange() {
+            if (document.hidden) {
+                if (visibilityDebounceTimer) {
+                    window.clearTimeout(visibilityDebounceTimer);
+                }
+
+                cardVisible = false;
+                setSceneActive(false);
+            } else if (isIntersecting) {
+                if (visibilityDebounceTimer) {
+                    window.clearTimeout(visibilityDebounceTimer);
+                }
+
+                visibilityDebounceTimer =
+                    window.setTimeout(() => {
+                        cardVisible = isIntersecting;
+                        setSceneActive(isIntersecting);
+                    }, VISIBILITY_DEBOUNCE_MS);
+            }
+        }
+
+        document.addEventListener(
+            "visibilitychange",
+            handleVisibilityChange,
+        );
+
         rafId = requestAnimationFrame(tick);
 
         return () => {
             cancelAnimationFrame(rafId);
 
             visibilityObserver?.disconnect();
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange,
+            );
 
             if (visibilityDebounceTimer) {
                 window.clearTimeout(
@@ -552,9 +596,11 @@ export function TimeSection() {
                 <SectionHeading
                     number="06"
                     title="Right Now"
+                    id="time"
                 />
 
                 <div
+                    data-scene-active={sceneActive}
                     className="
                         mt-4
                         overflow-hidden

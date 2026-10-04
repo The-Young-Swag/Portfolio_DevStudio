@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { STAT_ICON_KEYS } from "@/components/hero/statIcons";
 import { useUpdateProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import {
     getProfile,
     type AlsoTrueItem,
@@ -107,7 +107,7 @@ export function AlsoTrueManager({ token, onUnauthorized }: AlsoTrueManagerProps)
             {
                 onSuccess: () => setSaved(true),
                 onError: (error: unknown) => {
-                    if (error instanceof ApiError && error.status === 401) {
+                    if (isUnauthorized(error)) {
                         onUnauthorized();
                         return;
                     }

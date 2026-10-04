@@ -1,8 +1,10 @@
-import { resolveSocialIcon } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
+import { useProfile } from "@/hooks/profile/useProfile";
 
 export function ConnectList() {
     const { socialLinks } = useSocialLinks();
+    const { profile } = useProfile();
 
     return (
         <div className="mt-6">
@@ -23,18 +25,19 @@ export function ConnectList() {
             <div className="space-y-0.5">
                 {socialLinks.map((item) => {
                     const Icon = resolveSocialIcon(item.icon);
+                    const isEmail = item.icon === "email";
 
                     return (
                         <a
                             key={item.label}
-                            href={item.href}
+                            href={isEmail ? `mailto:${profile.email}` : item.href}
                             target={
-                                item.label === "Email"
+                                isEmail
                                     ? undefined
                                     : "_blank"
                             }
                             rel={
-                                item.label === "Email"
+                                isEmail
                                     ? undefined
                                     : "noreferrer"
                             }

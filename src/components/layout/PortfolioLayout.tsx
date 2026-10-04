@@ -3,14 +3,14 @@ import { MobileNav, PageRail, Sidebar } from "@/components/navigation";
 
 export function PortfolioLayout() {
     return (
-        <div className="relative min-h-screen">
+        <div className="relative min-h-dvh">
             {/* Background image / atmosphere */}
             <div
                 className="app-background"
                 aria-hidden="true"
             />
 
-            <div className="relative z-10 min-h-screen">
+            <div className="relative z-10 min-h-dvh">
                 {/* Left glass navigation rail */}
                 <Sidebar />
 

@@ -2,24 +2,17 @@ import { Link } from "react-router";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
+import { useStackItems } from "@/hooks/stack/useStackItems";
 
 import { StackItem } from "./StackItem";
 
-const TEASER_ITEMS = [
-    "TypeScript",
-    "React",
-    "Laravel",
-    "Node.js",
-    "MySQL",
-    "Tailwind CSS",
-    "Git",
-] as const;
-
 export function StackSection() {
+    const { stackItems } = useStackItems();
+    const teaserItems = stackItems.filter((item) => item.is_core).slice(0, 7);
     return (
         <Section id="stack">
             <Container>
-                <SectionHeading number="04" title="Stack" />
+                <SectionHeading number="04" title="Stack" id="stack" />
 
                 <div
                     className="
@@ -41,10 +34,10 @@ export function StackSection() {
                     </p>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                        {TEASER_ITEMS.map((technology) => (
+                        {teaserItems.map((item) => (
                             <StackItem
-                                key={technology}
-                                name={technology}
+                                key={item.id}
+                                name={item.name}
                             />
                         ))}
                     </div>

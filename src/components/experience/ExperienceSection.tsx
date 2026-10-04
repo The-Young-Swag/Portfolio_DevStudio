@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
@@ -11,7 +13,7 @@ export function ExperienceSection() {
         <Section id="experience">
             <Container>
                 <div className="flex items-baseline justify-between">
-                    <SectionHeading number="03" title="Experience" />
+                    <SectionHeading number="03" title="Experience" id="experience" />
 
                     <span className="font-mono text-[10.5px] uppercase tracking-[0.1em] text-(--graphite-soft)">
                         2024 — present
@@ -31,6 +33,25 @@ export function ExperienceSection() {
                         <ExperienceList experiences={experience} />
                     )}
                 </div>
+
+                <Link
+                    to="/experience"
+                    className="
+                        mt-5
+                        inline-flex
+                        items-center
+                        gap-1.5
+                        font-mono
+                        text-[11.5px]
+                        text-(--accent-strong)
+                        transition-colors
+                        duration-150
+                        hover:text-(--accent-deep)
+                        hover:underline
+                    "
+                >
+                    See credentials →
+                </Link>
             </Container>
         </Section>
     );

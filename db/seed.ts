@@ -1,16 +1,28 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { getDb } from "../api/_lib/db.js";
 import { projects } from "../src/constants/projects.js";
 import { certifications } from "../src/constants/certifications.js";
 import { experiences } from "../src/constants/experience.js";
-import { stack } from "../src/constants/stack.js";
+import { stackItems } from "../src/constants/stack.js";
 import { profile } from "../src/constants/profile.js";
 import { socialLinks } from "../src/constants/socialLinks.js";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function describeTarget(url: string): string {
+    if (url.startsWith("file:")) {
+        return `local file (${url})`;
+    }
+
+    try {
+        return `remote host (${new URL(url).host})`;
+    } catch {
+        return "remote database";
+    }
+}
 
 async function applySchema(): Promise<void> {
     const schema = readFileSync(join(rootDir, "db", "schema.sql"), "utf8");
@@ -126,27 +138,34 @@ async function seedExperience(): Promise<void> {
     console.log(`seeded ${experiences.length} experience entries.`);
 }
 
-async function seedStack(): Promise<void> {
+async function seedStackItems(): Promise<void> {
     const db = getDb();
-    const existing = await db.execute("SELECT COUNT(*) AS count FROM stack");
+    const existing = await db.execute("SELECT COUNT(*) AS count FROM stack_items");
     const firstRow = existing.rows[0] as unknown as
         | Record<string, unknown>
         | undefined;
     const count = typeof firstRow?.count === "number" ? firstRow.count : 0;
 
     if (count > 0) {
-        console.log(`stack already seeded (${count} rows), skipping.`);
+        console.log(`stack items already seeded (${count} rows), skipping.`);
         return;
     }
 
-    for (const [index, group] of stack.entries()) {
+    for (const [index, item] of stackItems.entries()) {
         await db.execute({
-            sql: "INSERT INTO stack (group_name, items, sort_order) VALUES (?, ?, ?)",
-            args: [group.group, JSON.stringify(group.items), index],
+            sql: "INSERT INTO stack_items (name, category, level, since_year, is_core, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [
+                item.name,
+                item.category,
+                item.level,
+                item.since_year,
+                item.is_core ? 1 : 0,
+                index,
+            ],
         });
     }
 
-    console.log(`seeded ${stack.length} stack groups.`);
+    console.log(`seeded ${stackItems.length} stack items.`);
 }
 
 async function seedProfile(): Promise<void> {
@@ -206,10 +225,28 @@ async function seedSocialLinks(): Promise<void> {
     console.log(`seeded ${socialLinks.length} social links.`);
 }
 
-await applySchema();
-await seedProjects();
-await seedCertifications();
-await seedExperience();
-await seedStack();
-await seedProfile();
-await seedSocialLinks();
+export async function runSeed(): Promise<void> {
+    if (!process.env.TURSO_DATABASE_URL) {
+        process.env.TURSO_DATABASE_URL = "file:local.db";
+    }
+
+    console.log(
+        `Seed targeting ${describeTarget(process.env.TURSO_DATABASE_URL)}.`,
+    );
+
+    await applySchema();
+    await seedProjects();
+    await seedCertifications();
+    await seedExperience();
+    await seedStackItems();
+    await seedProfile();
+    await seedSocialLinks();
+}
+
+const invokedAsScript =
+    process.argv[1] !== undefined &&
+    import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (invokedAsScript) {
+    await runSeed();
+}

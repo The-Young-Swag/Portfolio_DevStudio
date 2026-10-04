@@ -85,7 +85,7 @@ export function HeroStats() {
                 >
                     {stats.map((stat, index) => (
                         <div
-                            key={stat.label}
+                            key={`${stat.label}-${index}`}
                             className={index < stats.length - 1 ? "border-r hairline" : undefined}
                         >
                             <StatItem

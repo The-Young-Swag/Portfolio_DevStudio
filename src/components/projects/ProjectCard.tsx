@@ -1,41 +1,30 @@
+import { Link } from "react-router";
+
 import { ContentImage } from "@/components/ui";
+import type { Project } from "@/services/projects/projects";
+import { AccessLedger } from "./AccessLedger";
 
 type ProjectCardProps = {
-    title: string;
-    description: string;
-    stack: string[];
-    year: number;
-    category: string;
-    thumbnail: string;
-    repo_url: string;
-    live_url: string;
+    project: Project;
     index: number;
 };
 
-export function ProjectCard({
-    title,
-    description,
-    stack,
-    year,
-    category,
-    thumbnail,
-    repo_url,
-    live_url,
-    index,
-}: ProjectCardProps) {
+export function ProjectCard({ project, index }: ProjectCardProps) {
+    const { title, description, stack, year, category, thumbnail } = project;
     return (
         <article
             className="
                 group
+                flex
+                h-full
+                flex-col
                 overflow-hidden
                 rounded-2xl
                 border
                 border-(--glass-border)
                 bg-(--glass-bg)
                 shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)]
-                backdrop-blur-xl
-                backdrop-saturate-160
-                transition-[background-color,box-shadow]
+                transition-[background-color,border-color]
                 duration-500
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
@@ -63,7 +52,7 @@ export function ProjectCard({
                 </span>
             </div>
 
-            <div className="p-5">
+            <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
                     <span>{year}</span>
                     <span aria-hidden="true" className="opacity-40">·</span>
@@ -102,29 +91,25 @@ export function ProjectCard({
                     ))}
                 </div>
 
-                {(repo_url !== "" || live_url !== "") && (
-                    <div className="mt-4 flex gap-4 font-mono text-[11px]">
-                        {repo_url !== "" && (
-                            <a
-                                href={repo_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-(--accent-strong) hover:underline"
-                            >
-                                Repo ↗
-                            </a>
-                        )}
+                <div className="mt-auto pt-5">
+                    <div className="border-t hairline pt-4">
+                        <AccessLedger project={project} />
+                    </div>
+                </div>
 
-                        {live_url !== "" && (
-                            <a
-                                href={live_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-(--accent-strong) hover:underline"
-                            >
-                                Live ↗
-                            </a>
-                        )}
+                {project.has_case_study && (
+                    <div className="mt-3">
+                        <Link
+                            to={`/projects#project-${project.id}`}
+                            className="
+                                font-mono
+                                text-[11px]
+                                text-(--accent-strong)
+                                hover:underline
+                            "
+                        >
+                            Read case study →
+                        </Link>
                     </div>
                 )}
             </div>

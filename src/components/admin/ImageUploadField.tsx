@@ -5,9 +5,10 @@ import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 
 import { ApiError, uploadImage } from "@/services/api";
+import { useFocusTrap } from "@/components/ui/useFocusTrap";
 import { ImagePlaceholder } from "@/components/ui";
 
-const ACCEPTED_TYPES = ["image/webp", "image/jpeg", "image/png"];
+const ACCEPTED_TYPES = ["image/webp", "image/jpeg", "image/png", "image/avif"];
 const MAX_IMAGE_BYTES = 400 * 1024;
 const MAX_INPUT_BYTES = 15 * 1024 * 1024;
 const QUALITIES = [0.82, 0.65, 0.5, 0.35, 0.2];
@@ -89,7 +90,6 @@ export function ImageUploadField({
     maxEdge,
 }: ImageUploadFieldProps) {
     const fileRef = useRef<HTMLInputElement>(null);
-    const dialogRef = useRef<HTMLDivElement>(null);
 
     const [cropSrc, setCropSrc] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -97,6 +97,8 @@ export function ImageUploadField({
     const [croppedPixels, setCroppedPixels] = useState<Area | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+
+    const trapRef = useFocusTrap<HTMLDivElement>(cropSrc !== null);
 
     const dialogOpen = cropSrc !== null;
 
@@ -115,39 +117,6 @@ export function ImageUploadField({
         if (event.key === "Escape") {
             event.stopPropagation();
             closeDialog();
-            return;
-        }
-
-        if (event.key !== "Tab") {
-            return;
-        }
-
-        const dialog = dialogRef.current;
-
-        if (!dialog) {
-            return;
-        }
-
-        const focusable = Array.from(
-            dialog.querySelectorAll<HTMLElement>(
-                'button, input, [tabindex]:not([tabindex="-1"])',
-            ),
-        ).filter((element) => !element.hasAttribute("disabled"));
-
-        if (focusable.length === 0) {
-            return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        const active = document.activeElement;
-
-        if (event.shiftKey && active === first) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && active === last) {
-            event.preventDefault();
-            first.focus();
         }
     }
 
@@ -160,7 +129,7 @@ export function ImageUploadField({
         }
 
         if (!ACCEPTED_TYPES.includes(file.type)) {
-            setError("Only WebP, JPEG, and PNG files are allowed.");
+            setError("Only WebP, JPEG, PNG, and AVIF files are allowed.");
             return;
         }
 
@@ -235,6 +204,7 @@ export function ImageUploadField({
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input
                     value={value}
+                    aria-label={`${label} URL`}
                     onChange={(event) => onChange(event.target.value)}
                     placeholder="https://… or /api/images/…"
                     className="w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
@@ -266,7 +236,7 @@ export function ImageUploadField({
                 <input
                     ref={fileRef}
                     type="file"
-                    accept="image/webp,image/jpeg,image/png"
+                    accept="image/webp,image/jpeg,image/png,image/avif"
                     onChange={handleFile}
                     className="hidden"
                     aria-label={`Choose ${label} file`}
@@ -285,14 +255,11 @@ export function ImageUploadField({
 
             {dialogOpen && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 max-sm:p-2"
                     onClick={closeDialog}
                 >
                     <div
-                        ref={(element) => {
-                            dialogRef.current = element;
-                            element?.focus();
-                        }}
+                        ref={trapRef}
                         role="dialog"
                         aria-modal="true"
                         aria-label={`Crop ${label}`}
@@ -300,8 +267,11 @@ export function ImageUploadField({
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={handleDialogKeyDown}
                         className="
+                            flex
+                            max-h-[calc(100dvh-1rem)]
                             w-full
                             max-w-lg
+                            flex-col
                             rounded-2xl
                             border
                             border-(--glass-border)
@@ -309,13 +279,16 @@ export function ImageUploadField({
                             p-5
                             shadow-2xl
                             backdrop-blur-xl
+                            max-sm:h-[calc(100dvh-1rem)]
+                            max-sm:max-w-none
+                            max-sm:rounded-2xl
                         "
                     >
                         <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                             Crop {label}
                         </p>
 
-                        <div className="relative mt-3 h-64 w-full overflow-hidden rounded-xl bg-black/40 sm:h-80">
+                        <div className="relative mt-3 min-h-0 w-full flex-1 overflow-hidden rounded-xl bg-black/40 sm:h-80 sm:flex-none">
                             <Cropper
                                 image={cropSrc}
                                 crop={crop}
@@ -328,7 +301,7 @@ export function ImageUploadField({
                             />
                         </div>
 
-                        <label className="mt-4 block">
+                        <label className="mt-4 flex min-h-[44px] flex-col justify-center">
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                                 Zoom
                             </span>
@@ -339,7 +312,7 @@ export function ImageUploadField({
                                 step={0.1}
                                 value={zoom}
                                 onChange={(event) => setZoom(Number(event.target.value))}
-                                className="mt-1 w-full"
+                                className="mt-1 w-full accent-(--accent-strong)"
                             />
                         </label>
 

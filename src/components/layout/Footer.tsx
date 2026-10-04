@@ -71,7 +71,11 @@ export function Footer() {
                                 text-(--graphite-soft)
                             "
                         >
-                            <span onClick={handleCopyrightTap} className="select-none">
+                            <span
+                                onClick={handleCopyrightTap}
+                                className="inline-flex min-h-[44px] min-w-[44px] select-none items-center justify-center touch-manipulation"
+                                style={{ WebkitTouchCallout: "none" }}
+                            >
                                 © {year}
                             </span>
 
@@ -80,8 +84,9 @@ export function Footer() {
                                 className={`
                                     inline-flex
                                     text-(--accent-strong)
-                                    transition-all
+                                    transition-[opacity,transform]
                                     duration-500
+                                    motion-reduce:transition-none
                                     ${unlocked ? "scale-100 opacity-100" : "scale-75 opacity-0"}
                                 `}
                             >
@@ -106,6 +111,9 @@ export function Footer() {
                             target="_blank"
                             rel="noreferrer"
                             className="
+                                inline-flex
+                                min-h-[44px]
+                                items-center
                                 transition-colors
                                 duration-150
                                 hover:text-(--accent-strong)
@@ -119,6 +127,9 @@ export function Footer() {
                             target="_blank"
                             rel="noreferrer"
                             className="
+                                inline-flex
+                                min-h-[44px]
+                                items-center
                                 transition-colors
                                 duration-150
                                 hover:text-(--accent-strong)

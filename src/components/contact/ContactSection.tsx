@@ -4,7 +4,7 @@ import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
-import { resolveSocialIcon } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ContactSection() {
@@ -19,7 +19,7 @@ export function ContactSection() {
     return (
         <Section id="contact">
             <Container>
-                <SectionHeading number="07" title={heading} />
+                <SectionHeading number="07" title={heading} id="contact" />
 
                 <div
                     className="
@@ -55,6 +55,7 @@ export function ContactSection() {
                         href={`mailto:${profile.email}`}
                         className="
                             inline-flex
+                            min-h-[44px]
                             shrink-0
                             items-center
                             justify-center
@@ -74,6 +75,10 @@ export function ContactSection() {
                             duration-150
                             hover:bg-(--accent-deep)
                             hover:border-(--accent-deep)
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-(--accent-strong)
+                            focus-visible:ring-offset-2
                         "
                     >
                         <Mail size={14} strokeWidth={2} />
@@ -83,26 +88,27 @@ export function ContactSection() {
 
                 <div className="mt-4 flex flex-wrap gap-6 font-mono text-[12px]">
                     {socialLinks
-                        .filter(({ label }) => label !== "Email")
+                        .filter(({ icon }) => icon !== "email")
                         .map(({ label, href, icon }) => {
                             const Icon = resolveSocialIcon(icon);
 
                             return (
-                                <a
-                                    key={label}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="
-                                        inline-flex
-                                        items-center
-                                        gap-1.5
-                                        text-(--graphite)
-                                        transition-colors
-                                        duration-150
-                                        hover:text-(--accent-strong)
-                                    "
-                                >
+                            <a
+                                key={label}
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="
+                                    inline-flex
+                                    min-h-[44px]
+                                    items-center
+                                    gap-1.5
+                                    text-(--graphite)
+                                    transition-colors
+                                    duration-150
+                                    hover:text-(--accent-strong)
+                                "
+                            >
                                     <Icon size={13} strokeWidth={1.75} />
                                     {label}
                                     <ArrowUpRight size={12} strokeWidth={1.75} />

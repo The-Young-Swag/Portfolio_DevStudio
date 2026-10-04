@@ -18,7 +18,7 @@ export function ProjectsPage() {
 
             <Section id="showcase">
                 <Container>
-                    <SectionHeading number="01" title="Showcase" />
+                    <SectionHeading number="01" title="Showcase" id="showcase" />
 
                     {isPending ? (
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
@@ -36,7 +36,7 @@ export function ProjectsPage() {
 
             <Section id="details">
                 <Container>
-                    <SectionHeading number="02" title="Details" />
+                    <SectionHeading number="02" title="Details" id="details" />
 
                     {isPending ? (
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">

@@ -3,27 +3,48 @@ import type { FormEvent } from "react";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
+import { ApiError, checkAdminSession } from "@/services/api";
 
 type TokenGateProps = {
     onUnlock: (token: string) => void;
+    rejected: boolean;
 };
 
-export function TokenGate({ onUnlock }: TokenGateProps) {
+export function TokenGate({ onUnlock, rejected }: TokenGateProps) {
     const [value, setValue] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [checking, setChecking] = useState(false);
 
-    function handleSubmit(event: FormEvent) {
+    async function handleSubmit(event: FormEvent) {
         event.preventDefault();
 
         const token = value.trim();
-        if (token.length > 0) {
+
+        if (token.length === 0) {
+            return;
+        }
+
+        setError(null);
+        setChecking(true);
+
+        try {
+            await checkAdminSession(token);
             onUnlock(token);
+        } catch (checkError) {
+            if (checkError instanceof ApiError) {
+                setError(checkError.message);
+            } else {
+                setError("Unable to reach the server. Check your connection.");
+            }
+        } finally {
+            setChecking(false);
         }
     }
 
     return (
         <Section id="admin">
             <Container>
-                <SectionHeading number="00" title="Admin" />
+                <SectionHeading number="00" title="Admin" id="admin" />
 
                 <form
                     onSubmit={handleSubmit}
@@ -72,6 +93,7 @@ export function TokenGate({ onUnlock }: TokenGateProps) {
 
                     <button
                         type="submit"
+                        disabled={checking}
                         className="
                             mt-4
                             w-full
@@ -88,10 +110,21 @@ export function TokenGate({ onUnlock }: TokenGateProps) {
                             duration-150
                             hover:border-(--accent-deep)
                             hover:bg-(--accent-deep)
+                            disabled:opacity-60
                         "
                     >
-                        Unlock
+                        {checking ? "Checking…" : "Unlock"}
                     </button>
+
+                    {rejected && error === null && (
+                        <p className="mt-3 font-mono text-[11px] text-(--accent-strong)">
+                            The token was rejected. Sign in again.
+                        </p>
+                    )}
+
+                    {error !== null && (
+                        <p className="mt-3 font-mono text-[11px] text-red-500">{error}</p>
+                    )}
                 </form>
             </Container>
         </Section>

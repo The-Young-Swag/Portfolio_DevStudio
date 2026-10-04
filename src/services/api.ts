@@ -7,6 +7,10 @@ export class ApiError extends Error {
     }
 }
 
+export function isUnauthorized(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 401;
+}
+
 async function readErrorMessage(
     response: Response,
     fallback: string,
@@ -86,6 +90,41 @@ export async function sendDelete(
     );
 }
 
+export type UploadedFile = {
+    id: number;
+    url: string;
+    filename: string;
+    size: number;
+};
+
+export async function uploadFile(
+    file: File,
+    fallbackName: string,
+    token: string,
+): Promise<UploadedFile> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("fallbackName", fallbackName);
+
+    const response = await fetch("/api/files", {
+        method: "POST",
+        headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: form,
+    });
+
+    if (!response.ok) {
+        throw new ApiError(
+            response.status,
+            await readErrorMessage(response, "Failed to upload file."),
+        );
+    }
+
+    return response.json() as Promise<UploadedFile>;
+}
+
 export type UploadedImage = {
     id: number;
     url: string;
@@ -112,4 +151,38 @@ export async function uploadImage(blob: Blob, token: string): Promise<UploadedIm
     }
 
     return response.json() as Promise<UploadedImage>;
+}
+
+export async function checkAdminSession(token: string): Promise<void> {
+    let response: Response;
+
+    try {
+        response = await fetch("/api/admin/session", {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+    } catch {
+        throw new ApiError(0, "Unable to reach the server. Check your connection.");
+    }
+
+    if (response.status === 401) {
+        throw new ApiError(401, "That token was rejected. Try again.");
+    }
+
+    if (response.status === 500) {
+        throw new ApiError(
+            500,
+            "The server is misconfigured (ADMIN_TOKEN is missing).",
+        );
+    }
+
+    if (!response.ok) {
+        throw new ApiError(
+            response.status,
+            await readErrorMessage(response, "Unable to verify the token."),
+        );
+    }
 }

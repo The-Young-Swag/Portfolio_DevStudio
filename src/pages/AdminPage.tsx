@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
-import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsManager, PortraitManager, ProfileManager, ProjectsManager, SocialLinksManager, StackManager, TokenGate } from "@/components/admin";
+import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsManager, PortraitManager, ProfileManager, ProjectsManager, ResumeManager, SocialLinksManager, StackItemsManager, TokenGate } from "@/components/admin";
 
 const TOKEN_KEY = "admin-token";
 
@@ -10,6 +10,7 @@ export function AdminPage() {
     const [token, setToken] = useState<string | null>(() =>
         sessionStorage.getItem(TOKEN_KEY),
     );
+    const [rejectedNotice, setRejectedNotice] = useState(false);
 
     useEffect(() => {
         const meta = document.createElement("meta");
@@ -24,23 +25,26 @@ export function AdminPage() {
 
     function handleUnlock(nextToken: string) {
         sessionStorage.setItem(TOKEN_KEY, nextToken);
+        setRejectedNotice(false);
         setToken(nextToken);
     }
 
     function handleSignOut() {
         sessionStorage.removeItem(TOKEN_KEY);
+        setRejectedNotice(false);
         setToken(null);
     }
 
     function handleUnauthorized() {
         sessionStorage.removeItem(TOKEN_KEY);
+        setRejectedNotice(true);
         setToken(null);
     }
 
     if (token === null) {
         return (
             <>
-                <TokenGate onUnlock={handleUnlock} />
+                <TokenGate onUnlock={handleUnlock} rejected={rejectedNotice} />
                 <Footer />
             </>
         );
@@ -51,7 +55,7 @@ export function AdminPage() {
             <Section id="admin">
                 <Container>
                     <div className="flex items-baseline justify-between">
-                        <SectionHeading number="00" title="Admin" />
+                        <SectionHeading number="00" title="Admin" id="admin" />
 
                         <button
                             type="button"
@@ -72,6 +76,8 @@ export function AdminPage() {
 
                     <ProfileManager token={token} onUnauthorized={handleUnauthorized} />
 
+                    <ResumeManager token={token} onUnauthorized={handleUnauthorized} />
+
                     <PortraitManager token={token} onUnauthorized={handleUnauthorized} />
 
                     <HeroStatsManager token={token} onUnauthorized={handleUnauthorized} />
@@ -82,7 +88,7 @@ export function AdminPage() {
 
                     <ExperienceManager token={token} onUnauthorized={handleUnauthorized} />
 
-                    <StackManager token={token} onUnauthorized={handleUnauthorized} />
+                    <StackItemsManager token={token} onUnauthorized={handleUnauthorized} />
 
                     <SocialLinksManager token={token} onUnauthorized={handleUnauthorized} />
 

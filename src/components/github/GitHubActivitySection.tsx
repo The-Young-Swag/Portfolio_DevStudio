@@ -21,7 +21,7 @@ export function GitHubActivitySection() {
         return (
             <Section id="build-log">
                 <Container>
-                    <SectionHeading number="01" title="Build log" />
+                    <SectionHeading number="01" title="Build log" id="build-log" />
                     <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
                         Loading GitHub activity...
                     </p>
@@ -34,7 +34,7 @@ export function GitHubActivitySection() {
         return (
             <Section id="build-log">
                 <Container>
-                    <SectionHeading number="01" title="Build log" />
+                    <SectionHeading number="01" title="Build log" id="build-log" />
                     <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
                         {error instanceof Error
                             ? error.message
@@ -65,7 +65,7 @@ export function GitHubActivitySection() {
     return (
         <Section id="build-log">
             <Container>
-                <SectionHeading number="01" title="Build log" />
+                <SectionHeading number="01" title="Build log" id="build-log" />
 
                 <div className="mt-8">
                     <YearSelector

@@ -1,11 +1,13 @@
 type SectionHeadingProps = {
     number: string;
     title: string;
+    id?: string;
 };
 
 export function SectionHeading({
     number,
     title,
+    id,
 }: SectionHeadingProps) {
     return (
         <h2
@@ -21,19 +23,15 @@ export function SectionHeading({
             {" — "}
             {title}
 
-            <span
-                aria-hidden="true"
-                className="
-                    ml-2
-                    text-sm
-                    text-(--graphite-soft)
-                    opacity-0
-                    transition-opacity
-                    group-hover:opacity-100
-                "
-            >
-                #
-            </span>
+            {id !== undefined && (
+                <a
+                    href={`#${id}`}
+                    aria-label="Link to this section"
+                    className="section-anchor ml-2 align-baseline text-sm text-(--graphite-soft)"
+                >
+                    <span aria-hidden="true">#</span>
+                </a>
+            )}
         </h2>
     );
 }

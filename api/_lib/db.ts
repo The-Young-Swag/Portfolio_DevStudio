@@ -7,7 +7,12 @@ export function getDb(): Client {
         return client;
     }
 
-    const url = process.env.TURSO_DATABASE_URL ?? "file:local.db";
+    const url = process.env.TURSO_DATABASE_URL;
+
+    if (!url) {
+        throw new Error("Server is missing TURSO_DATABASE_URL");
+    }
+
     const authToken = process.env.TURSO_AUTH_TOKEN;
 
     client = authToken
@@ -15,4 +20,8 @@ export function getDb(): Client {
         : createClient({ url });
 
     return client;
+}
+
+export function resetDbClient(): void {
+    client = null;
 }

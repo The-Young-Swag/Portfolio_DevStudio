@@ -12,8 +12,9 @@ import {
     type Certification,
     type CertificationInput,
 } from "@/services/certifications/certifications";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import { ImageUploadField } from "./ImageUploadField";
+import { PdfUploadField } from "./PdfUploadField";
 
 type CertificationsManagerProps = {
     token: string;
@@ -30,6 +31,10 @@ type CertificationFormFields = {
     accent: string;
     image: string;
     link: string;
+    parent_id: string;
+    pdf: string;
+    badge_image: string;
+    badge_link: string;
     sort_order: string;
 };
 
@@ -43,6 +48,10 @@ const emptyFields: CertificationFormFields = {
     accent: "blue",
     image: "",
     link: "",
+    parent_id: "",
+    pdf: "",
+    badge_image: "",
+    badge_link: "",
     sort_order: "",
 };
 
@@ -63,6 +72,10 @@ function toFields(certification: Certification): CertificationFormFields {
         accent: certification.accent,
         image: certification.image,
         link: certification.link,
+        parent_id: certification.parent_id === null ? "" : String(certification.parent_id),
+        pdf: certification.pdf,
+        badge_image: certification.badge_image,
+        badge_link: certification.badge_link,
         sort_order: String(certification.sort_order),
     };
 }
@@ -78,12 +91,12 @@ function toInput(fields: CertificationFormFields): CertificationInput {
         accent: isAccent(fields.accent) ? fields.accent : "blue",
         image: fields.image.trim(),
         link: fields.link.trim(),
+        parent_id: fields.parent_id === "" ? null : Number(fields.parent_id),
+        pdf: fields.pdf.trim(),
+        badge_image: fields.badge_image.trim(),
+        badge_link: fields.badge_link.trim(),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function CertificationsManager({
@@ -154,7 +167,16 @@ export function CertificationsManager({
     }
 
     function handleDelete(certification: Certification) {
-        if (!window.confirm(`Delete "${certification.name}"?`)) {
+        const childCount = (certificationsQuery.data ?? []).filter(
+            (item) => item.parent_id === certification.id,
+        ).length;
+
+        const message =
+            childCount > 0
+                ? `Delete "${certification.name}" and its ${childCount} ${childCount === 1 ? "course" : "courses"}?`
+                : `Delete "${certification.name}"?`;
+
+        if (!window.confirm(message)) {
             return;
         }
 
@@ -172,6 +194,16 @@ export function CertificationsManager({
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
+
+    const allCertifications = certificationsQuery.data ?? [];
+    const editingHasChildren =
+        typeof editingId === "number" &&
+        allCertifications.some((item) => item.parent_id === editingId);
+    const parentOptions = allCertifications.filter(
+        (item) =>
+            item.parent_id === null &&
+            (typeof editingId !== "number" || item.id !== editingId),
+    );
 
     return (
         <section aria-label="Certifications">
@@ -306,6 +338,25 @@ export function CertificationsManager({
                                 className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                             />
                         </label>
+
+                        <label className="block">
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Parent program
+                            </span>
+                            <select
+                                value={fields.parent_id}
+                                onChange={(event) => setField("parent_id", event.target.value)}
+                                disabled={editingHasChildren}
+                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) disabled:opacity-60 dark:bg-black/20"
+                            >
+                                <option value="">Top level</option>
+                                {parentOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
                     </div>
 
                     <div>
@@ -327,6 +378,41 @@ export function CertificationsManager({
                         <input
                             value={fields.link}
                             onChange={(event) => setField("link", event.target.value)}
+                            placeholder="https://…"
+                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                        />
+                    </label>
+
+                    <div>
+                        <PdfUploadField
+                            label="Certificate PDF"
+                            value={fields.pdf}
+                            onChange={(url) => setField("pdf", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            defaultFilename="certificate.pdf"
+                        />
+                    </div>
+
+                    <div>
+                        <ImageUploadField
+                            label="Badge image"
+                            value={fields.badge_image}
+                            onChange={(url) => setField("badge_image", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            aspect={1}
+                            maxEdge={512}
+                        />
+                    </div>
+
+                    <label className="block">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                            Badge link URL
+                        </span>
+                        <input
+                            value={fields.badge_link}
+                            onChange={(event) => setField("badge_link", event.target.value)}
                             placeholder="https://…"
                             className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
                         />
@@ -409,39 +495,88 @@ export function CertificationsManager({
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {certificationsQuery.data.map((certification) => (
-                            <li
-                                key={certification.id}
-                                className="flex items-center justify-between gap-4 p-4"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate font-display text-[16px] text-(--ink)">
-                                        {certification.name}
-                                    </p>
-                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
-                                        {certification.issuer} · {certification.year}
-                                    </p>
-                                </div>
+                        {(certificationsQuery.data ?? [])
+                            .filter(
+                                (certification) =>
+                                    certification.parent_id === null ||
+                                    !(certificationsQuery.data ?? []).some(
+                                        (parent) => parent.id === certification.parent_id,
+                                    ),
+                            )
+                            .map((certification) => {
+                                const children = (certificationsQuery.data ?? []).filter(
+                                    (item) => item.parent_id === certification.id,
+                                );
 
-                                <div className="flex shrink-0 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEdit(certification)}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(certification)}
-                                        disabled={deleteMutation.isPending}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
+                                return (
+                                    <li key={certification.id}>
+                                        <div className="flex items-center justify-between gap-4 p-4">
+                                            <div className="min-w-0">
+                                                <p className="truncate font-display text-[16px] text-(--ink)">
+                                                    {certification.name}
+                                                </p>
+                                                <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
+                                                    {certification.issuer} · {certification.year}
+                                                    {children.length > 0 &&
+                                                        ` · ${children.length} ${children.length === 1 ? "course" : "courses"}`}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex shrink-0 gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => startEdit(certification)}
+                                                    className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(certification)}
+                                                    disabled={deleteMutation.isPending}
+                                                    className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {children.map((child) => (
+                                            <div
+                                                key={child.id}
+                                                className="ml-4 flex items-center justify-between gap-4 border-l border-(--line) p-4 pl-4"
+                                            >
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-[13px] text-(--ink)">
+                                                        {child.name}
+                                                    </p>
+                                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
+                                                        {child.issuer} · {child.year}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex shrink-0 gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => startEdit(child)}
+                                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDelete(child)}
+                                                        disabled={deleteMutation.isPending}
+                                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </li>
+                                );
+                            })}
                     </ul>
                 )}
             </div>

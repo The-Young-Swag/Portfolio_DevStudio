@@ -12,10 +12,11 @@ export function Hero() {
 
                 <div
                     className="
-                        mt-16
+                        mt-8
                         grid
                         items-start
                         gap-8
+                        md:mt-16
                         md:grid-cols-[300px_minmax(0,1fr)]
                         md:gap-12
                     "

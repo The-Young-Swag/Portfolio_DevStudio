@@ -27,12 +27,12 @@ export function AlsoTrue() {
             </p>
 
             <div className="flex flex-wrap gap-2.5">
-                {items.map(({ text, icon }) => {
+                {items.map(({ text, icon }, index) => {
                     const Icon = resolveStatIcon(icon);
 
                     return (
                         <span
-                            key={text}
+                            key={`${text}-${index}`}
                         className="
                         group
                         inline-flex

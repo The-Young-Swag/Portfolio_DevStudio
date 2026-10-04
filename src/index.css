@@ -84,9 +84,12 @@ html.dark {
         margin: 0;
         min-width: 320px;
         min-height: 100vh;
+        min-height: 100dvh;
         background: transparent;
         color: var(--ink);
         font-family: "Inter Variable", "Inter", sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
@@ -181,6 +184,159 @@ html.dark .glass {
 
 html.dark .app-background::before {
     background-image: url("/backgrounds/dark.webp");
+}
+
+/*
+   SECTION ANCHORS
+*/
+
+.section-anchor {
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .section-anchor {
+        transition: none;
+    }
+}
+
+.group:hover .section-anchor,
+.section-anchor:focus-visible {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .section-anchor {
+        display: none;
+    }
+}
+
+section[id] {
+    scroll-margin-top: 96px;
+}
+
+/*
+   SHARED CAROUSEL
+*/
+
+.carousel-track {
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--carousel-gap, 1rem);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--graphite-soft) var(--line);
+    padding-bottom: 12px;
+}
+
+.carousel-track:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+    border-radius: 12px;
+}
+
+.carousel-track::-webkit-scrollbar {
+    height: 6px;
+}
+
+.carousel-track::-webkit-scrollbar-track {
+    background: var(--line);
+    border-radius: 999px;
+}
+
+.carousel-track::-webkit-scrollbar-thumb {
+    background: var(--graphite-soft);
+    border-radius: 999px;
+}
+
+.carousel-track::-webkit-scrollbar-thumb:hover,
+.carousel-track::-webkit-scrollbar-thumb:active {
+    background: var(--graphite);
+}
+
+.carousel-card {
+    flex: 0 0 calc((100% - 0.15 * var(--carousel-gap, 1rem)) / 1.15);
+    scroll-snap-align: start;
+    min-width: 0;
+}
+
+@media (min-width: 640px) {
+    .carousel-card {
+        flex-basis: calc((100% - var(--carousel-gap, 1rem)) / 2);
+    }
+}
+
+@media (min-width: 1024px) {
+    .carousel-card {
+        flex-basis: calc((100% - 2 * var(--carousel-gap, 1rem)) / 3);
+    }
+}
+
+@media (pointer: coarse), (hover: none) {
+    .carousel-nav {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carousel-track {
+        scroll-behavior: auto;
+    }
+}
+
+/*
+   MOBILE DRAWER
+*/
+
+.mobile-drawer a {
+    min-height: 48px;
+}
+
+.mobile-drawer nav a,
+.mobile-drawer button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/*
+   ADMIN TAP TARGETS AND INPUTS
+*/
+
+#admin button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#admin input:not([type="checkbox"]):not([type="range"]),
+#admin textarea,
+#admin select {
+    font-size: 16px;
+}
+
+#admin input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+}
+
+/* Sticky form actions on touch-sized screens: the Save/Cancel row of
+   each admin form pins to the bottom inside the safe area. */
+@media (max-width: 1023px) {
+    #admin form > div:has(> button[type="submit"]) {
+        position: sticky;
+        bottom: 0;
+        margin-inline: -1.25rem;
+        padding: 0.75rem 1.25rem max(0.75rem, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: var(--glass-bg-strong);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
 }
 
 /*
@@ -396,4 +552,17 @@ html.dark .app-background::before {
     .time-ufo {
         animation: none;
     }
+}
+
+/* Paused scene: loops freeze when the card is off-screen or the tab
+   is hidden. Driven by the data-scene-active attribute. */[data-scene-active="false"] .time-cloud,
+[data-scene-active="false"] .time-cloud-slow,
+[data-scene-active="false"] .time-cloud-fast,
+[data-scene-active="false"] .time-tree,
+[data-scene-active="false"] .time-star,
+[data-scene-active="false"] .time-glow-pulse,
+[data-scene-active="false"] .time-shooting,
+[data-scene-active="false"] .time-meteor-falling,
+[data-scene-active="false"] .time-ufo-flying {
+    animation-play-state: paused;
 }

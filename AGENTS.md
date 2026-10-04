@@ -7,6 +7,7 @@ Personal developer portfolio. Vite + React + TypeScript, React Query, React Rout
 - `vercel dev`: frontend plus `/api` serverless functions (use this for anything touching the database)
 - `npm run build`: type-check (`tsc -b`) and production build
 - `npx tsc --noEmit`: quick type-check
+- `npm run test:api`: API suite (`tests/`, node:test via tsx, isolated local file)
 
 Every commit must pass type-check and build.
 
@@ -18,18 +19,23 @@ Every commit must pass type-check and build.
 - `src/hooks/<domain>/`: React Query hooks that wrap services
 - `src/context/`: theme context
 - `src/constants/`: static content (fallback data, navigation, profile, social links)
-- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export)
+- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export). Hobby allows 12 functions, so all CRUD lives behind the single catch-all `api/[...path].ts`, which dispatches to `api/_routes/` by method plus path
 - `api/_lib/`: shared server code (database client, admin auth, validation)
+- Never add new files under `api/` (except `_`-prefixed directories). Add new endpoints as routes in the router.
+- `api/` is type-checked with Node types as part of `npm run build` (`npm run typecheck:api`)
 - `db/`: SQL schema and seed script
 
 Data flow: `api/` handler, then `services/`, then `hooks/` (React Query), then section components, then presentational components. Keep this direction one-way; no cross-domain imports except shared `layout` and `ui`.
 
 ## Content model
-- **CRUD content:** projects, experience, stack, certifications, profile, social links (Turso/libSQL).
+- **CRUD content:** projects, experience, stack items, certifications, profile, social links (Turso/libSQL). The old `stack` group table stays in the database unused; the Stack page reads `stack_items`.
 - **Static content:** navigation.
-- **Profile** is a single record (`profile` row 1): `GET` reads it, `PUT` (admin) upserts it. No `POST` or `DELETE`. It also holds JSON text for portrait states, hero stats, "also true" items, contact copy, and the footer note; a `null` field falls back to the static default.
+- **Profile** is a single record (`profile` row 1): `GET` reads it, `PUT` (admin) upserts it. No `POST` or `DELETE`. It also holds JSON text for portrait states, hero stats, "also true" items, contact copy, and the footer note; a `null` field falls back to the static default. `resume` is a URL string (uploaded `/api/files/<id>` or `https://…`); empty hides the Resume button.
 - **Social link icons** are stored as portable keys (`github`, `linkedin`, `email`) and resolved to bundled icons client-side. Project thumbnails and certification images are plain URL strings (`/api/images/<id>` or `https://…`); a missing or broken image shows the neutral `ContentImage` placeholder.
-- **Images** live in the `images` table: `POST /api/images` (admin, WebP/JPEG/PNG, 400 KB cap) returns `{ id, url }`; public `GET /api/images/<id>` serves immutable bytes. Replacing, clearing, or deleting an owner row deletes its orphaned image row server-side.
+- **Images** live in the `images` table: `POST /api/images` (admin, WebP/JPEG/PNG/AVIF input, 400 KB cap, cropped output re-encoded to WebP) returns `{ id, url }`; public `GET /api/images/<id>` serves immutable bytes with `s-maxage`. Replacing, clearing, or deleting an owner row deletes its orphaned image row server-side.
+- **Files** live in the `files` table: `POST /api/files` (admin, PDF only verified by `%PDF-` signature, 2 MB cap, sanitized filename) returns `{ id, url, filename, size }`; public `GET /api/files/<id>` serves inline PDFs with the stored filename. Same orphan cleanup as images.
+- **Certifications** support one level of children (`parent_id`, validated, cascade delete with blob cleanup), PDFs, badge images/links, and verify links.
+- **Projects** carry nullable access states (`source_access`, `demo_access`, derived from URLs when null), an access note, and an optional case study (`has_case_study`, problem/role/solution/result text, screenshot list).
 - Public `GET` endpoints are open and cached; `POST`, `PUT`, and `DELETE` require `Authorization: Bearer <ADMIN_TOKEN>`, checked server-side.
 - If an API request fails (network or 5xx), public pages fall back to the static constants. An empty successful response shows an empty state, not the fallback.
 - Schema changes ship twice: `db/schema.sql` for fresh databases plus a one-time file under `db/migrations/` for the existing remote database.

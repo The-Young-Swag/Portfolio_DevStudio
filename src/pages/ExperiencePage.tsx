@@ -1,15 +1,17 @@
+import { Download } from "lucide-react";
+
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { ExperienceList } from "@/components/experience";
 import { SectionHeading } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
-import { ArrowUpRight } from "lucide-react";
-import { Link } from "react-router";
 import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
 
 export function ExperiencePage() {
     const { experience, isPending } = useExperience();
     const { profile } = useProfile();
+    const resume = profile.resume ?? staticProfile.resume;
 
     return (
         <>
@@ -22,7 +24,7 @@ export function ExperiencePage() {
 
             <Section id="timeline">
                 <Container>
-                    <SectionHeading number="01" title="Timeline" />
+                    <SectionHeading number="01" title="Timeline" id="timeline" />
 
                     <div className="mt-6">
                         {isPending ? (
@@ -37,25 +39,12 @@ export function ExperiencePage() {
                             <ExperienceList experiences={experience} />
                         )}
                     </div>
-                </Container>
-            </Section>
 
-            <Section id="receipts">
-                <Container>
-                    <SectionHeading number="02" title="Receipts" />
-
-                    <div className="mt-6 rounded-2xl border border-(--glass-border) bg-(--glass-bg) p-6 shadow-[inset_0_1px_0_var(--glass-highlight)] backdrop-blur-xl backdrop-saturate-160 sm:p-7">
-                        <p className="max-w-xl text-[13px] leading-relaxed text-(--graphite)">
-                            Paperwork, the unglamorous half of the story. The
-                            résumé has the trimmed version; the certifications
-                            page has the proof I actually finished the courses.
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap gap-2">
+                    {resume !== "" && (
+                        <div className="mt-6">
                             <a
-                                href={profile.resume}
-                                target="_blank"
-                                rel="noreferrer"
+                                href={resume}
+                                download="resume.pdf"
                                 className="
                                     inline-flex
                                     items-center
@@ -76,38 +65,11 @@ export function ExperiencePage() {
                                     hover:border-(--accent-deep)
                                 "
                             >
-                                Résumé
-                                <ArrowUpRight size={13} strokeWidth={2} />
+                                Download resume
+                                <Download size={13} strokeWidth={2} />
                             </a>
-
-                            <Link
-                                to="/certifications"
-                                className="
-                                    inline-flex
-                                    items-center
-                                    gap-1.5
-                                    rounded-lg
-                                    border
-                                    border-(--glass-border)
-                                    bg-(--glass-bg)
-                                    px-4
-                                    py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    text-(--ink)
-                                    shadow-[inset_0_1px_0_var(--glass-highlight)]
-                                    backdrop-blur-md
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-strong)
-                                    hover:text-(--accent-strong)
-                                "
-                            >
-                                Certifications
-                                <ArrowUpRight size={13} strokeWidth={1.75} />
-                            </Link>
                         </div>
-                    </div>
+                    )}
                 </Container>
             </Section>
 
