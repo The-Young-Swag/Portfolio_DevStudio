@@ -1,11 +1,11 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
 import {
     isAllowedImageMime,
     MAX_IMAGE_BYTES,
     sniffImageMime,
-} from "../_lib/images.js";
+} from "../../_lib/images.js";
 
 export async function POST(request: Request) {
     const envError = checkServerEnv();

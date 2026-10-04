@@ -1,7 +1,7 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { stackItemSchema, toStackItem } from "../_lib/stackItems.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { stackItemSchema, toStackItem } from "../../_lib/stackItems.js";
 
 const SELECT_COLUMNS =
     "id, name, category, level, since_year, is_core, sort_order, created_at FROM stack_items";

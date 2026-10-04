@@ -1,5 +1,5 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
 
 export async function GET(request: Request) {
     const envError = checkServerEnv();

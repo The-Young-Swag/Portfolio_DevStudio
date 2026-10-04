@@ -1,7 +1,7 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { certificationSchema, findParentError, toCertification } from "../_lib/certifications.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { certificationSchema, findParentError, toCertification } from "../../_lib/certifications.js";
 
 export async function GET() {
     const envError = checkServerEnv();

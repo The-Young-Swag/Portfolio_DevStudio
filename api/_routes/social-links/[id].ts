@@ -1,7 +1,7 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { experienceSchema, toExperienceEntry } from "../_lib/experience.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { socialLinkSchema, toSocialLink } from "../../_lib/socialLinks.js";
 
 function getId(request: Request): number | null {
     try {
@@ -35,10 +35,7 @@ export async function PUT(request: Request) {
 
     const id = getId(request);
     if (id === null) {
-        return Response.json(
-            { error: "Invalid experience id." },
-            { status: 400 },
-        );
+        return Response.json({ error: "Invalid social link id." }, { status: 400 });
     }
 
     let body: unknown;
@@ -48,10 +45,10 @@ export async function PUT(request: Request) {
         return Response.json({ error: "Invalid JSON body." }, { status: 400 });
     }
 
-    const parsed = experienceSchema.safeParse(body);
+    const parsed = socialLinkSchema.safeParse(body);
     if (!parsed.success) {
         return Response.json(
-            { error: "Invalid experience data." },
+            { error: "Invalid social link data." },
             { status: 400 },
         );
     }
@@ -61,26 +58,19 @@ export async function PUT(request: Request) {
     try {
         const db = getDb();
         const updated = await db.execute({
-            sql: "UPDATE experience SET period = ?, role = ?, company = ?, description = ?, sort_order = ? WHERE id = ?",
-            args: [
-                input.period,
-                input.role,
-                input.company,
-                JSON.stringify(input.description),
-                input.sort_order,
-                id,
-            ],
+            sql: "UPDATE social_links SET label = ?, href = ?, icon = ?, sort_order = ? WHERE id = ?",
+            args: [input.label, input.href, input.icon, input.sort_order, id],
         });
 
         if (updated.rowsAffected === 0) {
             return Response.json(
-                { error: "Experience entry not found." },
+                { error: "Social link not found." },
                 { status: 404 },
             );
         }
 
         const selected = await db.execute({
-            sql: "SELECT id, period, role, company, description, sort_order, created_at FROM experience WHERE id = ?",
+            sql: "SELECT id, label, href, icon, sort_order, created_at FROM social_links WHERE id = ?",
             args: [id],
         });
 
@@ -90,16 +80,16 @@ export async function PUT(request: Request) {
 
         if (!row) {
             return Response.json(
-                { error: "Experience entry not found." },
+                { error: "Social link not found." },
                 { status: 404 },
             );
         }
 
-        return Response.json(toExperienceEntry(row));
+        return Response.json(toSocialLink(row));
     } catch (error) {
-        console.error("Experience PUT error:", error);
+        console.error("Social links PUT error:", error);
         return Response.json(
-            { error: "Unable to update experience entry." },
+            { error: "Unable to update social link." },
             { status: 500 },
         );
     }
@@ -120,31 +110,28 @@ export async function DELETE(request: Request) {
 
     const id = getId(request);
     if (id === null) {
-        return Response.json(
-            { error: "Invalid experience id." },
-            { status: 400 },
-        );
+        return Response.json({ error: "Invalid social link id." }, { status: 400 });
     }
 
     try {
         const db = getDb();
         const deleted = await db.execute({
-            sql: "DELETE FROM experience WHERE id = ?",
+            sql: "DELETE FROM social_links WHERE id = ?",
             args: [id],
         });
 
         if (deleted.rowsAffected === 0) {
             return Response.json(
-                { error: "Experience entry not found." },
+                { error: "Social link not found." },
                 { status: 404 },
             );
         }
 
         return new Response(null, { status: 204 });
     } catch (error) {
-        console.error("Experience DELETE error:", error);
+        console.error("Social links DELETE error:", error);
         return Response.json(
-            { error: "Unable to delete experience entry." },
+            { error: "Unable to delete social link." },
             { status: 500 },
         );
     }

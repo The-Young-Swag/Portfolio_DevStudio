@@ -1,9 +1,9 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { deleteStoredImage } from "../_lib/images.js";
-import { certificationSchema, findParentError, toCertification } from "../_lib/certifications.js";
-import { deleteStoredFile } from "../_lib/files.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { deleteStoredImage } from "../../_lib/images.js";
+import { certificationSchema, findParentError, toCertification } from "../../_lib/certifications.js";
+import { deleteStoredFile } from "../../_lib/files.js";
 
 function getId(request: Request): number | null {
     try {

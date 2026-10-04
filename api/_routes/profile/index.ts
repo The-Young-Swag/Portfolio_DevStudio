@@ -1,13 +1,13 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { deleteStoredFile } from "../_lib/files.js";
-import { deleteStoredImage } from "../_lib/images.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { deleteStoredFile } from "../../_lib/files.js";
+import { deleteStoredImage } from "../../_lib/images.js";
 import {
     collectPortraitImages,
     profileSchema,
     toProfile,
-} from "../_lib/profile.js";
+} from "../../_lib/profile.js";
 
 const SELECT_COLUMNS =
     "id, name, headline, location, availability, description, github, linkedin, email, resume, portrait, hero_stats, also_true, contact_heading, contact_title, contact_intro, contact_email_label, footer_note FROM profile";

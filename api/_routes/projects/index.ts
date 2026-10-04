@@ -1,7 +1,7 @@
-import { checkServerEnv } from "../_lib/env.js";
-import { requireAdmin } from "../_lib/auth.js";
-import { getDb } from "../_lib/db.js";
-import { projectSchema, toProject } from "../_lib/projects.js";
+import { checkServerEnv } from "../../_lib/env.js";
+import { requireAdmin } from "../../_lib/auth.js";
+import { getDb } from "../../_lib/db.js";
+import { projectSchema, toProject } from "../../_lib/projects.js";
 
 export async function GET() {
     const envError = checkServerEnv();
