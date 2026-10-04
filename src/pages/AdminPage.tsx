@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
+import { Link } from "react-router";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
@@ -7,6 +8,19 @@ import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsMan
 import { checkAdminSession } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
+
+const ADMIN_SECTIONS = [
+    { id: "profile", label: "Profile" },
+    { id: "resume", label: "Resume" },
+    { id: "portrait", label: "Portrait" },
+    { id: "hero-stats", label: "Hero stats" },
+    { id: "also-true", label: "Also true" },
+    { id: "projects", label: "Projects" },
+    { id: "experience", label: "Experience" },
+    { id: "stack", label: "Stack" },
+    { id: "social-links", label: "Social links" },
+    { id: "certifications", label: "Certifications" },
+] as const;
 
 export function AdminPage() {
     const [token, setToken] = useState<string | null>(null);
@@ -144,25 +158,85 @@ export function AdminPage() {
                         </button>
                     </div>
 
-                    <ProfileManager token={token} onUnauthorized={handleUnauthorized} />
+                    <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-(--graphite)">
+                        Changes publish to the live site immediately — there
+                        are no drafts.{" "}
+                        <Link
+                            to="/"
+                            className="font-mono text-[11.5px] text-(--accent-strong) hover:underline"
+                        >
+                            View site →
+                        </Link>
+                    </p>
 
-                    <ResumeManager token={token} onUnauthorized={handleUnauthorized} />
+                    <nav
+                        aria-label="Content sections"
+                        className="mt-4 flex flex-wrap gap-2"
+                    >
+                        {ADMIN_SECTIONS.map((section) => (
+                            <a
+                                key={section.id}
+                                href={`#admin-${section.id}`}
+                                className="
+                                    rounded-full
+                                    border
+                                    border-(--glass-border)
+                                    bg-(--glass-bg)
+                                    px-3
+                                    py-1.5
+                                    font-mono
+                                    text-[11px]
+                                    text-(--graphite)
+                                    transition-colors
+                                    duration-150
+                                    hover:border-(--accent-strong)
+                                    hover:text-(--accent-strong)
+                                "
+                            >
+                                {section.label}
+                            </a>
+                        ))}
+                    </nav>
 
-                    <PortraitManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-profile" className="scroll-mt-28">
+                        <ProfileManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <HeroStatsManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-resume" className="scroll-mt-28">
+                        <ResumeManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <AlsoTrueManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-portrait" className="scroll-mt-28">
+                        <PortraitManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <ProjectsManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-hero-stats" className="scroll-mt-28">
+                        <HeroStatsManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <ExperienceManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-also-true" className="scroll-mt-28">
+                        <AlsoTrueManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <StackItemsManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-projects" className="scroll-mt-28">
+                        <ProjectsManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <SocialLinksManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-experience" className="scroll-mt-28">
+                        <ExperienceManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
 
-                    <CertificationsManager token={token} onUnauthorized={handleUnauthorized} />
+                    <div id="admin-stack" className="scroll-mt-28">
+                        <StackItemsManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
+
+                    <div id="admin-social-links" className="scroll-mt-28">
+                        <SocialLinksManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
+
+                    <div id="admin-certifications" className="scroll-mt-28">
+                        <CertificationsManager token={token} onUnauthorized={handleUnauthorized} />
+                    </div>
                 </Container>
             </Section>
 
