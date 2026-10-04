@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build --configLoader native",
     "lint": "eslint .",
     "preview": "vite preview --configLoader native",
-    "db:seed": "tsx db/seed.ts"
+    "db:seed": "tsx db/seed.ts",
+    "test:api": "tsx --test tests/api.test.ts"
   },
   "engines": {
     "node": ">=22.18"

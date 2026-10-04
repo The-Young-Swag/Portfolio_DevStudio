@@ -22,5 +22,6 @@
 "include": [
     "vite.config.ts",
     "api/**/*.ts",
-    "db/**/*.ts"
+    "db/**/*.ts",
+    "tests/**/*.ts"
 ]}
