@@ -1,9 +1,15 @@
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { projects } from "@/constants/projects";
+import type { Project } from "@/services/projects/projects";
 
-export function ProjectCarousel() {
+import { ContentImage } from "@/components/ui";
+
+type ProjectCarouselProps = {
+    projects: Project[];
+};
+
+export function ProjectCarousel({ projects }: ProjectCarouselProps) {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const scrollTrack = (direction: 1 | -1) => {
@@ -75,7 +81,7 @@ export function ProjectCarousel() {
             >
                 {projects.map((project) => (
                     <article
-                        key={project.title}
+                        key={project.id}
                         data-project-card
                         className="
                             group
@@ -96,12 +102,10 @@ export function ProjectCarousel() {
                         "
                     >
                         <div className="relative aspect-video overflow-hidden border-b border-(--line)">
-                            <img
+                            <ContentImage
                                 src={project.thumbnail}
                                 alt={`${project.title} preview`}
-                                loading="lazy"
-                                decoding="async"
-                                className="
+                                imageClassName="
                                     h-full
                                     w-full
                                     object-cover
@@ -110,6 +114,7 @@ export function ProjectCarousel() {
                                     ease-[cubic-bezier(0.22,1,0.36,1)]
                                     group-hover:scale-[1.04]
                                 "
+                                placeholderClassName="h-full w-full"
                             />
                         </div>
 

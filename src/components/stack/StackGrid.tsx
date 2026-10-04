@@ -1,10 +1,14 @@
-import { stack } from "@/constants/stack";
+import type { StackGroup } from "@/services/stack/stack";
 import { StackItem } from "./StackItem";
 
-export function StackGrid() {
+type StackGridProps = {
+    groups: StackGroup[];
+};
+
+export function StackGrid({ groups }: StackGridProps) {
     return (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {stack.map((group) => (
+            {groups.map((group) => (
                 <div
                     key={group.group}
                     className="

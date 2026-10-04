@@ -1,10 +1,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
-import { certifications } from "@/constants/certifications";
+import type { Certification } from "@/services/certifications/certifications";
 import { CertificationItem } from "./CertificationItem";
 
-export function CertificationList() {
+type CertificationListProps = {
+    certifications: Certification[];
+};
+
+export function CertificationList({ certifications }: CertificationListProps) {
     const trackRef = useRef<HTMLDivElement>(null);
 
     const scrollTrack = (direction: 1 | -1) => {
@@ -70,7 +74,7 @@ export function CertificationList() {
                 >
                     {certifications.map((certification) => (
                         <CertificationItem
-                            key={`${certification.issuer}-${certification.name}`}
+                            key={certification.id}
                             {...certification}
                         />
                     ))}

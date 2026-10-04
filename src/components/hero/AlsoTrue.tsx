@@ -1,25 +1,16 @@
-import {
-    Bot,
-    GitCommit,
-    Coffee,
-} from "lucide-react";
-
-const items = [
-    {
-        text: "AI tabs opened: Classified",
-        icon: Bot,
-    },
-    {
-        text: "Commit messages: surprisingly descriptive",
-        icon: GitCommit,
-    },
-    {
-        text: "Sleep: pending PR review",
-        icon: Coffee,
-    },
-];
+import { useProfile } from "@/hooks/profile/useProfile";
+import { profile as staticProfile } from "@/constants/profile";
+import type { AlsoTrueItem } from "@/services/profile/profile";
+import { resolveStatIcon } from "./statIcons";
 
 export function AlsoTrue() {
+    const { profile } = useProfile();
+    const items: AlsoTrueItem[] = profile.also_true ?? staticProfile.also_true;
+
+    if (items.length === 0) {
+        return null;
+    }
+
     return (
         <div className="border-t hairline px-1 py-5 sm:py-6">
 <p
@@ -36,9 +27,12 @@ export function AlsoTrue() {
             </p>
 
             <div className="flex flex-wrap gap-2.5">
-                {items.map(({ text, icon: Icon }) => (
-                    <span
-                        key={text}
+                {items.map(({ text, icon }) => {
+                    const Icon = resolveStatIcon(icon);
+
+                    return (
+                        <span
+                            key={text}
                         className="
                         group
                         inline-flex
@@ -74,8 +68,9 @@ export function AlsoTrue() {
                         />
 
                         {text}
-                    </span>
-                ))}
+                        </span>
+                    );
+                })}
             </div>
         </div>
     );

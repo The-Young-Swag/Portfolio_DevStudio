@@ -1,6 +1,9 @@
-import { socialLinks } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialLinks";
+import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ConnectList() {
+    const { socialLinks } = useSocialLinks();
+
     return (
         <div className="mt-6">
 <p
@@ -19,7 +22,7 @@ export function ConnectList() {
 
             <div className="space-y-0.5">
                 {socialLinks.map((item) => {
-                    const Icon = item.icon;
+                    const Icon = resolveSocialIcon(item.icon);
 
                     return (
                         <a

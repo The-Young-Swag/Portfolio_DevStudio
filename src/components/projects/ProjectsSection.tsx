@@ -2,10 +2,13 @@ import { Link } from "react-router";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
+import { useProjects } from "@/hooks/projects/useProjects";
 import { ProjectCarousel } from "./ProjectCarousel";
 
 
 export function ProjectsSection() {
+    const { projects, isPending } = useProjects();
+
     return (
         <Section id="projects">
             <Container>
@@ -15,7 +18,17 @@ export function ProjectsSection() {
                 />
 
                 <div className="mt-5">
-                    <ProjectCarousel />
+                    {isPending ? (
+                        <p className="font-mono text-[10.5px] text-(--graphite)">
+                            Loading projects...
+                        </p>
+                    ) : projects.length === 0 ? (
+                        <p className="font-mono text-[10.5px] text-(--graphite)">
+                            No projects yet.
+                        </p>
+                    ) : (
+                        <ProjectCarousel projects={projects} />
+                    )}
                 </div>
 
                 <Link

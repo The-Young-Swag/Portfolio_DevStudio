@@ -1,234 +1,64 @@
-# Personal CRM — Requirements
+# Portfolio_DevStudio
 
-## Summary
+Personal developer portfolio. Vite + React + TypeScript, React Query, React Router, deployed on Vercel (free tier). Public pages are read-only for visitors; content is managed through a private admin page.
 
-Personal CRM is a simple sales CRM you run on your own computer — think of it as your own private
-Salesforce. It helps one person keep track of the companies and people they sell to, the deals in
-progress, and the conversations and follow-ups along the way. It runs locally, needs no login, and
-works entirely on your machine.
+## Commands
+- `npm run dev`: Vite dev server (frontend only)
+- `vercel dev`: frontend plus `/api` serverless functions (use this for anything touching the database)
+- `npm run build`: type-check (`tsc -b`) and production build
+- `npx tsc --noEmit`: quick type-check
 
-The goal is a clean, focused tool that does the everyday CRM essentials really well: clear lists of
-your organizations, contacts and deals; a visual sales pipeline you can drag deals through; a place
-to jot notes and track follow-ups; and a dashboard that shows how things are going. It should feel
-sharp and professional, and be genuinely pleasant to use.
+Every commit must pass type-check and build.
 
-## Platform
+## Structure
+- `src/app/`: router and providers
+- `src/pages/`: route-level composition only
+- `src/components/<domain>/`: feature folders, each with an `index.ts` barrel (layout, navigation, hero, github, projects, experience, stack, certifications, time, contact, typography, ui)
+- `src/services/<domain>/`: fetch functions that call `/api`
+- `src/hooks/<domain>/`: React Query hooks that wrap services
+- `src/context/`: theme context
+- `src/constants/`: static content (fallback data, navigation, profile, social links)
+- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export)
+- `api/_lib/`: shared server code (database client, admin auth, validation)
+- `db/`: SQL schema and seed script
 
-The app has five sections in the main navigation. Organizations, Contacts and Deals each support the
-same basics: **add, search, edit and delete**. On first launch the app comes pre-loaded with
-realistic sample data, so every screen looks alive immediately.
+Data flow: `api/` handler, then `services/`, then `hooks/` (React Query), then section components, then presentational components. Keep this direction one-way; no cross-domain imports except shared `layout` and `ui`.
 
-- **Dashboard** (the landing page) — an at-a-glance view of how sales are going: a chart of deals won
-  per month, revenue won per month, a feed of recent activity, and a list of upcoming and overdue
-  follow-ups. The dashboard should also include a way to visualilze pipeline including expected revenue
-  based on probability of close
-- **Organizations** — the companies you do business with. A searchable table to add, edit and remove
-  organizations. Click one to see its details, including its contacts and deals.
-- **Contacts** — the people you deal with. A searchable table you can also filter by status (lead,
-  qualified, customer). Click a contact to see their details and a timeline of their activity. (A
-  "lead" is simply a contact with the lead status — there's no separate leads list.)
-- **Deals** — the potential sales you're working on. A searchable table showing each deal's stage,
-  value and close date. Click a deal to see its details and activity.
-- **Pipeline** — your sales pipeline as a visual board: deals shown as cards in columns, one column
-  per stage. Drag a deal from one column to another to update its stage. Stages, in order:
-  **New → Qualified → Proposal → Negotiation → Won → Lost**.
+## Content model
+- **CRUD content:** projects, experience, stack, certifications, profile, social links (Turso/libSQL).
+- **Static content:** navigation.
+- **Profile** is a single record (`profile` row 1): `GET` reads it, `PUT` (admin) upserts it. No `POST` or `DELETE`. It also holds JSON text for portrait states, hero stats, "also true" items, contact copy, and the footer note; a `null` field falls back to the static default.
+- **Social link icons** are stored as portable keys (`github`, `linkedin`, `email`) and resolved to bundled icons client-side. Project thumbnails and certification images are plain URL strings (`/api/images/<id>` or `https://…`); a missing or broken image shows the neutral `ContentImage` placeholder.
+- **Images** live in the `images` table: `POST /api/images` (admin, WebP/JPEG/PNG, 400 KB cap) returns `{ id, url }`; public `GET /api/images/<id>` serves immutable bytes. Replacing, clearing, or deleting an owner row deletes its orphaned image row server-side.
+- Public `GET` endpoints are open and cached; `POST`, `PUT`, and `DELETE` require `Authorization: Bearer <ADMIN_TOKEN>`, checked server-side.
+- If an API request fails (network or 5xx), public pages fall back to the static constants. An empty successful response shows an empty state, not the fallback.
+- Schema changes ship twice: `db/schema.sql` for fresh databases plus a one-time file under `db/migrations/` for the existing remote database.
 
-From any contact or deal you can log an activity (a note, call or email) and optionally give it a
-follow-up due date, which then shows up as a task on the dashboard.
+## Environment variables
+- `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, `GITHUB_USERNAME`
+- Secrets never use the `VITE_` prefix (it ships to the browser) and never appear in `src/`.
+- Never read, print, or commit `.env*` files or database files. Document variables in `.env.example` only.
+- Local development uses `file:local.db`. Never run against a remote or production database from an agent session.
 
-## What the CRM keeps track of
+## Code standards
+- Senior-level, conventional, readable. Simple and direct over clever.
+- Intention-revealing names; small, focused functions and components with a single responsibility.
+- No clever one-liners, deep nesting, long chains, or complex regex.
+- No premature abstraction: extract shared code only when it appears a third time and the result is clearly simpler. No generic CRUD factories, base classes, or config-driven forms.
+- Proportional architecture: no new layers, libraries, or patterns without a clear, immediate benefit.
+- SQL is always parameterized. Validate request bodies with zod in a simple, readable way.
+- Handlers return JSON with correct status codes (200, 201, 204, 400, 401, 404).
+- UI states: always handle loading, empty, and error.
+- Preserve existing behavior and visual output unless a change is required for correctness.
+- Do not touch unrelated code. Leave working code alone.
 
-Four kinds of record. (Plain-English fields — the exact details are up to the build.)
+## Git
+- Conventional Commits: `type(scope): subject`. Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `build`, `perf`.
+- One logical change per commit; imperative, lowercase subject, 72 characters max, no trailing period.
+- Work on a branch; never commit directly to `main`. Do not push unless asked.
+- No AI or co-author trailers.
 
-- **Organization** — a company you do business with. Key info: name, website, industry, and notes.
-  An organization has many contacts and many deals.
-- **Contact** — a person you deal with. Key info: name, email, phone, job title, the organization
-  they belong to, and a status (lead, qualified, or customer).
-- **Deal** — a potential sale. Key info: a name, the organization and the main contact it's with, its
-  stage in the pipeline, its value in US dollars, probability of close, and its expected or actual close date.
-- **Activity** — something that happened, or needs to happen, with a contact or deal. Key info: type
-  (note, call or email), the contact and/or deal it relates to, a description, when it happened, and
-  optionally a due date and whether it's done (so the same record doubles as a follow-up task).
-
-## High-level technical guidance
-
-Just enough direction to keep things on track — specific choices are left to the Coding Agent.
-
-- Build it as a single web app using **Vite, React and TypeScript**.
-- It runs fully locally and starts with **one simple command**; no accounts, no cloud, no internet
-  needed to use it.
-- It stores its data **locally on the machine** in a **SQLite** database file.
-- **Prefer popular, well-supported libraries over custom code** — for the data tables, the charts,
-  and the drag-and-drop pipeline. Don't hand-roll what a mature library does well.
-- Keep the implementation simple and conventional. Library, data and structure choices are the
-  Coding Agent's call, as long as the requirements and the success criteria below are met.
-- The app will be running in a VS Code dev container with ports mapped on the host computer; ensure
-  the server is configured so that it can be viewed in a browser on the host computer.
-- Use any ports from 4900-4999
-
-## Not in scope (v1)
-
-Deliberately left out to keep this small and focused. Do not build these:
-
-- No login, user accounts, multiple users or permissions — it's single-user and local.
-- No AI features (these come later).
-- No email, calendar or phone integrations.
-- Single currency only (US dollars); no multi-currency.
-- No reporting or analytics beyond the dashboard described above.
-- No tags or custom fields.
-- Pipeline stages are fixed (not user-configurable).
-- No table pagination, and no data import or export.
-
-## Look and feel
-
-Applies to the whole app:
-
-- Make it **sharp and modern, but still clean and professional**.
-- Use the color palette **`#ecad0a` (amber), `#209dd7` (blue) and `#753991` (purple)**, together
-  with grays.
-- **Avoid** these — they read as generic "AI-generated" tells: background gradients, purple
-  backgrounds, buttons with gradients, and panels or cards with a single accent border line down one
-  side.
-- Include visual / icon elements for main nav items, for edit and delete actions on table rows, and
-  where it makes sense, but avoid unnecessary emojis
-
-## Phases and success criteria
-
-Build in these phases, in order. **Do not start a phase until every success criterion of the
-previous phase is demonstrably met** — each criterion must be something you can actually show
-working, not just assert.
-
-### Phase 1 — Running skeleton and data
-
-**Features**
-
-- A single local web app with the five navigation sections (Dashboard, Organizations, Contacts,
-  Deals, Pipeline).
-- A SQLite database storing the four record types (organizations, contacts, deals, activities).
-- A seed step that fills the database with realistic sample data.
-- Unit tests to create, read, update and delete all four record types.
-
-**Success criteria**
-
-1. One documented command starts the app, and opening the given URL shows Personal CRM with all five
-   navigation sections.
-2. The app launches already populated with sample data: several organizations, several contacts, and
-   deals spread across multiple pipeline stages, plus some activities.
-3. The unit tests for creating, reading, updating and deleting each record type all pass.
-
-### Phase 2 — Organizations and Contacts
-
-**Features**
-
-- Table views for Organizations and Contacts listing all records.
-- Add, edit and delete for organizations and contacts.
-- A search box on each table, and a status filter (lead / qualified / customer) on Contacts.
-- Detail pages: a Contact shows its organization; an Organization lists its contacts and deals.
-- Unit tests for the add / edit / delete / search behavior.
-
-**Success criteria**
-
-1. Organizations and Contacts each show a table listing the sample records.
-2. Adding, editing or deleting a record persists — the change is still there after a browser refresh.
-3. Typing in a table's search box narrows the list to matching records; Contacts are searchable by at
-   least name and email.
-4. Filtering Contacts by a status shows only contacts with that status.
-5. Clicking a row opens its detail page; a Contact's detail shows its organization, and an
-   Organization's detail lists its contacts and deals.
-6. The unit tests for add / edit / delete / search all pass.
-
-### Phase 3 — Deals and Pipeline
-
-**Features**
-
-- A Deals table view with add, edit, delete and search.
-- Each deal records its stage, value (US dollars), close date, organization and primary contact.
-- A Pipeline board showing deals as cards in columns, one per stage (New, Qualified, Proposal,
-  Negotiation, Won, Lost).
-- Drag-and-drop of a deal card between columns to change its stage.
-- Unit tests for changing a deal's stage, including Won and Lost.
-
-**Success criteria**
-
-1. Deals has a table view with add, edit, delete and search, like the others.
-2. Each deal displays its stage, value in US dollars, close date, organization and primary contact.
-3. The Pipeline shows one column per stage, with each deal as a card in the correct column.
-4. Dragging a deal card to another column changes its stage, and the change persists after a refresh
-   and matches the Deals table. The total and expected revenue in each column refreshes automatically.
-5. The pipeline shows fully where possible, filling horizontal space, only showing scrollbars when needed.
-6. The unit tests for changing stage (including Won and Lost) all pass.
-
-### Phase 4 — Activities and tasks
-
-**Features**
-
-- Adding an activity (note / call / email) from a Contact or Deal detail page.
-- An activity timeline on each contact and deal, newest first.
-- An optional due date and done / not-done state on an activity, so it doubles as a task.
-- Unit tests for adding activities and toggling task completion.
-
-**Success criteria**
-
-1. From a Contact or Deal detail page you can add an activity (note, call or email), and it appears
-   in that record's timeline, newest first.
-2. An activity can be given a due date and marked done or not-done.
-3. Marking a task done or not-done persists after a refresh.
-4. The unit tests for adding activities and toggling completion all pass.
-
-### Phase 5 — Dashboard
-
-**Features**
-
-- The Dashboard as the landing page.
-- A chart of deals won per month.
-- Revenue (sum of won deal values) per month.
-- Charts or visualizations showing pipeline including expected revenue
-- A feed of recent activity across all records.
-- A list of upcoming and overdue tasks.
-
-**Success criteria**
-
-1. The Dashboard is the landing page and shows: deals won per month, revenue won per month, a
-   recent-activity feed, and a list of upcoming and overdue tasks, along with pipeline visualizations
-2. The figures shown match the underlying data (e.g. the count of won deals in a month equals what's
-   in the data).
-3. After marking a deal Won, or adding an activity or due-dated task, the dashboard reflects the
-   change on refresh.
-
-### Phase 6 — Look and feel, and end-to-end validation
-
-**Features**
-
-- The look-and-feel rules applied across the whole app (brand palette with grays; sharp, modern,
-  clean, professional).
-- Removal of any banned elements (background gradients, purple backgrounds, gradient buttons,
-  single-side accent border lines).
-- A full end-to-end walkthrough of the running app in a real browser, with visual inspection of every
-  screen.
-
-**Success criteria**
-
-1. The whole app follows the look-and-feel rules and contains none of the banned elements.
-2. The Coding Agent has driven the running app in a real browser end to end — created, edited,
-   searched and deleted records; moved a deal across the pipeline; logged an activity and a task; and
-   viewed the dashboard — visually inspecting every screen, not just running unit tests.
-3. No errors appear in the browser console during that walkthrough.
-
-## Final success criteria
-
-The project is complete, and the Coding Agent may stop, when **all** of the following are true:
-
-- A non-technical person can start the app with a single documented command and open it in a browser.
-- All five sections work: Dashboard, Organizations, Contacts, Deals, Pipeline.
-- Every record type supports add, search, edit and delete, and changes persist across refreshes.
-- The Pipeline board supports drag-to-change-stage, and the new stage persists.
-- Activities and tasks work, and the dashboard accurately reflects the data.
-- The app ships with realistic sample data, so it looks alive on first launch.
-- The look-and-feel rules are met and none of the banned elements appear anywhere.
-- The dashboard looks stunning: compelling information, well presented.
-- The drag and drop on the pipeline works well, stage numbers update, scrollbars don't show unless necessary.
-- All unit tests pass.
-- **Most importantly: the product has been validated by actually using it end to end in a real
-  browser — clicking through every section as a real user would, performing the actions above, and
-  visually inspecting each screen. Passing unit tests is necessary but NOT sufficient; the Coding
-  Agent must confirm the running product works and looks right, not merely that the tests are green.**
+## Design
+- Glassmorphism theme with design tokens in `src/index.css`; reuse tokens instead of hard-coded colors.
+- Mobile navigation and responsive layouts must keep working.
+- Do not change the theme, layout, time-of-day logic, or GitHub activity components unless the task is about them.
