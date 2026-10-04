@@ -141,16 +141,40 @@ export function CertificationCard({
                                     aria-controls={childrenId}
                                     onClick={() => setExpanded((open) => !open)}
                                     className="
+                                        flex
+                                        min-h-[44px]
+                                        w-full
+                                        items-center
+                                        justify-between
+                                        gap-2
                                         font-mono
                                         text-[11px]
                                         text-(--graphite)
                                         transition-colors
                                         duration-150
                                         hover:text-(--accent-strong)
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
                                     "
                                 >
-                                    {expanded ? "Hide" : "Show"} {courses.length}{" "}
-                                    {courses.length === 1 ? "course" : "courses"}
+                                    <span>
+                                        {expanded ? "Hide" : "Show"} {courses.length}{" "}
+                                        {courses.length === 1 ? "course" : "courses"}
+                                    </span>
+
+                                    <span
+                                        aria-hidden="true"
+                                        className={`
+                                            inline-block
+                                            transition-transform
+                                            duration-200
+                                            motion-reduce:transition-none
+                                            ${expanded ? "rotate-180" : ""}
+                                        `}
+                                    >
+                                        ↓
+                                    </span>
                                 </button>
 
                                 <div

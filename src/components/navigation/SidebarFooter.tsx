@@ -35,71 +35,74 @@ export function SidebarFooter() {
                     {isDark ? "Dark mode" : "Light mode"}
                 </span>
 
-                <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isDark}
-                    aria-label={
-                        isDark
-                            ? "Switch to light mode"
-                            : "Switch to dark mode"
-                    }
-                    onClick={toggleTheme}
-                    className={`
-                        relative
-                        flex
-                        h-8
-                        w-16
-                        items-center
-                        rounded-full
-                        border
-                        p-1
-                        backdrop-blur-md
-                        transition-colors
-                        duration-200
-                    
-                        ${
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isDark}
+                        aria-label={
                             isDark
-                                ? `
-                                    border-(--viridian)
-                                    bg-(--viridian)
-                                    shadow-none
-                                `
-                                : `
-                                    border-black/5
-                                    bg-black/[0.035]
-                                    shadow-[inset_0_1px_3px_rgba(0,0,0,0.10)]
-                                `
+                                ? "Switch to light mode"
+                                : "Switch to dark mode"
                         }
-                    `}
-                >
-                    <span
+                        onClick={toggleTheme}
                         className={`
+                            relative
                             flex
-                            h-6
-                            w-6
+                            h-11
+                            w-20
                             items-center
-                            justify-center
                             rounded-full
-                            shadow-[0_2px_8px_rgba(0,0,0,0.18)]
-                            transition-transform
+                            border
+                            p-1
+                            backdrop-blur-md
+                            transition-colors
                             duration-200
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-(--accent-strong)
 
                             ${
                                 isDark
                                     ? `
-                                        translate-x-8
-                                        bg-[#111113]
-                                        text-white
+                                        border-(--viridian)
+                                        bg-(--viridian)
+                                        shadow-none
                                     `
                                     : `
-                                        translate-x-0
-                                        bg-(--accent-strong)
-                                        text-white
+                                        border-black/5
+                                        bg-black/[0.035]
+                                        shadow-[inset_0_1px_3px_rgba(0,0,0,0.10)]
                                     `
                             }
                         `}
                     >
+                        <span
+                            className={`
+                                flex
+                                h-8
+                                w-8
+                                items-center
+                                justify-center
+                                rounded-full
+                                shadow-[0_2px_8px_rgba(0,0,0,0.18)]
+                                transition-transform
+                                duration-200
+
+                                ${
+                                    isDark
+                                        ? `
+                                            translate-x-9
+                                            bg-[#111113]
+                                            text-white
+                                        `
+                                        : `
+                                            translate-x-0
+                                            bg-(--accent-strong)
+                                            text-white
+                                        `
+                                }
+                            `}
+                        >
                         {isDark ? (
                             <Moon size={13} strokeWidth={2} />
                         ) : (

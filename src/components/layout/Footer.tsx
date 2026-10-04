@@ -106,6 +106,9 @@ export function Footer() {
                             target="_blank"
                             rel="noreferrer"
                             className="
+                                inline-flex
+                                min-h-[44px]
+                                items-center
                                 transition-colors
                                 duration-150
                                 hover:text-(--accent-strong)
@@ -119,6 +122,9 @@ export function Footer() {
                             target="_blank"
                             rel="noreferrer"
                             className="
+                                inline-flex
+                                min-h-[44px]
+                                items-center
                                 transition-colors
                                 duration-150
                                 hover:text-(--accent-strong)

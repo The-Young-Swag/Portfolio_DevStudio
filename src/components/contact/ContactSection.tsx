@@ -55,6 +55,7 @@ export function ContactSection() {
                         href={`mailto:${profile.email}`}
                         className="
                             inline-flex
+                            min-h-[44px]
                             shrink-0
                             items-center
                             justify-center
@@ -74,6 +75,10 @@ export function ContactSection() {
                             duration-150
                             hover:bg-(--accent-deep)
                             hover:border-(--accent-deep)
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-(--accent-strong)
+                            focus-visible:ring-offset-2
                         "
                     >
                         <Mail size={14} strokeWidth={2} />
@@ -88,21 +93,22 @@ export function ContactSection() {
                             const Icon = resolveSocialIcon(icon);
 
                             return (
-                                <a
-                                    key={label}
-                                    href={href}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="
-                                        inline-flex
-                                        items-center
-                                        gap-1.5
-                                        text-(--graphite)
-                                        transition-colors
-                                        duration-150
-                                        hover:text-(--accent-strong)
-                                    "
-                                >
+                            <a
+                                key={label}
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="
+                                    inline-flex
+                                    min-h-[44px]
+                                    items-center
+                                    gap-1.5
+                                    text-(--graphite)
+                                    transition-colors
+                                    duration-150
+                                    hover:text-(--accent-strong)
+                                "
+                            >
                                     <Icon size={13} strokeWidth={1.75} />
                                     {label}
                                     <ArrowUpRight size={12} strokeWidth={1.75} />

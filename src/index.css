@@ -297,6 +297,28 @@ section[id] {
 }
 
 /*
+   ADMIN TAP TARGETS AND INPUTS
+*/
+
+#admin button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#admin input:not([type="checkbox"]):not([type="range"]),
+#admin textarea,
+#admin select {
+    font-size: 16px;
+}
+
+#admin input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+}
+
+/*
    ACCESSIBILITY / PERFORMANCE
 */
 

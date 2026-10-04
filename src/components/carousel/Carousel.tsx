@@ -13,8 +13,8 @@ type CarouselProps = {
 
 const navButtonClassName = `
     flex
-    h-8
-    w-8
+    h-11
+    w-11
     items-center
     justify-center
     rounded-full

@@ -7,7 +7,7 @@ type ExperienceListProps = {
 
 export function ExperienceList({ experiences }: ExperienceListProps) {
     return (
-        <div className="relative space-y-10 pl-6">
+        <div className="relative space-y-8 pl-6 sm:space-y-10">
             {/* Timeline line */}
             <div
                 className="

@@ -27,7 +27,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(1rem,env(safe-area-inset-top))]"
             onClick={onClose}
         >
             <div
@@ -42,7 +42,7 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
                 <img
                     src={src}
                     alt={alt}
-                    className="max-h-[80vh] w-auto max-w-full rounded-xl border border-white/20 object-contain"
+                    className="max-h-[75dvh] w-auto max-w-full rounded-xl border border-white/20 object-contain"
                 />
 
                 <div className="mt-3 flex items-center justify-between gap-4">
@@ -52,6 +52,8 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
                         type="button"
                         onClick={onClose}
                         className="
+                            min-h-11
+                            min-w-11
                             shrink-0
                             rounded-lg
                             border
@@ -66,6 +68,9 @@ export function ImageLightbox({ src, alt, onClose }: ImageLightboxProps) {
                             transition-colors
                             duration-150
                             hover:border-white/60
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-white
                         "
                     >
                         Close
