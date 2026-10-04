@@ -7,6 +7,7 @@ Personal developer portfolio. Vite + React + TypeScript, React Query, React Rout
 - `vercel dev`: frontend plus `/api` serverless functions (use this for anything touching the database)
 - `npm run build`: type-check (`tsc -b`) and production build
 - `npx tsc --noEmit`: quick type-check
+- `npm run test:api`: API suite (`tests/`, node:test via tsx, isolated local file)
 
 Every commit must pass type-check and build.
 
