@@ -1,4 +1,3 @@
-import { checkServerEnv } from "../../_lib/env.js";
 import { requireAdmin } from "../../_lib/auth.js";
 import { getDb } from "../../_lib/db.js";
 import { experienceSchema, toExperienceEntry } from "../../_lib/experience.js";
@@ -21,12 +20,6 @@ function getId(request: Request): number | null {
 }
 
 export async function PUT(request: Request) {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     const authError = requireAdmin(request);
 
     if (authError) {
@@ -106,12 +99,6 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     const authError = requireAdmin(request);
 
     if (authError) {

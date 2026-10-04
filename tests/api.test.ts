@@ -11,22 +11,7 @@ process.env.TURSO_DATABASE_URL = `file:${DB_FILE}`;
 process.env.ADMIN_TOKEN = ADMIN_TOKEN;
 
 const { getDb } = await import("../api/_lib/db.js");
-const sessionRoutes = await import("../api/_routes/admin/session.js");
-const projectsIndex = await import("../api/_routes/projects/index.js");
-const projectsById = await import("../api/_routes/projects/[id].js");
-const certificationsIndex = await import("../api/_routes/certifications/index.js");
-const certificationsById = await import("../api/_routes/certifications/[id].js");
-const experienceIndex = await import("../api/_routes/experience/index.js");
-const experienceById = await import("../api/_routes/experience/[id].js");
-const stackItemsIndex = await import("../api/_routes/stack-items/index.js");
-const stackItemsById = await import("../api/_routes/stack-items/[id].js");
-const socialLinksIndex = await import("../api/_routes/social-links/index.js");
-const socialLinksById = await import("../api/_routes/social-links/[id].js");
-const profileRoutes = await import("../api/_routes/profile/index.js");
-const imagesIndex = await import("../api/_routes/images/index.js");
-const imagesById = await import("../api/_routes/images/[id].js");
-const filesIndex = await import("../api/_routes/files/index.js");
-const filesById = await import("../api/_routes/files/[id].js");
+const router = await import("../api/[...path].js");
 const { toProfile } = await import("../api/_lib/profile.js");
 
 const AUTH = {
@@ -83,7 +68,7 @@ const PNG_BYTES = Buffer.from(
 const PDF_BYTES = Buffer.from("%PDF-1.4\n1 0 obj\n", "utf8");
 
 async function uploadImage(bytes: Buffer, type: string, name: string): Promise<{ id: number; url: string }> {
-    const response = await imagesIndex.POST(
+    const response = await router.POST(
         uploadRequest("/api/images", new File([bytes], name, { type }), true),
     );
     assert.equal(response.status, 201);
@@ -91,7 +76,7 @@ async function uploadImage(bytes: Buffer, type: string, name: string): Promise<{
 }
 
 async function uploadPdf(name: string, bytes: Buffer = PDF_BYTES): Promise<{ id: number; url: string; filename: string }> {
-    const response = await filesIndex.POST(
+    const response = await router.POST(
         uploadRequest("/api/files", new File([bytes], name, { type: "application/pdf" }), true, {
             fallbackName: "certificate.pdf",
         }),
@@ -122,7 +107,7 @@ after(() => {
 
 describe("auth and server environment", () => {
     it("accepts the correct token on the session endpoint", async () => {
-        const response = await sessionRoutes.GET(
+        const response = await router.GET(
             new Request("http://localhost/api/admin/session", {
                 headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
             }),
@@ -132,7 +117,7 @@ describe("auth and server environment", () => {
     });
 
     it("rejects wrong, missing, and malformed tokens with 401", async () => {
-        const wrong = await sessionRoutes.GET(
+        const wrong = await router.GET(
             new Request("http://localhost/api/admin/session", {
                 headers: { Authorization: "Bearer wrong" },
             }),
@@ -140,12 +125,12 @@ describe("auth and server environment", () => {
         assert.equal(wrong.status, 401);
         assert.deepEqual(await wrong.json(), { error: "Unauthorized." });
 
-        const missing = await sessionRoutes.GET(
+        const missing = await router.GET(
             new Request("http://localhost/api/admin/session"),
         );
         assert.equal(missing.status, 401);
 
-        const garbage = await sessionRoutes.GET(
+        const garbage = await router.GET(
             new Request("http://localhost/api/admin/session", {
                 headers: { Authorization: "Token abc" },
             }),
@@ -154,7 +139,7 @@ describe("auth and server environment", () => {
     });
 
     it("accepts a whitespace-padded token", async () => {
-        const response = await sessionRoutes.GET(
+        const response = await router.GET(
             new Request("http://localhost/api/admin/session", {
                 headers: { Authorization: "Bearer   test-admin-token\n" },
             }),
@@ -165,7 +150,7 @@ describe("auth and server environment", () => {
     it("returns 500 when ADMIN_TOKEN is unset", async () => {
         delete process.env.ADMIN_TOKEN;
         try {
-            const response = await sessionRoutes.GET(
+            const response = await router.GET(
                 new Request("http://localhost/api/admin/session", {
                     headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
                 }),
@@ -182,7 +167,7 @@ describe("auth and server environment", () => {
     it("returns 500 when TURSO_DATABASE_URL is unset", async () => {
         delete process.env.TURSO_DATABASE_URL;
         try {
-            const response = await projectsIndex.GET();
+            const response = await router.GET(new Request("http://localhost/api/projects"));
             assert.equal(response.status, 500);
             assert.deepEqual(await response.json(), {
                 error: "Server is missing TURSO_DATABASE_URL",
@@ -208,17 +193,17 @@ describe("projects", () => {
     };
 
     it("reads an empty list, validates, and enforces auth", async () => {
-        const empty = await projectsIndex.GET();
+        const empty = await router.GET(new Request("http://localhost/api/projects"));
         assert.equal(empty.status, 200);
         assert.deepEqual(await empty.json(), []);
 
         assert.equal(
-            (await projectsIndex.POST(jsonRequest("/api/projects", "POST", valid))).status,
+            (await router.POST(jsonRequest("/api/projects", "POST", valid))).status,
             401,
         );
         assert.equal(
             (
-                await projectsIndex.POST(
+                await router.POST(
                     jsonRequest("/api/projects", "POST", { title: "" }, ADMIN_TOKEN),
                 )
             ).status,
@@ -227,28 +212,28 @@ describe("projects", () => {
     });
 
     it("creates, updates, deletes, and 404s", async () => {
-        const createdResponse = await projectsIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/projects", "POST", valid),
         );
         assert.equal(createdResponse.status, 201);
         const created = (await createdResponse.json()) as { id: number };
 
-        const updated = await projectsById.PUT(
+        const updated = await router.PUT(
             authedJson(`/api/projects/${created.id}`, "PUT", { ...valid, title: "T2" }),
         );
         assert.equal(updated.status, 200);
 
-        const missing = await projectsById.PUT(
+        const missing = await router.PUT(
             authedJson("/api/projects/999", "PUT", valid),
         );
         assert.equal(missing.status, 404);
 
-        const deleted = await projectsById.DELETE(
+        const deleted = await router.DELETE(
             authedJson(`/api/projects/${created.id}`, "DELETE"),
         );
         assert.equal(deleted.status, 204);
 
-        const deletedAgain = await projectsById.DELETE(
+        const deletedAgain = await router.DELETE(
             authedJson(`/api/projects/${created.id}`, "DELETE"),
         );
         assert.equal(deletedAgain.status, 404);
@@ -256,35 +241,35 @@ describe("projects", () => {
 
     it("keeps SQL injection attempts inert", async () => {
         const evil = "a'; DROP TABLE projects; --";
-        const createdResponse = await projectsIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/projects", "POST", { ...valid, title: evil }),
         );
         assert.equal(createdResponse.status, 201);
         const created = (await createdResponse.json()) as { id: number; title: string };
         assert.equal(created.title, evil);
 
-        const listed = (await (await projectsIndex.GET()).json()) as { id: number }[];
+        const listed = (await (await router.GET(new Request("http://localhost/api/projects"))).json()) as { id: number }[];
         assert.ok(listed.some((row) => row.id === created.id));
 
-        const badId = await projectsById.DELETE(
+        const badId = await router.DELETE(
             authedJson("/api/projects/1%20OR%201=1", "DELETE"),
         );
         assert.equal(badId.status, 400);
 
-        await projectsById.DELETE(authedJson(`/api/projects/${created.id}`, "DELETE"));
+        await router.DELETE(authedJson(`/api/projects/${created.id}`, "DELETE"));
     });
 
     it("round-trips access states and validates them", async () => {
         assert.equal(
             (
-                await projectsIndex.POST(
+                await router.POST(
                     authedJson("/api/projects", "POST", { ...valid, source_access: "hidden" }),
                 )
             ).status,
             400,
         );
 
-        const createdResponse = await projectsIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/projects", "POST", {
                 ...valid,
                 source_access: "private",
@@ -305,7 +290,7 @@ describe("projects", () => {
         assert.equal(created.has_case_study, true);
         assert.equal(created.case_screenshots.length, 1);
 
-        await projectsById.DELETE(authedJson(`/api/projects/${created.id}`, "DELETE"));
+        await router.DELETE(authedJson(`/api/projects/${created.id}`, "DELETE"));
     });
 });
 
@@ -324,14 +309,14 @@ describe("certifications", () => {
     };
 
     it("reads, validates, and enforces auth", async () => {
-        assert.equal((await certificationsIndex.GET()).status, 200);
+        assert.equal((await router.GET(new Request("http://localhost/api/certifications"))).status, 200);
         assert.equal(
-            (await certificationsIndex.POST(jsonRequest("/api/certifications", "POST", valid))).status,
+            (await router.POST(jsonRequest("/api/certifications", "POST", valid))).status,
             401,
         );
         assert.equal(
             (
-                await certificationsIndex.POST(
+                await router.POST(
                     jsonRequest("/api/certifications", "POST", { name: "" }, ADMIN_TOKEN),
                 )
             ).status,
@@ -340,23 +325,23 @@ describe("certifications", () => {
     });
 
     it("enforces one level of nesting", async () => {
-        const parentResponse = await certificationsIndex.POST(
+        const parentResponse = await router.POST(
             authedJson("/api/certifications", "POST", valid),
         );
         const parent = (await parentResponse.json()) as { id: number };
 
-        const childResponse = await certificationsIndex.POST(
+        const childResponse = await router.POST(
             authedJson("/api/certifications", "POST", { ...valid, parent_id: parent.id }),
         );
         assert.equal(childResponse.status, 201);
         const child = (await childResponse.json()) as { id: number };
 
-        const grandchild = await certificationsIndex.POST(
+        const grandchild = await router.POST(
             authedJson("/api/certifications", "POST", { ...valid, parent_id: child.id }),
         );
         assert.equal(grandchild.status, 400);
 
-        const selfParent = await certificationsById.PUT(
+        const selfParent = await router.PUT(
             authedJson(`/api/certifications/${child.id}`, "PUT", {
                 ...valid,
                 parent_id: child.id,
@@ -364,19 +349,19 @@ describe("certifications", () => {
         );
         assert.equal(selfParent.status, 400);
 
-        const missingParent = await certificationsIndex.POST(
+        const missingParent = await router.POST(
             authedJson("/api/certifications", "POST", { ...valid, parent_id: 999 }),
         );
         assert.equal(missingParent.status, 400);
 
-        await certificationsById.DELETE(authedJson(`/api/certifications/${parent.id}`, "DELETE"));
+        await router.DELETE(authedJson(`/api/certifications/${parent.id}`, "DELETE"));
     });
 
     it("cascade-deletes children including their files and images", async () => {
         const image = await uploadImage(PNG_BYTES, "image/png", "a.png");
         const pdf = await uploadPdf("c.pdf");
 
-        const parentResponse = await certificationsIndex.POST(
+        const parentResponse = await router.POST(
             authedJson("/api/certifications", "POST", {
                 ...valid,
                 image: image.url,
@@ -387,7 +372,7 @@ describe("certifications", () => {
 
         const childImage = await uploadImage(PNG_BYTES, "image/png", "b.png");
         const childPdf = await uploadPdf("d.pdf");
-        await certificationsIndex.POST(
+        await router.POST(
             authedJson("/api/certifications", "POST", {
                 ...valid,
                 parent_id: parent.id,
@@ -399,7 +384,7 @@ describe("certifications", () => {
         const imagesBefore = await tableCount("images");
         const filesBefore = await tableCount("files");
 
-        const deleted = await certificationsById.DELETE(
+        const deleted = await router.DELETE(
             authedJson(`/api/certifications/${parent.id}`, "DELETE"),
         );
         assert.equal(deleted.status, 204);
@@ -416,36 +401,36 @@ describe("certifications", () => {
 
 describe("experience", () => {
     it("covers CRUD, validation, 404s, and auth", async () => {
-        assert.equal((await experienceIndex.GET()).status, 200);
+        assert.equal((await router.GET(new Request("http://localhost/api/experience"))).status, 200);
         assert.equal(
-            (await experienceIndex.POST(jsonRequest("/api/experience", "POST", { role: "R" }))).status,
+            (await router.POST(jsonRequest("/api/experience", "POST", { role: "R" }))).status,
             401,
         );
         assert.equal(
             (
-                await experienceIndex.POST(
+                await router.POST(
                     jsonRequest("/api/experience", "POST", { role: "" }, ADMIN_TOKEN),
                 )
             ).status,
             400,
         );
 
-        const createdResponse = await experienceIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/experience", "POST", { role: "R" }),
         );
         assert.equal(createdResponse.status, 201);
         const created = (await createdResponse.json()) as { id: number };
 
         assert.equal(
-            (await experienceById.PUT(authedJson(`/api/experience/${created.id}`, "PUT", { role: "R2" }))).status,
+            (await router.PUT(authedJson(`/api/experience/${created.id}`, "PUT", { role: "R2" }))).status,
             200,
         );
         assert.equal(
-            (await experienceById.PUT(authedJson("/api/experience/999", "PUT", { role: "R" }))).status,
+            (await router.PUT(authedJson("/api/experience/999", "PUT", { role: "R" }))).status,
             404,
         );
         assert.equal(
-            (await experienceById.DELETE(authedJson(`/api/experience/${created.id}`, "DELETE"))).status,
+            (await router.DELETE(authedJson(`/api/experience/${created.id}`, "DELETE"))).status,
             204,
         );
     });
@@ -453,12 +438,12 @@ describe("experience", () => {
 
 describe("stack items", () => {
     it("validates enums and covers CRUD", async () => {
-        assert.equal((await stackItemsIndex.GET()).status, 200);
+        assert.equal((await router.GET(new Request("http://localhost/api/stack-items"))).status, 200);
         const valid = { name: "Go", category: "language" };
 
         assert.equal(
             (
-                await stackItemsIndex.POST(
+                await router.POST(
                     jsonRequest("/api/stack-items", "POST", { ...valid, category: "ide" }, ADMIN_TOKEN),
                 )
             ).status,
@@ -466,14 +451,14 @@ describe("stack items", () => {
         );
         assert.equal(
             (
-                await stackItemsIndex.POST(
+                await router.POST(
                     jsonRequest("/api/stack-items", "POST", { ...valid, level: "expert" }, ADMIN_TOKEN),
                 )
             ).status,
             400,
         );
 
-        const createdResponse = await stackItemsIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/stack-items", "POST", { ...valid, level: "learning", is_core: true }),
         );
         assert.equal(createdResponse.status, 201);
@@ -486,11 +471,11 @@ describe("stack items", () => {
         assert.equal(created.is_core, true);
 
         assert.equal(
-            (await stackItemsById.DELETE(authedJson(`/api/stack-items/${created.id}`, "DELETE"))).status,
+            (await router.DELETE(authedJson(`/api/stack-items/${created.id}`, "DELETE"))).status,
             204,
         );
         assert.equal(
-            (await stackItemsById.DELETE(authedJson(`/api/stack-items/${created.id}`, "DELETE"))).status,
+            (await router.DELETE(authedJson(`/api/stack-items/${created.id}`, "DELETE"))).status,
             404,
         );
     });
@@ -498,32 +483,32 @@ describe("stack items", () => {
 
 describe("social links", () => {
     it("covers CRUD, validation, 404s, and auth", async () => {
-        assert.equal((await socialLinksIndex.GET()).status, 200);
+        assert.equal((await router.GET(new Request("http://localhost/api/social-links"))).status, 200);
         assert.equal(
-            (await socialLinksIndex.POST(jsonRequest("/api/social-links", "POST", { label: "L" }))).status,
+            (await router.POST(jsonRequest("/api/social-links", "POST", { label: "L" }))).status,
             401,
         );
         assert.equal(
             (
-                await socialLinksIndex.POST(
+                await router.POST(
                     jsonRequest("/api/social-links", "POST", { label: "" }, ADMIN_TOKEN),
                 )
             ).status,
             400,
         );
 
-        const createdResponse = await socialLinksIndex.POST(
+        const createdResponse = await router.POST(
             authedJson("/api/social-links", "POST", { label: "L" }),
         );
         assert.equal(createdResponse.status, 201);
         const created = (await createdResponse.json()) as { id: number };
 
         assert.equal(
-            (await socialLinksById.PUT(authedJson(`/api/social-links/${created.id}`, "PUT", { label: "L2" }))).status,
+            (await router.PUT(authedJson(`/api/social-links/${created.id}`, "PUT", { label: "L2" }))).status,
             200,
         );
         assert.equal(
-            (await socialLinksById.DELETE(authedJson(`/api/social-links/${created.id}`, "DELETE"))).status,
+            (await router.DELETE(authedJson(`/api/social-links/${created.id}`, "DELETE"))).status,
             204,
         );
     });
@@ -543,13 +528,13 @@ describe("profile", () => {
     };
 
     it("reads 404 when missing, validates, and enforces auth", async () => {
-        assert.equal((await profileRoutes.GET()).status, 404);
+        assert.equal((await router.GET(new Request("http://localhost/api/profile"))).status, 404);
         assert.equal(
-            (await profileRoutes.PUT(jsonRequest("/api/profile", "PUT", base))).status,
+            (await router.PUT(jsonRequest("/api/profile", "PUT", base))).status,
             401,
         );
         assert.equal(
-            (await profileRoutes.PUT(jsonRequest("/api/profile", "PUT", { ...base, name: "" }, ADMIN_TOKEN))).status,
+            (await router.PUT(jsonRequest("/api/profile", "PUT", { ...base, name: "" }, ADMIN_TOKEN))).status,
             400,
         );
     });
@@ -566,7 +551,7 @@ describe("profile", () => {
             contact_email_label: "E",
             footer_note: "F",
         };
-        const updated = await profileRoutes.PUT(authedJson("/api/profile", "PUT", full));
+        const updated = await router.PUT(authedJson("/api/profile", "PUT", full));
         assert.equal(updated.status, 200);
         const body = (await updated.json()) as {
             portrait: Record<string, { image: string; alt: string }>;
@@ -583,26 +568,26 @@ describe("profile", () => {
     });
 
     it("runs the resume lifecycle", async () => {
-        const linkPut = await profileRoutes.PUT(
+        const linkPut = await router.PUT(
             authedJson("/api/profile", "PUT", { ...base, resume: "https://cdn.example/r.pdf" }),
         );
         assert.equal(linkPut.status, 200);
-        const withLink = (await (await profileRoutes.GET()).json()) as { resume: string };
+        const withLink = (await (await router.GET(new Request("http://localhost/api/profile"))).json()) as { resume: string };
         assert.equal(withLink.resume, "https://cdn.example/r.pdf");
 
         const first = await uploadPdf("a.pdf");
-        await profileRoutes.PUT(authedJson("/api/profile", "PUT", { ...base, resume: first.url }));
+        await router.PUT(authedJson("/api/profile", "PUT", { ...base, resume: first.url }));
         assert.equal(await tableCount("files"), 1);
 
         const second = await uploadPdf("b.pdf");
-        await profileRoutes.PUT(
+        await router.PUT(
             authedJson("/api/profile", "PUT", { ...base, resume: second.url }),
         );
         assert.equal(await tableCount("files"), 1);
 
-        await profileRoutes.PUT(authedJson("/api/profile", "PUT", { ...base, resume: "" }));
+        await router.PUT(authedJson("/api/profile", "PUT", { ...base, resume: "" }));
         assert.equal(await tableCount("files"), 0);
-        const removed = (await (await profileRoutes.GET()).json()) as { resume: string };
+        const removed = (await (await router.GET(new Request("http://localhost/api/profile"))).json()) as { resume: string };
         assert.equal(removed.resume, "");
     });
 
@@ -623,7 +608,7 @@ describe("images", () => {
                 "a.avif",
             ],
         ] as const) {
-            const response = await imagesIndex.POST(
+            const response = await router.POST(
                 uploadRequest("/api/images", new File([bytes], name, { type }), true),
             );
             assert.equal(response.status, 201, name);
@@ -633,31 +618,31 @@ describe("images", () => {
     it("rejects svg, spoofed, and oversize uploads with 401 without token", async () => {
         const svg = new File(["<svg></svg>"], "a.svg", { type: "image/svg+xml" });
         assert.equal(
-            (await imagesIndex.POST(uploadRequest("/api/images", svg, true))).status,
+            (await router.POST(uploadRequest("/api/images", svg, true))).status,
             400,
         );
 
         const spoofed = new File(["nope"], "a.png", { type: "image/png" });
         assert.equal(
-            (await imagesIndex.POST(uploadRequest("/api/images", spoofed, true))).status,
+            (await router.POST(uploadRequest("/api/images", spoofed, true))).status,
             400,
         );
 
         const big = new File([Buffer.alloc(400 * 1024 + 1)], "big.png", { type: "image/png" });
         assert.equal(
-            (await imagesIndex.POST(uploadRequest("/api/images", big, true))).status,
+            (await router.POST(uploadRequest("/api/images", big, true))).status,
             400,
         );
 
         assert.equal(
-            (await imagesIndex.POST(uploadRequest("/api/images", spoofed, false))).status,
+            (await router.POST(uploadRequest("/api/images", spoofed, false))).status,
             401,
         );
     });
 
     it("serves bytes with immutable headers and cleans up orphans", async () => {
         const stored = await uploadImage(PNG_BYTES, "image/png", "a.png");
-        const served = await imagesById.GET(new Request(`http://localhost${stored.url}`));
+        const served = await router.GET(new Request(`http://localhost${stored.url}`));
         assert.equal(served.status, 200);
         assert.equal(served.headers.get("Content-Type"), "image/png");
         assert.equal(served.headers.get("X-Content-Type-Options"), "nosniff");
@@ -672,7 +657,7 @@ describe("images", () => {
 
         const before = await tableCount("images");
         const created = (await (
-            await projectsIndex.POST(
+            await router.POST(
                 authedJson("/api/projects", "POST", {
                     title: "T",
                     year: 2025,
@@ -681,7 +666,7 @@ describe("images", () => {
             )
         ).json()) as { id: number };
 
-        await projectsById.PUT(
+        await router.PUT(
             authedJson(`/api/projects/${created.id}`, "PUT", {
                 title: "T",
                 year: 2025,
@@ -692,7 +677,7 @@ describe("images", () => {
 
         const second = await uploadImage(PNG_BYTES, "image/png", "b.png");
         const created2 = (await (
-            await projectsIndex.POST(
+            await router.POST(
                 authedJson("/api/projects", "POST", {
                     title: "T",
                     year: 2025,
@@ -700,7 +685,7 @@ describe("images", () => {
                 }),
             )
         ).json()) as { id: number };
-        await projectsById.DELETE(authedJson(`/api/projects/${created2.id}`, "DELETE"));
+        await router.DELETE(authedJson(`/api/projects/${created2.id}`, "DELETE"));
         assert.equal(await tableCount("images"), before - 1);
 
         const third = await uploadImage(PNG_BYTES, "image/png", "c.png");
@@ -712,7 +697,7 @@ describe("files", () => {
     it("verifies the PDF signature, caps size, and sanitizes names", async () => {
         const text = new File(["hello"], "a.pdf", { type: "application/pdf" });
         assert.equal(
-            (await filesIndex.POST(uploadRequest("/api/files", text, true))).status,
+            (await router.POST(uploadRequest("/api/files", text, true))).status,
             400,
         );
 
@@ -720,11 +705,11 @@ describe("files", () => {
             type: "application/pdf",
         });
         assert.equal(
-            (await filesIndex.POST(uploadRequest("/api/files", big, true))).status,
+            (await router.POST(uploadRequest("/api/files", big, true))).status,
             400,
         );
 
-        const evil = await filesIndex.POST(
+        const evil = await router.POST(
             uploadRequest("/api/files", new File([PDF_BYTES], "../../x.pdf", { type: "application/pdf" }), true),
         );
         assert.equal(evil.status, 201);
@@ -733,7 +718,7 @@ describe("files", () => {
 
     it("serves inline PDFs with the stored filename and cleans up", async () => {
         const stored = await uploadPdf("doc.pdf");
-        const served = await filesById.GET(new Request(`http://localhost${stored.url}`));
+        const served = await router.GET(new Request(`http://localhost${stored.url}`));
         assert.equal(served.status, 200);
         assert.equal(served.headers.get("Content-Type"), "application/pdf");
         assert.equal(
@@ -748,14 +733,78 @@ describe("files", () => {
 
         const before = await tableCount("files");
         const created = (await (
-            await certificationsIndex.POST(
+            await router.POST(
                 authedJson("/api/certifications", "POST", { name: "N", pdf: stored.url }),
             )
         ).json()) as { id: number };
-        await certificationsById.PUT(
+        await router.PUT(
             authedJson(`/api/certifications/${created.id}`, "PUT", { name: "N", pdf: "" }),
         );
         assert.equal(await tableCount("files"), before - 1);
+    });
+});
+
+describe("router", () => {
+    it("returns 404 for unknown routes", async () => {
+        for (const path of ["/api/nope", "/api/projects/1/extra", "/api"]) {
+            const response = await router.GET(new Request(`http://localhost${path}`));
+            assert.equal(response.status, 404, path);
+            assert.deepEqual(await response.json(), { error: "Not found" });
+        }
+    });
+
+    it("returns 405 with an Allow header for wrong methods", async () => {
+        const collectionDelete = await router.DELETE(new Request("http://localhost/api/projects"));
+        assert.equal(collectionDelete.status, 405);
+        assert.equal(
+            collectionDelete.headers.get("Allow"),
+            "GET, POST, PUT, DELETE",
+        );
+
+        const itemPost = await router.POST(new Request("http://localhost/api/projects/1"));
+        assert.equal(itemPost.status, 405);
+
+        const profileItem = await router.GET(new Request("http://localhost/api/profile/1"));
+        assert.equal(profileItem.status, 405);
+        assert.equal(profileItem.headers.get("Allow"), "GET, PUT");
+
+        const imagesDelete = await router.DELETE(new Request("http://localhost/api/images"));
+        assert.equal(imagesDelete.status, 405);
+        assert.equal(imagesDelete.headers.get("Allow"), "GET, POST");
+    });
+
+    it("tolerates trailing slashes", async () => {
+        const collection = await router.GET(new Request("http://localhost/api/projects/"));
+        assert.equal(collection.status, 200);
+
+        const missing = await router.PUT(
+            authedJson("/api/social-links/999/", "PUT", { label: "L" }),
+        );
+        assert.equal(missing.status, 404);
+    });
+
+    it("rejects non-integer ids with 400", async () => {
+        const bad = await router.DELETE(
+            authedJson("/api/projects/abc", "DELETE"),
+        );
+        assert.equal(bad.status, 400);
+        assert.deepEqual(await bad.json(), { error: "Invalid project id." });
+
+        const injection = await router.DELETE(
+            authedJson("/api/projects/1%20OR%201=1", "DELETE"),
+        );
+        assert.equal(injection.status, 400);
+    });
+
+    it("leaves the GitHub contributions route standalone", async () => {
+        delete process.env.GITHUB_TOKEN;
+        delete process.env.GITHUB_USERNAME;
+        const github = await import("../api/github/contributions.js");
+        const response = await github.GET();
+        assert.equal(response.status, 500);
+        assert.deepEqual(await response.json(), {
+            error: "GitHub API configuration is missing.",
+        });
     });
 });
 

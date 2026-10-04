@@ -1,4 +1,3 @@
-import { checkServerEnv } from "../../_lib/env.js";
 import { requireAdmin } from "../../_lib/auth.js";
 import { getDb } from "../../_lib/db.js";
 import { stackItemSchema, toStackItem } from "../../_lib/stackItems.js";
@@ -7,12 +6,6 @@ const SELECT_COLUMNS =
     "id, name, category, level, since_year, is_core, sort_order, created_at FROM stack_items";
 
 export async function GET() {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     try {
         const db = getDb();
         const result = await db.execute(
@@ -38,12 +31,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     const authError = requireAdmin(request);
 
     if (authError) {

@@ -1,15 +1,8 @@
-import { checkServerEnv } from "../../_lib/env.js";
 import { requireAdmin } from "../../_lib/auth.js";
 import { getDb } from "../../_lib/db.js";
 import { projectSchema, toProject } from "../../_lib/projects.js";
 
 export async function GET() {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     try {
         const db = getDb();
         const result = await db.execute(
@@ -35,12 +28,6 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     const authError = requireAdmin(request);
 
     if (authError) {

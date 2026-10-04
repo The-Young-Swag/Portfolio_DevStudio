@@ -1,15 +1,8 @@
-import { checkServerEnv } from "../../_lib/env.js";
 import { requireAdmin } from "../../_lib/auth.js";
 import { getDb } from "../../_lib/db.js";
 import { isPdfBytes, MAX_FILE_BYTES, sanitizeFilename } from "../../_lib/files.js";
 
 export async function POST(request: Request) {
-    const envError = checkServerEnv();
-
-    if (envError) {
-        return envError;
-    }
-
     const authError = requireAdmin(request);
 
     if (authError) {
