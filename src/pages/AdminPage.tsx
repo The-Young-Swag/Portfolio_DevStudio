@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsManager, PortraitManager, ProfileManager, ProjectsManager, ResumeManager, SocialLinksManager, StackItemsManager, TokenGate } from "@/components/admin";
+import { checkAdminSession } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
 
 export function AdminPage() {
-    const [token, setToken] = useState<string | null>(() =>
-        sessionStorage.getItem(TOKEN_KEY),
+    const [token, setToken] = useState<string | null>(null);
+    const [checkingStoredToken, setCheckingStoredToken] = useState(
+        () => sessionStorage.getItem(TOKEN_KEY) !== null,
     );
     const [rejectedNotice, setRejectedNotice] = useState(false);
 
@@ -20,6 +23,40 @@ export function AdminPage() {
 
         return () => {
             document.head.removeChild(meta);
+        };
+    }, []);
+
+    useEffect(() => {
+        const stored = sessionStorage.getItem(TOKEN_KEY);
+
+        if (!stored) {
+            return;
+        }
+
+        let cancelled = false;
+
+        checkAdminSession(stored).then(
+            () => {
+                if (cancelled) {
+                    return;
+                }
+
+                setToken(stored);
+                setCheckingStoredToken(false);
+            },
+            () => {
+                if (cancelled) {
+                    return;
+                }
+
+                sessionStorage.removeItem(TOKEN_KEY);
+                setRejectedNotice(true);
+                setCheckingStoredToken(false);
+            },
+        );
+
+        return () => {
+            cancelled = true;
         };
     }, []);
 
@@ -41,6 +78,24 @@ export function AdminPage() {
         setToken(null);
     }
 
+    if (checkingStoredToken) {
+        return (
+            <>
+                <Section id="admin">
+                    <Container>
+                        <SectionHeading number="00" title="Admin" />
+
+                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
+                            Checking session…
+                        </p>
+                    </Container>
+                </Section>
+
+                <Footer />
+            </>
+        );
+    }
+
     if (token === null) {
         return (
             <>
@@ -54,23 +109,38 @@ export function AdminPage() {
         <>
             <Section id="admin">
                 <Container>
-                    <div className="flex items-baseline justify-between">
+                    <div className="flex items-center justify-between gap-4">
                         <SectionHeading number="00" title="Admin" id="admin" />
 
                         <button
                             type="button"
                             onClick={handleSignOut}
                             className="
+                                inline-flex
+                                shrink-0
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-(--glass-border)
+                                bg-(--glass-bg)
+                                px-4
+                                py-2
                                 font-mono
-                                text-[11px]
-                                text-(--graphite)
+                                text-[12px]
+                                text-(--ink)
+                                shadow-[inset_0_1px_0_var(--glass-highlight)]
                                 transition-colors
                                 duration-150
+                                hover:border-(--accent-strong)
                                 hover:text-(--accent-strong)
-                                hover:underline
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-(--accent-strong)
                             "
                         >
-                            Sign out
+                            <LogOut size={14} strokeWidth={2} />
+                            Log out
                         </button>
                     </div>
 

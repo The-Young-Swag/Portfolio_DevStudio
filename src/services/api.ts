@@ -168,21 +168,20 @@ export async function checkAdminSession(token: string): Promise<void> {
         throw new ApiError(0, "Unable to reach the server. Check your connection.");
     }
 
-    if (response.status === 401) {
-        throw new ApiError(401, "That token was rejected. Try again.");
-    }
-
-    if (response.status === 500) {
-        throw new ApiError(
-            500,
-            "The server is misconfigured (ADMIN_TOKEN is missing).",
-        );
-    }
-
     if (!response.ok) {
+        const message = await readErrorMessage(response, "Unable to verify the token.");
+
         throw new ApiError(
             response.status,
-            await readErrorMessage(response, "Unable to verify the token."),
+            response.status === 401 ? "That token was rejected. Try again." : message,
         );
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+        ok?: unknown;
+    } | null;
+
+    if (body?.ok !== true) {
+        throw new ApiError(401, "That token was rejected. Try again.");
     }
 }

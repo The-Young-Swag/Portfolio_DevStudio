@@ -178,6 +178,46 @@ describe("auth and server environment", () => {
     });
 });
 
+describe("admin session check", () => {
+    const realFetch = globalThis.fetch;
+
+    after(() => {
+        globalThis.fetch = realFetch;
+    });
+
+    function stubFetch(body: string, contentType: string, status = 200) {
+        globalThis.fetch = (async () =>
+            new Response(body, {
+                status,
+                headers: { "Content-Type": contentType },
+            })) as typeof fetch;
+    }
+
+    it("unlocks only on an { ok: true } body", async () => {
+        const { checkAdminSession } = await import("../src/services/api.js");
+
+        stubFetch(JSON.stringify({ ok: true }), "application/json");
+        await checkAdminSession("anything");
+
+        stubFetch(JSON.stringify({ ok: false }), "application/json");
+        await assert.rejects(() => checkAdminSession("fake"), /rejected/);
+    });
+
+    it("rejects a 200 HTML page instead of unlocking", async () => {
+        const { checkAdminSession } = await import("../src/services/api.js");
+
+        stubFetch("<!doctype html><html></html>", "text/html");
+        await assert.rejects(() => checkAdminSession("fake"), /rejected/);
+    });
+
+    it("reports a network failure without unlocking", async () => {
+        const { checkAdminSession } = await import("../src/services/api.js");
+
+        globalThis.fetch = (() => Promise.reject(new Error("down"))) as typeof fetch;
+        await assert.rejects(() => checkAdminSession("fake"), /Unable to reach/);
+    });
+});
+
 describe("projects", () => {
     const valid = {
         title: "T",
