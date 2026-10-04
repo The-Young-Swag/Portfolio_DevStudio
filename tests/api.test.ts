@@ -207,7 +207,7 @@ describe("admin session check", () => {
         const { checkAdminSession } = await import("../src/services/api.js");
 
         stubFetch("<!doctype html><html></html>", "text/html");
-        await assert.rejects(() => checkAdminSession("fake"), /rejected/);
+        await assert.rejects(() => checkAdminSession("fake"), /did not return an API response/);
     });
 
     it("reports a network failure without unlocking", async () => {

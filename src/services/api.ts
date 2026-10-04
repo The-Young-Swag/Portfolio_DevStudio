@@ -181,7 +181,14 @@ export async function checkAdminSession(token: string): Promise<void> {
         ok?: unknown;
     } | null;
 
-    if (body?.ok !== true) {
+    if (!body || typeof body !== "object") {
+        throw new ApiError(
+            response.status,
+            "The server did not return an API response. If you are on localhost, run vercel dev instead of npm run dev.",
+        );
+    }
+
+    if (body.ok !== true) {
         throw new ApiError(401, "That token was rejected. Try again.");
     }
 }
