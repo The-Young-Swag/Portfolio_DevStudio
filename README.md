@@ -49,14 +49,24 @@ back to the static constants in `src/constants/` when a request fails.
 cp .env.example .env.local
 # edit .env.local: set ADMIN_TOKEN to a long random string
 npm run db:seed
-vercel dev
+set -a; source .env.local; set +a; vercel dev
 ```
 
+- `vercel dev` does not always pass `.env.local` values into functions on
+  its own. Sourcing the file into the environment first (the `set -a`
+  line above) makes sure the API sees the same variables you do. If the
+  admin keeps reporting "Server is missing ADMIN_TOKEN" or
+  "Server is missing TURSO_DATABASE_URL" while the values exist in
+  `.env.local`, this sourcing step was skipped.
+- If `.env.local` was edited on Windows, check for CRLF line endings: a
+  stray `\r` becomes part of the value (for example the token sent as
+  `secret\r` never matches). Save the file with LF endings.
 - Local development uses a libSQL file (`TURSO_DATABASE_URL=file:local.db`,
   the default). Never run the seed or dev scripts against the production
   database.
 - `npm run db:seed` applies `db/schema.sql` and inserts the current static
   content. It is idempotent: tables already containing rows are skipped.
+  It prints which database it targets and never prints tokens.
 - `vercel dev` serves the frontend plus the `/api` functions. Plain
   `npm run dev` serves the frontend only.
 
@@ -115,6 +125,9 @@ Replace and Remove. Removing an uploaded file deletes its row server-side.
 1. Create a Turso database and obtain its URL and auth token.
 2. In the Vercel project settings, set `TURSO_DATABASE_URL`,
    `TURSO_AUTH_TOKEN`, `ADMIN_TOKEN`, `GITHUB_TOKEN`, and `GITHUB_USERNAME`.
+   Set them for Development (used by `vercel dev` when it pulls env),
+   Preview (deploy previews), and Production as needed; at minimum
+   Production and Development must each have all five.
 3. For a fresh database, apply `db/schema.sql` and run the seed (from your
    own machine, never from an agent session):
    `TURSO_DATABASE_URL=<url> TURSO_AUTH_TOKEN=<token> npm run db:seed`.

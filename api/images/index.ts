@@ -1,3 +1,4 @@
+import { checkServerEnv } from "../_lib/env.js";
 import { requireAdmin } from "../_lib/auth.js";
 import { getDb } from "../_lib/db.js";
 import {
@@ -7,6 +8,12 @@ import {
 } from "../_lib/images.js";
 
 export async function POST(request: Request) {
+    const envError = checkServerEnv();
+
+    if (envError) {
+        return envError;
+    }
+
     const authError = requireAdmin(request);
 
     if (authError) {

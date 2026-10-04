@@ -1,3 +1,4 @@
+import { checkServerEnv } from "../_lib/env.js";
 import { getDb } from "../_lib/db.js";
 import { toBytes } from "../_lib/images.js";
 
@@ -19,6 +20,11 @@ function getId(request: Request): number | null {
 }
 
 export async function GET(request: Request) {
+    const envError = checkServerEnv();
+
+    if (envError) {
+        return envError;
+    }
     const id = getId(request);
 
     if (id === null) {
