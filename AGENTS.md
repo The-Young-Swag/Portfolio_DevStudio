@@ -19,8 +19,10 @@ Every commit must pass type-check and build.
 - `src/hooks/<domain>/`: React Query hooks that wrap services
 - `src/context/`: theme context
 - `src/constants/`: static content (fallback data, navigation, profile, social links)
-- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export)
+- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export). Hobby allows 12 functions, so all CRUD lives behind the single catch-all `api/[...path].ts`, which dispatches to `api/_routes/` by method plus path
 - `api/_lib/`: shared server code (database client, admin auth, validation)
+- Never add new files under `api/` (except `_`-prefixed directories). Add new endpoints as routes in the router.
+- `api/` is type-checked with Node types as part of `npm run build` (`npm run typecheck:api`)
 - `db/`: SQL schema and seed script
 
 Data flow: `api/` handler, then `services/`, then `hooks/` (React Query), then section components, then presentational components. Keep this direction one-way; no cross-domain imports except shared `layout` and `ui`.

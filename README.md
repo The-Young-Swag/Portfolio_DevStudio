@@ -153,6 +153,7 @@ Replace and Remove. Removing an uploaded file deletes its row server-side.
 | `npm run preview`   | Preview the production build locally           |
 | `npm run lint`      | Run ESLint                                     |
 | `npm run db:seed`   | Apply schema and seed the database             |
+| `npm run test:api`  | API suite (`tests/`, node:test via tsx, isolated local file) |
 
 All Vite commands use `--configLoader native`, which loads the config with
 Node's runtime instead of bundling it with Rolldown. This is required on
@@ -162,9 +163,12 @@ Windows, where the default Rolldown config loader fails to resolve
 ## Structure
 
 ```
-api/                  Vercel serverless functions (content CRUD, GitHub contributions)
+api/[...path].ts      Single catch-all function routing all CRUD (Hobby limit: 12 functions)
+api/github/           GitHub contributions function (standalone, wins over catch-all)
 api/_lib/             Shared server code (database client, admin auth, validation)
+api/_routes/          Handler logic per resource (underscore-prefixed, not deployed)
 db/                   SQL schema and seed script
+```
 src/app/              Routing and app providers (React Query, theme)
 src/components/       Layout, navigation, hero, github, projects, …
 src/constants/        Fallback content: profile, navigation, projects, stack, …
