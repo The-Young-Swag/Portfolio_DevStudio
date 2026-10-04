@@ -72,14 +72,35 @@ set -a; source .env.local; set +a; vercel dev
 
 ### Admin
 
-Open `/admin`, enter the `ADMIN_TOKEN`, and manage each section with
-add/edit/delete. The profile page edits the basic fields plus the hero
-portrait states, hero stats, "Also true" items, contact copy, resume, and
-footer note. The token is verified against `GET /api/admin/session`
+Open `/admin` and sign in with the admin token, then manage each section
+with add/edit/delete. The token is verified
+against `GET /api/admin/session`
 on sign-in and only then stored; a wrong token, a missing server
 `ADMIN_TOKEN`, and network failures each show their own message. The token
 is kept in `sessionStorage` and sent as an `Authorization: Bearer` header;
-only a real `401` on save signs you back out.
+only a real `401` on save signs you back out. Use the Log out button (or
+close the tab) to sign out.
+
+#### What the admin token is
+
+There are no user accounts — the admin token is a single shared secret
+that guards every write endpoint, and entering it is the whole login.
+Treat it like a password, not like throwaway config:
+
+- Set it once: a long random string in `ADMIN_TOKEN`, both in Vercel
+  (project Settings → Environment Variables, for Production, Preview,
+  and Development) and in your local `.env.local`.
+- You do **not** need to regenerate it for every session. Sign in once
+  per browser tab; the token stays there until you log out, close the
+  tab, or it gets rejected by the server.
+- Rotate it only if it leaks: pick a new value, update it in Vercel and
+  locally, redeploy, and sign in again. Old browser sessions stop
+  working on their next save.
+- If sign-in keeps failing with a token you just copied, check the
+  usual suspects in order: the server actually has `ADMIN_TOKEN` set
+  (the sign-in error says so when it is missing), you sourced
+  `.env.local` before `vercel dev` (see above), the file uses LF line
+  endings, and there is no leading or trailing whitespace in the value.
 
 Tip: tapping the footer's © year five times within three seconds also takes
 you to `/admin`.
