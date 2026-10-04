@@ -12,7 +12,7 @@ import {
     type Certification,
     type CertificationInput,
 } from "@/services/certifications/certifications";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import { ImageUploadField } from "./ImageUploadField";
 import { PdfUploadField } from "./PdfUploadField";
 
@@ -97,10 +97,6 @@ function toInput(fields: CertificationFormFields): CertificationInput {
         badge_link: fields.badge_link.trim(),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function CertificationsManager({

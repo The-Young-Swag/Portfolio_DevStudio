@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateProfile } from "@/hooks/profile/useProfile";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import {
     getProfile,
     type Profile,
@@ -115,7 +115,7 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
         updateMutation.mutate(toInput(fields, profileQuery.data), {
             onSuccess: () => setSaved(true),
             onError: (error: unknown) => {
-                if (error instanceof ApiError && error.status === 401) {
+                if (isUnauthorized(error)) {
                     onUnauthorized();
                     return;
                 }

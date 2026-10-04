@@ -12,7 +12,7 @@ import {
     type Project,
     type ProjectInput,
 } from "@/services/projects/projects";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import { ImageUploadField } from "./ImageUploadField";
 
 type ProjectsManagerProps = {
@@ -149,10 +149,6 @@ function toInput(
             .filter((shot) => shot.url !== ""),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps) {

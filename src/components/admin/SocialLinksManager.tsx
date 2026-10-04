@@ -7,7 +7,7 @@ import {
     useDeleteSocialLink,
     useUpdateSocialLink,
 } from "@/hooks/social-links/useSocialLinks";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import {
     getSocialLinks,
     type SocialLink,
@@ -49,10 +49,6 @@ function toInput(fields: SocialLinkFormFields): SocialLinkInput {
         icon: fields.icon.trim(),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManagerProps) {

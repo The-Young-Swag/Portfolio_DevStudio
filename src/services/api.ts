@@ -7,6 +7,10 @@ export class ApiError extends Error {
     }
 }
 
+export function isUnauthorized(error: unknown): boolean {
+    return error instanceof ApiError && error.status === 401;
+}
+
 async function readErrorMessage(
     response: Response,
     fallback: string,

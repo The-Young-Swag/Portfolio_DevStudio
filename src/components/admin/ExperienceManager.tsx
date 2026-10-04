@@ -7,7 +7,7 @@ import {
     useDeleteExperienceEntry,
     useUpdateExperienceEntry,
 } from "@/hooks/experience/useExperience";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import {
     getExperience,
     type ExperienceEntry,
@@ -56,10 +56,6 @@ function toInput(fields: ExperienceFormFields): ExperienceInput {
             .filter((item) => item.length > 0),
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerProps) {

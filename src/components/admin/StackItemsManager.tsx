@@ -7,7 +7,7 @@ import {
     useDeleteStackItem,
     useUpdateStackItem,
 } from "@/hooks/stack/useStackItems";
-import { ApiError } from "@/services/api";
+import { isUnauthorized } from "@/services/api";
 import {
     getStackItems,
     type StackItem,
@@ -77,10 +77,6 @@ function toInput(fields: StackItemFormFields): StackItemInput {
         is_core: fields.is_core,
         sort_order: fields.sort_order.trim() === "" ? 0 : Number(fields.sort_order),
     };
-}
-
-function isUnauthorized(error: unknown): boolean {
-    return error instanceof ApiError && error.status === 401;
 }
 
 export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerProps) {
