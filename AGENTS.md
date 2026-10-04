@@ -19,7 +19,7 @@ Every commit must pass type-check and build.
 - `src/hooks/<domain>/`: React Query hooks that wrap services
 - `src/context/`: theme context
 - `src/constants/`: static content (fallback data, navigation, profile, social links)
-- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export). Hobby allows 12 functions, so all CRUD lives behind the single catch-all `api/[...path].ts`, which dispatches to `api/_routes/` by method plus path
+- `api/`: Vercel serverless functions. `api/github/contributions.ts` is the reference handler style (Web-standard `GET()` export). Hobby allows 12 functions, so all CRUD lives behind the single entrypoint `api/index.ts`, which dispatches to `api/_routes/` by method plus path (a filename catch-all is unreliable outside Next.js, so the entrypoint is reached through an explicit `/api/:path*` rewrite instead)
 - `api/_lib/`: shared server code (database client, admin auth, validation)
 - Never add new files under `api/` (except `_`-prefixed directories). Add new endpoints as routes in the router.
 - `api/` is type-checked with Node types as part of `npm run build` (`npm run typecheck:api`)

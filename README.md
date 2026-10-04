@@ -18,9 +18,11 @@ Open **http://localhost:4975** in your browser. The dev server is configured
 for the repository's VS Code dev container (port `4975` is forwarded to the
 host automatically).
 
-To run through Vercel locally instead, use `vercel dev` — the project's
-`vercel.json` sets the dev command to `vite --port $PORT --configLoader
-native`.
+To run through Vercel locally instead, use `npm run dev:full`
+(`vercel dev --local-config vercel-dev.json`) — the config sets the dev
+command to `vite --port $PORT --configLoader native` and carries only the
+`/api/:path*` rewrite, so Vite serves the app itself while `/api/*`
+reaches the single `api/index.ts` entrypoint.
 
 ### GitHub contribution log (optional)
 
@@ -144,6 +146,21 @@ Replace and Remove. Removing an uploaded file deletes its row server-side.
   offline/no-demo demo, auto-derived from URLs when unset) shown as an
   access ledger, plus optional case studies with screenshot galleries.
 
+### API routing
+
+The Hobby plan allows 12 serverless functions, so there are exactly two:
+`api/index.ts` (all CRUD) and `api/github/contributions.ts` (standalone).
+A filename catch-all (`api/[...path].ts`) is unreliable outside Next.js,
+so the entrypoint is reached through an explicit rewrite. `vercel.json`
+lists, in order:
+
+1. `/api/:path*` → `/api?__path=:path*` (the router reads `__path`,
+   then deletes it before dispatch)
+2. `/((?!api/).*)` → `/index.html` (SPA fallback, never captures `/api/`)
+
+Never add new files under `api/` (except `_`-prefixed directories). Add
+new endpoints as routes in the router.
+
 ### Deployment (Vercel, one-time)
 
 1. Create a Turso database and obtain its URL and auth token.
@@ -187,7 +204,7 @@ Windows, where the default Rolldown config loader fails to resolve
 ## Structure
 
 ```
-api/[...path].ts      Single catch-all function routing all CRUD (Hobby limit: 12 functions)
+api/index.ts          Single catch-all function routing all CRUD (Hobby limit: 12 functions)
 api/github/           GitHub contributions function (standalone, wins over catch-all)
 api/_lib/             Shared server code (database client, admin auth, validation)
 api/_routes/          Handler logic per resource (underscore-prefixed, not deployed)
