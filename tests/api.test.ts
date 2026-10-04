@@ -11,7 +11,7 @@ process.env.TURSO_DATABASE_URL = `file:${DB_FILE}`;
 process.env.ADMIN_TOKEN = ADMIN_TOKEN;
 
 const { getDb } = await import("../api/_lib/db.js");
-const router = await import("../api/[...path].js");
+const router = await import("../api/index.js");
 const { toProfile } = await import("../api/_lib/profile.js");
 
 const AUTH = {
@@ -145,6 +145,20 @@ describe("auth and server environment", () => {
             }),
         );
         assert.equal(response.status, 200);
+    });
+
+    it("trims a whitespace-padded configured token", async () => {
+        process.env.ADMIN_TOKEN = "  test-admin-token  ";
+        try {
+            const response = await router.GET(
+                new Request("http://localhost/api/admin/session", {
+                    headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+                }),
+            );
+            assert.equal(response.status, 200);
+        } finally {
+            process.env.ADMIN_TOKEN = ADMIN_TOKEN;
+        }
     });
 
     it("returns 500 when ADMIN_TOKEN is unset", async () => {
@@ -791,6 +805,45 @@ describe("router", () => {
             assert.equal(response.status, 404, path);
             assert.deepEqual(await response.json(), { error: "Not found" });
         }
+    });
+
+    it("dispatches the rewritten query-parameter form", async () => {
+        const collection = await router.GET(
+            new Request("http://localhost/api?__path=social-links"),
+        );
+        assert.equal(collection.status, 200);
+        assert.ok(Array.isArray(await collection.json()));
+
+        const empty = await router.GET(new Request("http://localhost/api?__path="));
+        assert.equal(empty.status, 404);
+        assert.deepEqual(await empty.json(), { error: "Not found" });
+
+        const precedence = await router.GET(
+            new Request("http://localhost/api/wrong-path?__path=social-links&foo=bar"),
+        );
+        assert.equal(precedence.status, 200);
+    });
+
+    it("decodes percent-encoded segments in the rewritten form", async () => {
+        const created = (await (
+            await router.POST(
+                authedJson("/api/social-links", "POST", { label: "L" }),
+            )
+        ).json()) as { id: number };
+
+        const updated = await router.PUT(
+            authedJson(`/api?__path=social-links%2F${created.id}`, "PUT", {
+                label: "L2",
+            }),
+        );
+        assert.equal(updated.status, 200);
+
+        const badId = await router.DELETE(
+            authedJson("/api?__path=projects%2Fabc", "DELETE"),
+        );
+        assert.equal(badId.status, 400);
+
+        await router.DELETE(authedJson(`/api/social-links/${created.id}`, "DELETE"));
     });
 
     it("returns 405 with an Allow header for wrong methods", async () => {
