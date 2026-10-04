@@ -64,9 +64,12 @@ vercel dev
 
 Open `/admin`, enter the `ADMIN_TOKEN`, and manage each section with
 add/edit/delete. The profile page edits the basic fields plus the hero
-portrait states, hero stats, "Also true" items, contact copy, and footer
-note. The token is kept in `sessionStorage` and sent as an
-`Authorization: Bearer` header; a `401` signs you back out.
+portrait states, hero stats, "Also true" items, contact copy, resume, and
+footer note. The token is verified against `GET /api/admin/session`
+on sign-in and only then stored; a wrong token, a missing server
+`ADMIN_TOKEN`, and network failures each show their own message. The token
+is kept in `sessionStorage` and sent as an `Authorization: Bearer` header;
+only a real `401` on save signs you back out.
 
 Tip: tapping the footer's © year five times within three seconds also takes
 you to `/admin`.
