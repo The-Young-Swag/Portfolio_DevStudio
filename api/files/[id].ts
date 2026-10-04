@@ -1,6 +1,6 @@
 import { checkServerEnv } from "../_lib/env.js";
 import { getDb } from "../_lib/db.js";
-import { toBytes } from "../_lib/images.js";
+import { toBytes, toResponseBytes } from "../_lib/images.js";
 
 function getId(request: Request): number | null {
     try {
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
             return Response.json({ error: "File not found." }, { status: 404 });
         }
 
-        return new Response(bytes, {
+        return new Response(toResponseBytes(bytes), {
             headers: {
                 "Content-Type": row.content_type,
                 "Content-Disposition": `inline; filename="${row.filename}"`,
