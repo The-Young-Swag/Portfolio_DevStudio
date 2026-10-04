@@ -2,7 +2,7 @@
   "devCommand": "vite --port $PORT --configLoader native",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]
