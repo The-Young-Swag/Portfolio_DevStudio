@@ -4,7 +4,7 @@ import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
-import { resolveSocialIcon } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ContactSection() {

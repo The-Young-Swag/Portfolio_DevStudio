@@ -1,4 +1,4 @@
-import { resolveSocialIcon } from "@/constants/socialLinks";
+import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 import { useProfile } from "@/hooks/profile/useProfile";
 
