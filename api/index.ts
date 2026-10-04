@@ -106,6 +106,28 @@ function methodNotAllowed(resource: ResourceRoutes): Response {
     );
 }
 
+function routeRequest(request: Request): { parts: string[]; request: Request } {
+    const url = new URL(request.url);
+    const rewritten = url.searchParams.get("__path");
+
+    if (rewritten !== null) {
+        const parts = rewritten.split("/").filter(Boolean);
+
+        url.searchParams.delete("__path");
+        url.pathname = `/api/${parts.join("/")}`;
+
+        return { parts, request: new Request(url.toString(), request) };
+    }
+
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    if (parts[0] === "api") {
+        parts.shift();
+    }
+
+    return { parts, request };
+}
+
 async function dispatch(request: Request, method: string): Promise<Response> {
     const envError = checkServerEnv();
 
@@ -113,11 +135,9 @@ async function dispatch(request: Request, method: string): Promise<Response> {
         return envError;
     }
 
-    const parts = new URL(request.url).pathname.split("/").filter(Boolean);
-
-    if (parts[0] === "api") {
-        parts.shift();
-    }
+    const routed = routeRequest(request);
+    const parts = routed.parts;
+    request = routed.request;
 
     let resource: ResourceRoutes | undefined;
     let isItem = false;

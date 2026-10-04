@@ -10,7 +10,8 @@
     "preview": "vite preview --configLoader native",
     "db:seed": "tsx db/seed.ts",
     "test:api": "tsx --test tests/api.test.ts",
-    "typecheck:api": "tsc --noEmit -p api/tsconfig.json"
+    "typecheck:api": "tsc --noEmit -p api/tsconfig.json",
+    "dev:full": "vercel dev --local-config vercel-dev.json"
   },
   "engines": {
     "node": "22.x"
