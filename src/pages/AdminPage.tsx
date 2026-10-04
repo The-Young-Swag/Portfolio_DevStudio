@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
@@ -108,23 +109,38 @@ export function AdminPage() {
         <>
             <Section id="admin">
                 <Container>
-                    <div className="flex items-baseline justify-between">
+                    <div className="flex items-center justify-between gap-4">
                         <SectionHeading number="00" title="Admin" id="admin" />
 
                         <button
                             type="button"
                             onClick={handleSignOut}
                             className="
+                                inline-flex
+                                shrink-0
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                border
+                                border-(--glass-border)
+                                bg-(--glass-bg)
+                                px-4
+                                py-2
                                 font-mono
-                                text-[11px]
-                                text-(--graphite)
+                                text-[12px]
+                                text-(--ink)
+                                shadow-[inset_0_1px_0_var(--glass-highlight)]
                                 transition-colors
                                 duration-150
+                                hover:border-(--accent-strong)
                                 hover:text-(--accent-strong)
-                                hover:underline
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-(--accent-strong)
                             "
                         >
-                            Sign out
+                            <LogOut size={14} strokeWidth={2} />
+                            Log out
                         </button>
                     </div>
 
