@@ -71,7 +71,11 @@ export function Footer() {
                                 text-(--graphite-soft)
                             "
                         >
-                            <span onClick={handleCopyrightTap} className="select-none">
+                            <span
+                                onClick={handleCopyrightTap}
+                                className="inline-flex min-h-[44px] min-w-[44px] select-none items-center justify-center touch-manipulation"
+                                style={{ WebkitTouchCallout: "none" }}
+                            >
                                 © {year}
                             </span>
 

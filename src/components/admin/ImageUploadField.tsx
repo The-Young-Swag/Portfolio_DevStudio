@@ -254,7 +254,7 @@ export function ImageUploadField({
 
             {dialogOpen && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 max-sm:p-2"
                     onClick={closeDialog}
                 >
                     <div
@@ -266,8 +266,11 @@ export function ImageUploadField({
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={handleDialogKeyDown}
                         className="
+                            flex
+                            max-h-[calc(100dvh-1rem)]
                             w-full
                             max-w-lg
+                            flex-col
                             rounded-2xl
                             border
                             border-(--glass-border)
@@ -275,13 +278,16 @@ export function ImageUploadField({
                             p-5
                             shadow-2xl
                             backdrop-blur-xl
+                            max-sm:h-[calc(100dvh-1rem)]
+                            max-sm:max-w-none
+                            max-sm:rounded-2xl
                         "
                     >
                         <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                             Crop {label}
                         </p>
 
-                        <div className="relative mt-3 h-64 w-full overflow-hidden rounded-xl bg-black/40 sm:h-80">
+                        <div className="relative mt-3 min-h-0 w-full flex-1 overflow-hidden rounded-xl bg-black/40 sm:h-80 sm:flex-none">
                             <Cropper
                                 image={cropSrc}
                                 crop={crop}
@@ -294,7 +300,7 @@ export function ImageUploadField({
                             />
                         </div>
 
-                        <label className="mt-4 block">
+                        <label className="mt-4 flex min-h-[44px] flex-col justify-center">
                             <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
                                 Zoom
                             </span>
@@ -305,7 +311,7 @@ export function ImageUploadField({
                                 step={0.1}
                                 value={zoom}
                                 onChange={(event) => setZoom(Number(event.target.value))}
-                                className="mt-1 w-full"
+                                className="mt-1 w-full accent-(--accent-strong)"
                             />
                         </label>
 

@@ -318,6 +318,21 @@ section[id] {
     height: 24px;
 }
 
+/* Sticky form actions on touch-sized screens: the Save/Cancel row of
+   each admin form pins to the bottom inside the safe area. */
+@media (max-width: 1023px) {
+    #admin form > div:has(> button[type="submit"]) {
+        position: sticky;
+        bottom: 0;
+        margin-inline: -1.25rem;
+        padding: 0.75rem 1.25rem max(0.75rem, env(safe-area-inset-bottom));
+        border-top: 1px solid var(--line);
+        background: var(--glass-bg-strong);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
+}
+
 /*
    ACCESSIBILITY / PERFORMANCE
 */
@@ -534,8 +549,7 @@ section[id] {
 }
 
 /* Paused scene: loops freeze when the card is off-screen or the tab
-   is hidden. Driven by the data-scene-active attribute. */
-[data-scene-active="false"] .time-cloud,
+   is hidden. Driven by the data-scene-active attribute. */[data-scene-active="false"] .time-cloud,
 [data-scene-active="false"] .time-cloud-slow,
 [data-scene-active="false"] .time-cloud-fast,
 [data-scene-active="false"] .time-tree,
