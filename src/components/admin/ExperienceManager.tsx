@@ -73,6 +73,11 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
     const [editingId, setEditingId] = useState<number | "new" | null>(null);
     const [fields, setFields] = useState<ExperienceFormFields>(emptyFields);
     const [formError, setFormError] = useState<string | null>(null);
+    const [savedAt, setSavedAt] = useState<string | null>(null);
+
+    function markSaved() {
+        setSavedAt(new Date().toLocaleTimeString());
+    }
 
     function handleMutationError(error: unknown) {
         if (isUnauthorized(error)) {
@@ -108,14 +113,20 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
 
         if (editingId === "new") {
             createMutation.mutate(input, {
-                onSuccess: cancelForm,
+                onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                 onError: handleMutationError,
             });
         } else if (typeof editingId === "number") {
             updateMutation.mutate(
                 { id: editingId, input },
                 {
-                    onSuccess: cancelForm,
+                    onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                     onError: handleMutationError,
                 },
             );
@@ -128,7 +139,8 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
         }
 
         deleteMutation.mutate(entry.id, {
-            onError: (error: unknown) => {
+            onSuccess: () => markSaved(),
+                onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -149,6 +161,13 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
                     Experience
                 </h2>
 
+                <div className="flex items-center gap-3">
+                    {savedAt !== null && (
+                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
+                            Saved {savedAt}
+                        </span>
+                    )}
+
                 <button
                     type="button"
                     onClick={startAdd}
@@ -161,6 +180,7 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
                 >
                     Add entry
                 </button>
+                </div>
             </div>
 
             {editingId !== null && (

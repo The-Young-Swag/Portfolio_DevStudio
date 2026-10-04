@@ -34,7 +34,7 @@ export function useProjects() {
         queryFn: getProjects,
         staleTime: 1000 * 60,
         retry: 1,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
     });
 
     return { projects: data ?? fallbackProjects, isPending };

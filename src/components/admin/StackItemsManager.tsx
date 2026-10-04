@@ -94,6 +94,11 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
     const [editingId, setEditingId] = useState<number | "new" | null>(null);
     const [fields, setFields] = useState<StackItemFormFields>(emptyFields);
     const [formError, setFormError] = useState<string | null>(null);
+    const [savedAt, setSavedAt] = useState<string | null>(null);
+
+    function markSaved() {
+        setSavedAt(new Date().toLocaleTimeString());
+    }
 
     function handleMutationError(error: unknown) {
         if (isUnauthorized(error)) {
@@ -129,14 +134,20 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
 
         if (editingId === "new") {
             createMutation.mutate(input, {
-                onSuccess: cancelForm,
+                onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                 onError: handleMutationError,
             });
         } else if (typeof editingId === "number") {
             updateMutation.mutate(
                 { id: editingId, input },
                 {
-                    onSuccess: cancelForm,
+                    onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                     onError: handleMutationError,
                 },
             );
@@ -149,7 +160,8 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
         }
 
         deleteMutation.mutate(item.id, {
-            onError: (error: unknown) => {
+            onSuccess: () => markSaved(),
+                onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -170,6 +182,13 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
                     Stack
                 </h2>
 
+                <div className="flex items-center gap-3">
+                    {savedAt !== null && (
+                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
+                            Saved {savedAt}
+                        </span>
+                    )}
+
                 <button
                     type="button"
                     onClick={startAdd}
@@ -182,6 +201,7 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
                 >
                     Add item
                 </button>
+                </div>
             </div>
 
             {editingId !== null && (

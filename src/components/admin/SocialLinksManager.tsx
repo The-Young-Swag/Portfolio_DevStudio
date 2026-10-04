@@ -66,6 +66,11 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
     const [editingId, setEditingId] = useState<number | "new" | null>(null);
     const [fields, setFields] = useState<SocialLinkFormFields>(emptyFields);
     const [formError, setFormError] = useState<string | null>(null);
+    const [savedAt, setSavedAt] = useState<string | null>(null);
+
+    function markSaved() {
+        setSavedAt(new Date().toLocaleTimeString());
+    }
 
     function handleMutationError(error: unknown) {
         if (isUnauthorized(error)) {
@@ -101,14 +106,20 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
 
         if (editingId === "new") {
             createMutation.mutate(input, {
-                onSuccess: cancelForm,
+                onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                 onError: handleMutationError,
             });
         } else if (typeof editingId === "number") {
             updateMutation.mutate(
                 { id: editingId, input },
                 {
-                    onSuccess: cancelForm,
+                    onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                     onError: handleMutationError,
                 },
             );
@@ -121,7 +132,8 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
         }
 
         deleteMutation.mutate(link.id, {
-            onError: (error: unknown) => {
+            onSuccess: () => markSaved(),
+                onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -142,6 +154,13 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
                     Social links
                 </h2>
 
+                <div className="flex items-center gap-3">
+                    {savedAt !== null && (
+                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
+                            Saved {savedAt}
+                        </span>
+                    )}
+
                 <button
                     type="button"
                     onClick={startAdd}
@@ -154,6 +173,7 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
                 >
                     Add link
                 </button>
+                </div>
             </div>
 
             {editingId !== null && (

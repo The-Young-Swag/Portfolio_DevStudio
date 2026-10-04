@@ -167,7 +167,12 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
     const [fields, setFields] = useState<ProjectFormFields>(emptyFields);
     const [screenshots, setScreenshots] = useState<ScreenshotDraft[]>([]);
     const [formError, setFormError] = useState<string | null>(null);
+    const [savedAt, setSavedAt] = useState<string | null>(null);
     const [shotIdCounter, setShotIdCounter] = useState(0);
+
+    function markSaved() {
+        setSavedAt(new Date().toLocaleTimeString());
+    }
 
     function handleMutationError(error: unknown) {
         if (isUnauthorized(error)) {
@@ -240,14 +245,20 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
 
         if (editingId === "new") {
             createMutation.mutate(input, {
-                onSuccess: cancelForm,
+                onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                 onError: handleMutationError,
             });
         } else if (typeof editingId === "number") {
             updateMutation.mutate(
                 { id: editingId, input },
                 {
-                    onSuccess: cancelForm,
+                    onSuccess: () => {
+                    markSaved();
+                    cancelForm();
+                },
                     onError: handleMutationError,
                 },
             );
@@ -260,7 +271,8 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
         }
 
         deleteMutation.mutate(project.id, {
-            onError: (error: unknown) => {
+            onSuccess: () => markSaved(),
+                onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -281,6 +293,13 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
                     Projects
                 </h2>
 
+                <div className="flex items-center gap-3">
+                    {savedAt !== null && (
+                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
+                            Saved {savedAt}
+                        </span>
+                    )}
+
                 <button
                     type="button"
                     onClick={startAdd}
@@ -293,6 +312,7 @@ export function ProjectsManager({ token, onUnauthorized }: ProjectsManagerProps)
                 >
                     Add project
                 </button>
+                </div>
             </div>
 
             {editingId !== null && (
