@@ -184,7 +184,7 @@ export function ProjectInfoCard({ project }: { project: Project }) {
                 )}
             </div>
 
-            {!hasLiveDemo && (
+            {!hasLiveDemo && (project.access_note !== "" || profile.email !== "") && (
                 <div className="rounded-2xl border border-(--line) bg-(--glass-bg) p-5">
                     <p className="text-[13.5px] font-medium text-(--ink)">
                         Why can&apos;t I open it?
