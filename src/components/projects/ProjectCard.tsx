@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 import { ContentImage } from "@/components/ui";
@@ -9,8 +10,15 @@ type ProjectCardProps = {
     index: number;
 };
 
+// Descriptions longer than ~3 card lines are clamped with an expand
+// toggle, so rows of cards keep a stable rhythm no matter how long
+// the stored text is. Short descriptions render fully, unchanged.
+const DESCRIPTION_PREVIEW_LIMIT = 150;
+
 export function ProjectCard({ project, index }: ProjectCardProps) {
     const { title, description, stack, year, category, thumbnail } = project;
+    const [expanded, setExpanded] = useState(false);
+    const needsClamp = description.length > DESCRIPTION_PREVIEW_LIMIT;
     return (
         <article
             className="
@@ -42,7 +50,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                         transition-transform
                         duration-700
                         ease-[cubic-bezier(0.22,1,0.36,1)]
-                        group-hover:scale-[1.04]
+                        motion-safe:group-hover:scale-[1.04]
                     "
                     placeholderClassName="h-full w-full"
                 />
@@ -54,18 +62,45 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
 
             <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
-                    <span>{year}</span>
-                    <span aria-hidden="true" className="opacity-40">·</span>
-                    <span>{category}</span>
+                    <span className="shrink-0">{year}</span>
+                    <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
+                    <span title={category} className="min-w-0 truncate">{category}</span>
                 </div>
 
                 <h3 className="mt-3 font-display text-[22px] leading-tight text-(--ink)">
                     {title}
                 </h3>
 
-                <p className="mt-2 text-[13px] leading-5 text-(--graphite)">
+                <p
+                    className={
+                        expanded || !needsClamp
+                            ? "mt-2 text-[13px] leading-5 text-(--graphite)"
+                            : "mt-2 line-clamp-3 text-[13px] leading-5 text-(--graphite)"
+                    }
+                >
                     {description}
                 </p>
+
+                {needsClamp && (
+                    <button
+                        type="button"
+                        aria-expanded={expanded}
+                        aria-label={expanded ? `Show less: ${title}` : `Read more: ${title}`}
+                        onClick={() => setExpanded((open) => !open)}
+                        className="
+                            mt-1
+                            inline-flex
+                            min-h-[44px]
+                            items-center
+                            font-mono
+                            text-[11px]
+                            text-(--accent-strong)
+                            hover:underline
+                        "
+                    >
+                        {expanded ? "Show less ↑" : "Read more ↓"}
+                    </button>
+                )}
 
                 <div className="mt-5 flex flex-wrap gap-1.5">
                     {stack.map((technology) => (
