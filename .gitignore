@@ -38,3 +38,5 @@ local.db
 AGENTS.md
 opencode.json
 portfolio_(MOCKUP).html
+# local agent/tooling files
+skills-lock.json
