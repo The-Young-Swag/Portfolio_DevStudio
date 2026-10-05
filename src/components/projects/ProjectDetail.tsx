@@ -59,7 +59,7 @@ export function ProjectDetail({
             )}
 
             {hasMainContent ? (
-                <div className="mt-10 grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_300px]">
+                <div className="mt-10 grid items-start gap-10 2xl:grid-cols-[minmax(0,1fr)_300px]">
                     <div className="min-w-0 space-y-10">
                     {project.description !== "" && (
                         <section aria-label="Overview">

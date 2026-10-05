@@ -48,15 +48,15 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
     }
 
     return (
-        <div className="lg:sticky lg:top-8">
-            <p className="mb-3 hidden px-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft) lg:block">
+        <div className="min-w-0 xl:sticky xl:top-8">
+            <p className="mb-3 hidden px-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft) xl:block">
                 {projects.length} {projects.length === 1 ? "project" : "projects"}
             </p>
 
             <div
                 role="tablist"
                 aria-label="Projects"
-                className="flex gap-2 overflow-x-auto pb-2 lg:max-h-[75dvh] lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0"
+                className="flex gap-2 overflow-x-auto pb-2 xl:max-h-[75dvh] xl:flex-col xl:overflow-y-auto xl:overflow-x-visible xl:pb-0"
             >
                 {projects.map((project) => {
                     const selected = project.id === selectedId;

@@ -114,7 +114,7 @@ export function ProjectInfoCard({ project }: { project: Project }) {
     ].filter((row) => row.value !== "");
 
     return (
-        <div className="space-y-5 xl:sticky xl:top-8 xl:self-start">
+        <div className="space-y-5 2xl:sticky 2xl:top-8 2xl:self-start">
             <div
                 className="
                     rounded-2xl
