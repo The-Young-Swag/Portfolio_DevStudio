@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Container-query tokens for the Projects page. These respond to the content
+   well, not the viewport: `rail` fits the index beside the detail, `aside`
+   fits the info card beside the body copy. (Container variants read the
+   --container-* namespace; --breakpoint-* only drives screen variants.) */
+@theme {
+    --container-rail: 38rem;
+    --container-aside: 45rem;
+}
+
 /* GLOBAL DESIGN TOKENS */
 
 :root {
@@ -646,3 +655,4 @@ section[id] {
 [data-scene-active="false"] .time-ufo-flying {
     animation-play-state: paused;
 }
+

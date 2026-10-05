@@ -13,6 +13,7 @@ export function ProjectsPage() {
                 title="Projects"
                 eyebrow="things I've built"
                 description="A selection of systems I designed and shipped — from real-time attendance tooling to an AI learning platform. Each one taught me something about shipping software that other people actually use."
+                compact
             />
 
             <Section id="projects">

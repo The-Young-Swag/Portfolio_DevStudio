@@ -1,8 +1,23 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 
 import type { Project } from "@/services/projects/projects";
+import { ContentImage } from "@/components/ui";
 import { StatusBadge } from "./StatusBadge";
 import { projectPanelId, projectTabId } from "./projectStatus";
+
+// Cover tones cycle deterministically by project id so every card gets a
+// distinct backdrop without storing presentation in the data.
+const COVER_TONES = [
+    "from-[#1c3a2c] to-[#4d7a52]",
+    "from-[#1b2b44] to-[#3f6aa3]",
+    "from-[#2a2438] to-[#6a54a0]",
+    "from-[#33291c] to-[#8a6c3a]",
+];
+
+function toneFor(id: number) {
+    return COVER_TONES[((id % COVER_TONES.length) + COVER_TONES.length) % COVER_TONES.length];
+}
 
 type ProjectIndexProps = {
     projects: Project[];
@@ -12,6 +27,27 @@ type ProjectIndexProps = {
 
 export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexProps) {
     const tabRefs = useRef(new Map<number, HTMLButtonElement>());
+    const railRef = useRef<HTMLDivElement>(null);
+    const [canScroll, setCanScroll] = useState(false);
+
+    useEffect(() => {
+        const rail = railRef.current;
+
+        if (!rail) {
+            return;
+        }
+
+        const update = () => {
+            setCanScroll(rail.scrollWidth > rail.clientWidth + 2);
+        };
+
+        update();
+        window.addEventListener("resize", update);
+
+        return () => {
+            window.removeEventListener("resize", update);
+        };
+    }, [projects.length]);
 
     function focusTab(id: number) {
         tabRefs.current.get(id)?.focus();
@@ -47,16 +83,107 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
         }
     }
 
+    function scrollRail(direction: 1 | -1) {
+        const rail = railRef.current;
+
+        if (!rail) {
+            return;
+        }
+
+        rail.scrollBy({
+            left: direction * rail.clientWidth * 0.8,
+            behavior:
+                window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+                    ? "auto"
+                    : "smooth",
+        });
+    }
+
     return (
-        <div className="min-w-0 xl:sticky xl:top-8">
-            <p className="mb-3 hidden px-1 font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft) xl:block">
-                {projects.length} {projects.length === 1 ? "project" : "projects"}
-            </p>
+        <div className="min-w-0">
+            <div className="mb-4 flex items-center justify-between">
+                <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft)">
+                    {projects.length} {projects.length === 1 ? "project" : "projects"}
+                </p>
+
+                {canScroll && (
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => scrollRail(-1)}
+                            aria-label="Previous projects"
+                            className="
+                                inline-flex
+                                h-9
+                                w-9
+                                items-center
+                                justify-center
+                                rounded-xl
+                                border
+                                border-(--glass-border)
+                                bg-(--glass-bg)
+                                text-(--graphite)
+                                transition-colors
+                                duration-150
+                                hover:border-(--accent-strong)
+                                hover:text-(--ink)
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-(--accent-strong)
+                            "
+                        >
+                            <ChevronLeft size={16} strokeWidth={2} aria-hidden="true" />
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => scrollRail(1)}
+                            aria-label="Next projects"
+                            className="
+                                inline-flex
+                                h-9
+                                w-9
+                                items-center
+                                justify-center
+                                rounded-xl
+                                border
+                                border-(--glass-border)
+                                bg-(--glass-bg)
+                                text-(--graphite)
+                                transition-colors
+                                duration-150
+                                hover:border-(--accent-strong)
+                                hover:text-(--ink)
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-(--accent-strong)
+                            "
+                        >
+                            <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                    </div>
+                )}
+            </div>
 
             <div
+                ref={railRef}
                 role="tablist"
                 aria-label="Projects"
-                className="flex gap-2 overflow-x-auto pb-2 xl:max-h-[75dvh] xl:flex-col xl:overflow-y-auto xl:overflow-x-visible xl:pb-0"
+                className="
+                    grid
+                    snap-x
+                    snap-proximity
+                    grid-flow-col
+                    auto-cols-[minmax(15rem,1fr)]
+                    gap-4
+                    overflow-x-auto
+                    px-2
+                    pb-6
+                    pt-3
+                    -mx-2
+                    -mt-3
+                    -mb-6
+                "
             >
                 {projects.map((project) => {
                     const selected = project.id === selectedId;
@@ -80,37 +207,107 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
                             onClick={() => onSelect(project.id)}
                             onKeyDown={(event) => handleKeyDown(event, project.id)}
                             className={`
-                                w-64
-                                shrink-0
-                                rounded-2xl
+                                flex
+                                min-w-0
+                                snap-start
+                                flex-col
+                                overflow-hidden
+                                rounded-[1.375rem]
                                 border
-                                p-4
+                                bg-(--glass-bg)
                                 text-left
-                                transition-colors
-                                duration-150
+                                backdrop-blur-xl
+                                backdrop-saturate-160
+                                transition-[transform,border-color]
+                                duration-200
+                                hover:-translate-y-0.5
                                 focus-visible:outline-none
                                 focus-visible:ring-2
                                 focus-visible:ring-(--accent-strong)
-                                sm:w-72
-                                lg:w-full
                                 ${
                                     selected
-                                        ? "border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight)]"
-                                        : "border-transparent hover:border-(--glass-border) hover:bg-(--glass-bg)"
+                                        ? "border-(--accent-strong) shadow-[0_0_0_1px_var(--accent-strong)]"
+                                        : "border-(--glass-border)"
                                 }
                             `}
                         >
-                            <StatusBadge project={project} />
+                            <span
+                                className={`
+                                    relative
+                                    flex
+                                    aspect-[16/10]
+                                    items-center
+                                    justify-center
+                                    bg-linear-to-br
+                                    ${toneFor(project.id)}
+                                `}
+                            >
+                                {project.thumbnail !== "" ? (
+                                    <ContentImage
+                                        src={project.thumbnail}
+                                        alt=""
+                                        imageClassName="absolute inset-0 h-full w-full object-cover"
+                                        placeholderClassName="absolute inset-0 h-full w-full"
+                                    />
+                                ) : (
+                                    <ImageOff
+                                        size={20}
+                                        strokeWidth={1.5}
+                                        aria-hidden="true"
+                                        className="text-white/70"
+                                    />
+                                )}
 
-                            <span className="mt-2.5 block font-display text-[17px] font-medium leading-snug text-(--ink)">
-                                <span className="line-clamp-2">{project.title}</span>
+                                <span className="absolute left-2.5 top-2.5">
+                                    <StatusBadge project={project} />
+                                </span>
                             </span>
 
-                            {project.category !== "" && (
-                                <span className="mt-1 block truncate font-mono text-[11px] text-(--graphite-soft)">
-                                    {project.category}
+                            <span className="flex min-w-0 flex-col gap-1.5 p-4 pb-5">
+                                <span
+                                    className={`
+                                        line-clamp-2
+                                        break-words
+                                        font-display
+                                        text-[19px]
+                                        font-medium
+                                        leading-[1.25]
+                                        ${selected ? "text-(--accent-strong)" : "text-(--ink)"}
+                                    `}
+                                >
+                                    {project.title}
                                 </span>
-                            )}
+
+                                {project.category !== "" && (
+                                    <span className="truncate text-[12.5px] text-(--graphite)">
+                                        {project.category}
+                                    </span>
+                                )}
+
+                                {project.stack.length > 0 && (
+                                    <span className="mt-0.5 flex flex-wrap gap-1.5">
+                                        {project.stack.slice(0, 3).map((technology) => (
+                                            <span
+                                                key={technology}
+                                                className="
+                                                    whitespace-nowrap
+                                                    rounded-full
+                                                    border
+                                                    border-(--glass-border)
+                                                    bg-(--glass-bg)
+                                                    px-2.5
+                                                    py-1
+                                                    font-mono
+                                                    text-[11px]
+                                                    text-(--graphite)
+                                                "
+                                            >
+                                                {technology}
+                                            </span>
+                                        ))}
+                                    </span>
+                                )}
+                            </span>
                         </button>
                     );
                 })}

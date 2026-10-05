@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { CaseScreenshot } from "@/services/projects/projects";
-import { ContentImage } from "@/components/ui";
+import { ContentImage, ImageLightbox } from "@/components/ui";
 
 type ProjectGalleryProps = {
     title: string;
@@ -10,6 +10,7 @@ type ProjectGalleryProps = {
 
 export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
     const [activeIndex, setActiveIndex] = useState(0);
+    const [lightbox, setLightbox] = useState(false);
 
     if (shots.length === 0) {
         return null;
@@ -32,24 +33,49 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
 
     return (
         <section aria-label="Screenshots">
-            <div className="relative aspect-video overflow-hidden rounded-2xl border border-(--line)">
+            <button
+                type="button"
+                onClick={() => setLightbox(true)}
+                aria-label={`Enlarge screenshot: ${caption}`}
+                className="
+                    relative
+                    block
+                    max-h-[min(60vh,32rem)]
+                    w-full
+                    overflow-hidden
+                    rounded-[1.125rem]
+                    border
+                    border-(--line)
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-(--accent-strong)
+                "
+            >
                 <ContentImage
                     key={active.url}
                     src={active.url}
                     alt={caption}
-                    imageClassName="h-full w-full object-cover"
-                    placeholderClassName="h-full w-full"
+                    imageClassName="aspect-[2/1] h-full w-full object-cover"
+                    placeholderClassName="aspect-[2/1] w-full"
                 />
-            </div>
+
+                <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 top-0 flex h-[1.875rem] items-center gap-1.5 bg-black/25 px-3.5"
+                >
+                    <span className="h-2 w-2 rounded-full bg-white/35" />
+                    <span className="h-2 w-2 rounded-full bg-white/35" />
+                    <span className="h-2 w-2 rounded-full bg-white/35" />
+                </span>
+            </button>
 
             {caption !== "" && (
                 <p className="mt-2 font-mono text-[11px] text-(--graphite-soft)">
                     {caption}
                 </p>
             )}
-
             {shots.length > 1 && (
-                <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                <div className="mt-3 grid snap-x snap-proximity grid-flow-col auto-cols-[minmax(6rem,9.375rem)] gap-3 overflow-x-auto p-1.5 -m-1.5">
                     {shots.map((shot, index) => {
                         const label =
                             shot.caption === ""
@@ -65,8 +91,8 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                                 aria-current={current}
                                 onClick={(event) => select(index, event.currentTarget)}
                                 className={`
-                                    w-28
-                                    shrink-0
+                                    min-w-0
+                                    snap-start
                                     overflow-hidden
                                     rounded-xl
                                     border
@@ -92,6 +118,14 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                         );
                     })}
                 </div>
+            )}
+
+            {lightbox && (
+                <ImageLightbox
+                    src={active.url}
+                    alt={caption}
+                    onClose={() => setLightbox(false)}
+                />
             )}
         </section>
     );
