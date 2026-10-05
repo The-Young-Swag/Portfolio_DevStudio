@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Container-query tokens for the Projects page. These respond to the content
+   well, not the viewport: `rail` fits the index beside the detail, `aside`
+   fits the info card beside the body copy. (Container variants read the
+   --container-* namespace; --breakpoint-* only drives screen variants.) */
+@theme {
+    --container-rail: 38rem;
+    --container-aside: 45rem;
+}
+
 /* GLOBAL DESIGN TOKENS */
 
 :root {
@@ -582,24 +591,54 @@ section[id] {
     }
 }
 
+/* Explicit pause always wins over everything. Auto mode defers to the OS
+   reduced-motion setting through the media query below, so an explicit Play
+   keeps working even with reduced motion on. The active event classes are
+   listed too, so a paused scene can never catch a mid-flight streak. */
+[data-scene-motion="paused"] .time-cloud,
+[data-scene-motion="paused"] .time-tree,
+[data-scene-motion="paused"] .time-star,
+[data-scene-motion="paused"] .time-glow-pulse,
+[data-scene-motion="paused"] .time-shooting-star,
+[data-scene-motion="paused"] .time-meteor,
+[data-scene-motion="paused"] .time-ufo,
+[data-scene-motion="paused"] .time-shooting,
+[data-scene-motion="paused"] .time-meteor-falling,
+[data-scene-motion="paused"] .time-ufo-flying {
+    animation: none;
+}
+
+[data-scene-motion="paused"] .time-body,
+[data-scene-motion="paused"] .time-body-sun,
+[data-scene-motion="paused"] .time-body-moon,
+[data-scene-motion="paused"] .time-stars,
+[data-scene-motion="paused"] .time-clouds,
+[data-scene-motion="paused"] .time-sky-top,
+[data-scene-motion="paused"] .time-sky-bottom {
+    transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .time-cloud,
-    .time-tree,
-    .time-star,
-    .time-glow-pulse,
-    .time-shooting-star,
-    .time-meteor,
-    .time-ufo {
+    [data-scene-motion="auto"] .time-cloud,
+    [data-scene-motion="auto"] .time-tree,
+    [data-scene-motion="auto"] .time-star,
+    [data-scene-motion="auto"] .time-glow-pulse,
+    [data-scene-motion="auto"] .time-shooting-star,
+    [data-scene-motion="auto"] .time-meteor,
+    [data-scene-motion="auto"] .time-ufo,
+    [data-scene-motion="auto"] .time-shooting,
+    [data-scene-motion="auto"] .time-meteor-falling,
+    [data-scene-motion="auto"] .time-ufo-flying {
         animation: none;
     }
 
-    .time-body,
-    .time-body-sun,
-    .time-body-moon,
-    .time-stars,
-    .time-clouds,
-    .time-sky-top,
-    .time-sky-bottom {
+    [data-scene-motion="auto"] .time-body,
+    [data-scene-motion="auto"] .time-body-sun,
+    [data-scene-motion="auto"] .time-body-moon,
+    [data-scene-motion="auto"] .time-stars,
+    [data-scene-motion="auto"] .time-clouds,
+    [data-scene-motion="auto"] .time-sky-top,
+    [data-scene-motion="auto"] .time-sky-bottom {
         transition: none;
     }
 }
@@ -616,3 +655,4 @@ section[id] {
 [data-scene-active="false"] .time-ufo-flying {
     animation-play-state: paused;
 }
+

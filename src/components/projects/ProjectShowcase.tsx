@@ -55,10 +55,10 @@ export function ProjectShowcase({ projects }: { projects: Project[] }) {
     }
 
     return (
-        <div className="grid items-start gap-8 xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-12">
+        <div>
             <ProjectIndex projects={projects} selectedId={active.id} onSelect={select} />
 
-            <div className="min-w-0">
+            <div className="mt-2 min-w-0">
                 <ProjectDetail
                     key={active.id}
                     project={active}
