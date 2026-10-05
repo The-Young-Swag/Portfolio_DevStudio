@@ -1,0 +1,97 @@
+import { useEffect, useState } from "react";
+
+import type { Certification } from "@/services/certifications/certifications";
+import { CertificationDetail } from "./CertificationDetail";
+import { CertificationRail } from "./CertificationRail";
+import { certTabId } from "./certificationIds";
+
+function idFromHash(): number | null {
+    const match = window.location.hash.match(/^#certification-(\d+)$/);
+
+    if (!match) {
+        return null;
+    }
+
+    const id = Number(match[1]);
+
+    return Number.isInteger(id) ? id : null;
+}
+
+export function CertificationShowcase({
+    certifications,
+}: {
+    certifications: Certification[];
+}) {
+    const [selectedId, setSelectedId] = useState<number | null>(() => idFromHash());
+
+    const childrenByParent = new Map<number, Certification[]>();
+
+    for (const certification of certifications) {
+        if (certification.parent_id === null) {
+            continue;
+        }
+
+        const siblings = childrenByParent.get(certification.parent_id) ?? [];
+        siblings.push(certification);
+        childrenByParent.set(certification.parent_id, siblings);
+    }
+
+    const topLevel = certifications.filter(
+        (certification) => certification.parent_id === null,
+    );
+    const orphans = certifications.filter(
+        (certification) =>
+            certification.parent_id !== null &&
+            !certifications.some((parent) => parent.id === certification.parent_id),
+    );
+    const listed = [...topLevel, ...orphans];
+
+    const selected = listed.find((certification) => certification.id === selectedId) ?? null;
+    const active = selected ?? listed[0] ?? null;
+
+    useEffect(() => {
+        function handleHashChange() {
+            const id = idFromHash();
+
+            if (id === null) {
+                return;
+            }
+
+            setSelectedId(id);
+        }
+
+        window.addEventListener("hashchange", handleHashChange);
+
+        return () => {
+            window.removeEventListener("hashchange", handleHashChange);
+        };
+    }, []);
+
+    function select(id: number) {
+        setSelectedId(id);
+        window.history.replaceState(null, "", `#certification-${id}`);
+    }
+
+    if (active === null) {
+        return null;
+    }
+
+    return (
+        <div>
+            <CertificationRail
+                certifications={listed}
+                selectedId={active.id}
+                onSelect={select}
+            />
+
+            <div className="mt-2 min-w-0">
+                <CertificationDetail
+                    key={active.id}
+                    certification={active}
+                    courses={childrenByParent.get(active.id) ?? []}
+                    tabId={certifications.length === 1 ? null : certTabId(active.id)}
+                />
+            </div>
+        </div>
+    );
+}
