@@ -15,8 +15,7 @@ const homeSections = [
 const pageSections: Record<string, readonly { id: string; label: string }[]> = {
     "/projects": [
         { id: "overview", label: "Overview" },
-        { id: "showcase", label: "Showcase" },
-        { id: "details", label: "Details" },
+        { id: "projects", label: "Projects" },
     ],
     "/experience": [
         { id: "overview", label: "Overview" },
