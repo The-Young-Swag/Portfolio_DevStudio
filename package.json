@@ -10,7 +10,7 @@
     "preview": "vite preview --configLoader native",
     "db:seed": "tsx db/seed.ts",
     "test:api": "tsx --test tests/api.test.ts",
-    "test:unit": "tsx --test tests/sky-state.test.ts tests/night-scheduler.test.ts",
+    "test:unit": "tsx --test tests/sky-state.test.ts tests/night-scheduler.test.ts tests/motion-choice.test.ts",
     "typecheck:api": "tsc --noEmit -p api/tsconfig.json",
     "dev:full": "vercel dev --local-config vercel-dev.json"
   },

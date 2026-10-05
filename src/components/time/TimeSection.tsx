@@ -1,9 +1,17 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 
 import { createNightScheduler } from "./nightScheduler";
+import {
+    effectiveMotion,
+    motionMode,
+    readMotionChoice,
+    writeMotionChoice,
+    type MotionChoice,
+} from "./motionChoice";
+import { MotionToggle } from "./MotionToggle";
 import {
     getDecimalTime,
     getSkyState,
@@ -127,6 +135,20 @@ export function TimeSection() {
     const ufoBaseRef = useRef<SVGGElement>(null);
     const ufoRef = useRef<SVGGElement>(null);
 
+    // Explicit motion choice mirror for the driver. Toggling writes through
+    // this ref and the wrapper attribute, never through React state, so the
+    // driver effect (and the night schedule) survives the toggle.
+    const [initialChoice] = useState<MotionChoice | null>(() =>
+        readMotionChoice(),
+    );
+    const choiceRef = useRef<MotionChoice | null>(initialChoice);
+
+    function handleMotionChoice(next: MotionChoice) {
+        choiceRef.current = next;
+        writeMotionChoice(next);
+        wrapRef.current?.setAttribute("data-scene-motion", motionMode(next));
+    }
+
     // First-paint values, computed once. Every later update writes through
     // refs and CSS variables, never through React state.
     const initialNow = resolveNow();
@@ -155,10 +177,6 @@ export function TimeSection() {
         // so capture the guarded references once.
         const wrapEl: HTMLDivElement = wrap;
         const svgEl: SVGSVGElement = svg;
-
-        const reduceMotion =
-            window.matchMedia &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         const scheduler = createNightScheduler();
         let hasSessionStarted = false;
@@ -343,7 +361,15 @@ export function TimeSection() {
                 scheduler.reset();
             }
 
-            if (reduceMotion) {
+            // Night events follow the effective motion state: an explicit
+            // pause (or reduced motion without an explicit Play) skips them.
+            // The clock, phase, and schedule accounting below keep running.
+            const reduceMatches =
+                window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)")
+                    .matches;
+
+            if (effectiveMotion(choiceRef.current, reduceMatches) !== "play") {
                 return;
             }
 
@@ -450,6 +476,16 @@ export function TimeSection() {
 
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
+        // bfcache restore: timers may not survive it, so re-evaluate instead
+        // of assuming the pre-navigation running state is still valid.
+        function handlePageShow() {
+            if (!document.hidden && isIntersecting) {
+                scheduleVisibilityUpdate();
+            }
+        }
+
+        window.addEventListener("pageshow", handlePageShow);
+
         return () => {
             window.clearInterval(timer);
             window.clearTimeout(debounce);
@@ -458,6 +494,7 @@ export function TimeSection() {
                 "visibilitychange",
                 handleVisibilityChange,
             );
+            window.removeEventListener("pageshow", handlePageShow);
         };
     }, []);
 
@@ -473,7 +510,9 @@ export function TimeSection() {
                 <div
                     ref={wrapRef}
                     data-scene-active="true"
+                    data-scene-motion={motionMode(initialChoice)}
                     className="
+                        relative
                         mt-4
                         overflow-hidden
                         rounded-2xl
@@ -485,6 +524,10 @@ export function TimeSection() {
                         backdrop-saturate-160
                     "
                 >
+                    <MotionToggle
+                        initial={initialChoice}
+                        onChoice={handleMotionChoice}
+                    />
                     <svg
                         ref={svgRef}
                         viewBox="0 0 900 280"
