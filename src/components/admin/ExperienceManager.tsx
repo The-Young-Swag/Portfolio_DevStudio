@@ -13,10 +13,17 @@ import {
     type ExperienceEntry,
     type ExperienceInput,
 } from "@/services/experience/experience";
+import { useAdminToast } from "./toastContext";
+import { AdminDrawer } from "./AdminDrawer";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { PrimaryButton, SecondaryButton } from "./AdminButtons";
+import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
+import { SaveBar } from "./SaveBar";
 
 type ExperienceManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type ExperienceFormFields = {
@@ -58,7 +65,7 @@ function toInput(fields: ExperienceFormFields): ExperienceInput {
     };
 }
 
-export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerProps) {
+export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: ExperienceManagerProps) {
     const experienceQuery = useQuery({
         queryKey: ["experience"],
         queryFn: getExperience,
@@ -69,14 +76,20 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
     const createMutation = useCreateExperienceEntry(token);
     const updateMutation = useUpdateExperienceEntry(token);
     const deleteMutation = useDeleteExperienceEntry(token);
+    const notify = useAdminToast();
 
-    const [editingId, setEditingId] = useState<number | "new" | null>(null);
-    const [fields, setFields] = useState<ExperienceFormFields>(emptyFields);
+    const [drawer, setDrawer] = useState<{
+        id: number | "new";
+        fields: ExperienceFormFields;
+        initial: ExperienceFormFields;
+    } | null>(null);
+    const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [savedAt, setSavedAt] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
-    function markSaved() {
-        setSavedAt(new Date().toLocaleTimeString());
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function handleMutationError(error: unknown) {
@@ -88,59 +101,77 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function startAdd() {
-        setEditingId("new");
-        setFields(emptyFields);
+    function openDrawer(id: number | "new", fields: ExperienceFormFields) {
+        setDrawer({ id, fields, initial: fields });
         setFormError(null);
+        setDirty(false);
     }
 
-    function startEdit(entry: ExperienceEntry) {
-        setEditingId(entry.id);
-        setFields(toFields(entry));
+    function closeDrawer() {
+        if (touched && !window.confirm("Discard unsaved changes?")) {
+            return;
+        }
+
+        setDrawer(null);
         setFormError(null);
+        setDirty(false);
     }
 
-    function cancelForm() {
-        setEditingId(null);
+    function discard() {
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer({ ...drawer, fields: drawer.initial });
         setFormError(null);
+        setDirty(false);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function commit() {
+        if (drawer === null) {
+            return;
+        }
+
         setFormError(null);
+        const input = toInput(drawer.fields);
 
-        const input = toInput(fields);
-
-        if (editingId === "new") {
+        if (drawer.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    markSaved();
-                    cancelForm();
+                    setDrawer(null);
+                    setDirty(false);
+                    notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
-        } else if (typeof editingId === "number") {
+        } else {
             updateMutation.mutate(
-                { id: editingId, input },
+                { id: drawer.id, input },
                 {
                     onSuccess: () => {
-                    markSaved();
-                    cancelForm();
-                },
+                        setDrawer(null);
+                        setDirty(false);
+                        notify("Saved and live on your site");
+                    },
                     onError: handleMutationError,
                 },
             );
         }
     }
 
+    function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        commit();
+    }
+
     function handleDelete(entry: ExperienceEntry) {
-        if (!window.confirm(`Delete "${entry.role}"?`)) {
+        if (!window.confirm(`Delete "${entry.role}"? This goes live immediately.`)) {
             return;
         }
 
         deleteMutation.mutate(entry.id, {
-            onSuccess: () => markSaved(),
-                onError: (error: unknown) => {
+            onSuccess: () => notify("Deleted"),
+            onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -149,168 +180,41 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
     }
 
     function setField(name: keyof ExperienceFormFields, value: string) {
-        setFields((current) => ({ ...current, [name]: value }));
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer((current) =>
+            current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
+        );
+        setDirty(true);
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
+    const entries = experienceQuery.data ?? [];
+    const query = search.trim().toLowerCase();
+    const visible =
+        query === ""
+            ? entries
+            : entries.filter((entry) =>
+                  `${entry.role} ${entry.company} ${entry.period}`.toLowerCase().includes(query),
+              );
 
     return (
-        <section aria-label="Experience">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Experience
-                </h2>
+        <div>
+            <AdminSectionHead
+                title="Experience"
+                description="Roles shown on the timeline, newest first."
+                action={<AddButton onClick={() => openDrawer("new", emptyFields)}>Add role</AddButton>}
+            />
 
-                <div className="flex items-center gap-3">
-                    {savedAt !== null && (
-                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
-                            Saved {savedAt}
-                        </span>
-                    )}
-
-                <button
-                    type="button"
-                    onClick={startAdd}
-                    className="
-                        font-mono
-                        text-[11px]
-                        text-(--accent-strong)
-                        hover:underline
-                    "
-                >
-                    Add entry
-                </button>
-                </div>
+            <div className="mt-5">
+                <AdminSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Search roles…"
+                />
             </div>
-
-            {editingId !== null && (
-                <form
-                    onSubmit={handleSubmit}
-                    className="
-                        mt-4
-                        space-y-3
-                        rounded-2xl
-                        border
-                        border-(--glass-border)
-                        bg-(--glass-bg)
-                        p-5
-                        backdrop-blur-xl
-                        backdrop-saturate-160
-                    "
-                >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Role
-                            </span>
-                            <input
-                                value={fields.role}
-                                onChange={(event) => setField("role", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Period
-                            </span>
-                            <input
-                                value={fields.period}
-                                onChange={(event) => setField("period", event.target.value)}
-                                placeholder="2026 — present"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Company
-                            </span>
-                            <input
-                                value={fields.company}
-                                onChange={(event) => setField("company", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Sort order
-                            </span>
-                            <input
-                                value={fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-                    </div>
-
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            Description (one per line)
-                        </span>
-                        <textarea
-                            value={fields.description}
-                            onChange={(event) => setField("description", event.target.value)}
-                            rows={4}
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                        />
-                    </label>
-
-                    {formError !== null && (
-                        <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--accent-strong)
-                                bg-(--accent-strong)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-white
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-deep)
-                                hover:bg-(--accent-deep)
-                                disabled:opacity-60
-                            "
-                        >
-                            {isSaving ? "Saving..." : "Save"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={cancelForm}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-(--ink)
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            )}
 
             <div className="mt-4">
                 {experienceQuery.isPending ? (
@@ -330,48 +234,109 @@ export function ExperienceManager({ token, onUnauthorized }: ExperienceManagerPr
                             Retry
                         </button>
                     </div>
-                ) : experienceQuery.data.length === 0 ? (
+                ) : visible.length === 0 ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
-                        No experience yet.
+                        {entries.length === 0 ? "No experience yet." : "No roles match the search."}
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {experienceQuery.data.map((entry) => (
-                            <li
+                        {visible.map((entry) => (
+                            <AdminRow
                                 key={entry.id}
-                                className="flex items-center justify-between gap-4 p-4"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate font-display text-[16px] text-(--ink)">
-                                        {entry.role}
-                                    </p>
-                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
-                                        {entry.company} · {entry.period}
-                                    </p>
-                                </div>
-
-                                <div className="flex shrink-0 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEdit(entry)}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(entry)}
-                                        disabled={deleteMutation.isPending}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>
+                                title={entry.role}
+                                subtitle={`${entry.company} · ${entry.period}`}
+                                onEdit={() => openDrawer(entry.id, toFields(entry))}
+                                onDelete={() => handleDelete(entry)}
+                                deleting={deleteMutation.isPending}
+                            />
                         ))}
                     </ul>
                 )}
             </div>
-        </section>
+
+            <AdminDrawer
+                open={drawer !== null}
+                title={drawer !== null && drawer.id === "new" ? "Add role" : "Edit role"}
+                onClose={closeDrawer}
+                footer={
+                    <>
+                        <PrimaryButton
+                            type="submit"
+                            form="experience-editor"
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Saving…" : "Save & publish"}
+                        </PrimaryButton>
+
+                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
+                    </>
+                }
+            >
+                {drawer !== null && (
+                    <form
+                        id="experience-editor"
+                        onSubmit={handleSubmit}
+                        className="grid gap-3 sm:grid-cols-2"
+                    >
+                        <Field label="Role">
+                            <input
+                                value={drawer.fields.role}
+                                onChange={(event) => setField("role", event.target.value)}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Period">
+                            <input
+                                value={drawer.fields.period}
+                                onChange={(event) => setField("period", event.target.value)}
+                                placeholder="2026 — present"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Company">
+                            <input
+                                value={drawer.fields.company}
+                                onChange={(event) => setField("company", event.target.value)}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Sort order">
+                            <input
+                                value={drawer.fields.sort_order}
+                                onChange={(event) => setField("sort_order", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="0"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Description" hint="One bullet per line" wide>
+                            <textarea
+                                value={drawer.fields.description}
+                                onChange={(event) => setField("description", event.target.value)}
+                                rows={4}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        {formError !== null && (
+                            <div className="sm:col-span-2">
+                                <FormError message={formError} />
+                            </div>
+                        )}
+                    </form>
+                )}
+            </AdminDrawer>
+
+            <SaveBar
+                open={touched && drawer !== null}
+                saving={isSaving}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

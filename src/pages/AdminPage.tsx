@@ -1,26 +1,28 @@
 import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
-import { Link } from "react-router";
 
 import { Container, Footer, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
-import { AlsoTrueManager, CertificationsManager, ExperienceManager, HeroStatsManager, PortraitManager, ProfileManager, ProjectsManager, ResumeManager, SocialLinksManager, StackItemsManager, TokenGate } from "@/components/admin";
+import {
+    AdminSidebar,
+    AdminToastProvider,
+    AdminTopBar,
+    AlsoTrueManager,
+    CertificationsManager,
+    ExperienceManager,
+    HeroStatsManager,
+    PortraitManager,
+    ProfileManager,
+    ProjectsManager,
+    ResumeManager,
+    SocialLinksManager,
+    StackItemsManager,
+    TokenGate,
+    useAdminCounts,
+    type AdminSectionId,
+} from "@/components/admin";
 import { checkAdminSession } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
-
-const ADMIN_SECTIONS = [
-    { id: "profile", label: "Profile" },
-    { id: "resume", label: "Resume" },
-    { id: "portrait", label: "Portrait" },
-    { id: "hero-stats", label: "Hero stats" },
-    { id: "also-true", label: "Also true" },
-    { id: "projects", label: "Projects" },
-    { id: "experience", label: "Experience" },
-    { id: "stack", label: "Stack" },
-    { id: "social-links", label: "Social links" },
-    { id: "certifications", label: "Certifications" },
-] as const;
 
 export function AdminPage() {
     const [token, setToken] = useState<string | null>(null);
@@ -28,6 +30,11 @@ export function AdminPage() {
         () => sessionStorage.getItem(TOKEN_KEY) !== null,
     );
     const [rejectedNotice, setRejectedNotice] = useState(false);
+    const [section, setSection] = useState<AdminSectionId>("profile");
+    const [dirtySections, setDirtySections] = useState<
+        Partial<Record<AdminSectionId, boolean>>
+    >({});
+    const counts = useAdminCounts();
 
     useEffect(() => {
         const meta = document.createElement("meta");
@@ -92,6 +99,25 @@ export function AdminPage() {
         setToken(null);
     }
 
+    function handleDirtyChange(id: AdminSectionId, dirty: boolean) {
+        setDirtySections((current) =>
+            current[id] === dirty ? current : { ...current, [id]: dirty },
+        );
+    }
+
+    function handleNavigate(id: AdminSectionId) {
+        if (
+            id !== section &&
+            dirtySections[section] === true &&
+            !window.confirm("Discard unsaved changes in this section?")
+        ) {
+            return;
+        }
+
+        setSection(id);
+        window.scrollTo(0, 0);
+    }
+
     if (checkingStoredToken) {
         return (
             <>
@@ -120,127 +146,106 @@ export function AdminPage() {
     }
 
     return (
-        <>
-            <Section id="admin">
-                <Container>
-                    <div className="flex items-center justify-between gap-4">
-                        <SectionHeading number="00" title="Admin" id="admin" />
+        <AdminToastProvider>
+            <div
+                id="admin"
+                className="min-h-dvh min-[820px]:grid min-[820px]:grid-cols-[15.5rem_minmax(0,1fr)]"
+            >
+                <AdminSidebar
+                    current={section}
+                    counts={counts}
+                    dirty={dirtySections}
+                    onNavigate={handleNavigate}
+                />
 
-                        <button
-                            type="button"
-                            onClick={handleSignOut}
-                            className="
-                                inline-flex
-                                shrink-0
-                                items-center
-                                gap-1.5
-                                rounded-lg
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                px-4
-                                py-2
-                                font-mono
-                                text-[12px]
-                                text-(--ink)
-                                shadow-[inset_0_1px_0_var(--glass-highlight)]
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--accent-strong)
-                                focus-visible:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-(--accent-strong)
-                            "
-                        >
-                            <LogOut size={14} strokeWidth={2} />
-                            Log out
-                        </button>
-                    </div>
+                <div className="min-w-0">
+                    <AdminTopBar onSignOut={handleSignOut} />
 
-                    <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-(--graphite)">
-                        Changes publish to the live site immediately — there
-                        are no drafts.{" "}
-                        <Link
-                            to="/"
-                            className="font-mono text-[11.5px] text-(--accent-strong) hover:underline"
-                        >
-                            View site →
-                        </Link>
-                    </p>
+                    <main className="mx-auto w-full max-w-3xl px-4 pb-28 pt-6 sm:px-6">
+                        {section === "profile" && (
+                            <ProfileManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("profile", dirty)}
+                            />
+                        )}
 
-                    <nav
-                        aria-label="Content sections"
-                        className="mt-4 flex flex-wrap gap-2"
-                    >
-                        {ADMIN_SECTIONS.map((section) => (
-                            <a
-                                key={section.id}
-                                href={`#admin-${section.id}`}
-                                className="
-                                    rounded-full
-                                    border
-                                    border-(--glass-border)
-                                    bg-(--glass-bg)
-                                    px-3
-                                    py-1.5
-                                    font-mono
-                                    text-[11px]
-                                    text-(--graphite)
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-strong)
-                                    hover:text-(--accent-strong)
-                                "
-                            >
-                                {section.label}
-                            </a>
-                        ))}
-                    </nav>
+                        {section === "portrait" && (
+                            <PortraitManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("portrait", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-profile" className="scroll-mt-28">
-                        <ProfileManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "hero-stats" && (
+                            <HeroStatsManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("hero-stats", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-resume" className="scroll-mt-28">
-                        <ResumeManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "also-true" && (
+                            <AlsoTrueManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("also-true", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-portrait" className="scroll-mt-28">
-                        <PortraitManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "resume" && (
+                            <ResumeManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("resume", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-hero-stats" className="scroll-mt-28">
-                        <HeroStatsManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "projects" && (
+                            <ProjectsManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("projects", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-also-true" className="scroll-mt-28">
-                        <AlsoTrueManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "experience" && (
+                            <ExperienceManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("experience", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-projects" className="scroll-mt-28">
-                        <ProjectsManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "stack" && (
+                            <StackItemsManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("stack", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-experience" className="scroll-mt-28">
-                        <ExperienceManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
+                        {section === "social-links" && (
+                            <SocialLinksManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) => handleDirtyChange("social-links", dirty)}
+                            />
+                        )}
 
-                    <div id="admin-stack" className="scroll-mt-28">
-                        <StackItemsManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
-
-                    <div id="admin-social-links" className="scroll-mt-28">
-                        <SocialLinksManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
-
-                    <div id="admin-certifications" className="scroll-mt-28">
-                        <CertificationsManager token={token} onUnauthorized={handleUnauthorized} />
-                    </div>
-                </Container>
-            </Section>
-
-            <Footer />
-        </>
+                        {section === "certifications" && (
+                            <CertificationsManager
+                                token={token}
+                                onUnauthorized={handleUnauthorized}
+                                onDirtyChange={(dirty) =>
+                                    handleDirtyChange("certifications", dirty)
+                                }
+                            />
+                        )}
+                    </main>
+                </div>
+            </div>
+        </AdminToastProvider>
     );
 }

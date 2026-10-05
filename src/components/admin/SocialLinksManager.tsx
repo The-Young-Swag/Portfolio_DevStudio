@@ -13,10 +13,17 @@ import {
     type SocialLink,
     type SocialLinkInput,
 } from "@/services/social-links/socialLinks";
+import { useAdminToast } from "./toastContext";
+import { AdminDrawer } from "./AdminDrawer";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { PrimaryButton, SecondaryButton } from "./AdminButtons";
+import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
+import { SaveBar } from "./SaveBar";
 
 type SocialLinksManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type SocialLinkFormFields = {
@@ -29,9 +36,11 @@ type SocialLinkFormFields = {
 const emptyFields: SocialLinkFormFields = {
     label: "",
     href: "",
-    icon: "",
+    icon: "github",
     sort_order: "",
 };
+
+const iconOptions = ["github", "linkedin", "email"];
 
 function toFields(link: SocialLink): SocialLinkFormFields {
     return {
@@ -51,7 +60,7 @@ function toInput(fields: SocialLinkFormFields): SocialLinkInput {
     };
 }
 
-export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManagerProps) {
+export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: SocialLinksManagerProps) {
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
         queryFn: getSocialLinks,
@@ -62,14 +71,20 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
     const createMutation = useCreateSocialLink(token);
     const updateMutation = useUpdateSocialLink(token);
     const deleteMutation = useDeleteSocialLink(token);
+    const notify = useAdminToast();
 
-    const [editingId, setEditingId] = useState<number | "new" | null>(null);
-    const [fields, setFields] = useState<SocialLinkFormFields>(emptyFields);
+    const [drawer, setDrawer] = useState<{
+        id: number | "new";
+        fields: SocialLinkFormFields;
+        initial: SocialLinkFormFields;
+    } | null>(null);
+    const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [savedAt, setSavedAt] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
-    function markSaved() {
-        setSavedAt(new Date().toLocaleTimeString());
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function handleMutationError(error: unknown) {
@@ -81,59 +96,77 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function startAdd() {
-        setEditingId("new");
-        setFields(emptyFields);
+    function openDrawer(id: number | "new", fields: SocialLinkFormFields) {
+        setDrawer({ id, fields, initial: fields });
         setFormError(null);
+        setDirty(false);
     }
 
-    function startEdit(link: SocialLink) {
-        setEditingId(link.id);
-        setFields(toFields(link));
+    function closeDrawer() {
+        if (touched && !window.confirm("Discard unsaved changes?")) {
+            return;
+        }
+
+        setDrawer(null);
         setFormError(null);
+        setDirty(false);
     }
 
-    function cancelForm() {
-        setEditingId(null);
+    function discard() {
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer({ ...drawer, fields: drawer.initial });
         setFormError(null);
+        setDirty(false);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function commit() {
+        if (drawer === null) {
+            return;
+        }
+
         setFormError(null);
+        const input = toInput(drawer.fields);
 
-        const input = toInput(fields);
-
-        if (editingId === "new") {
+        if (drawer.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    markSaved();
-                    cancelForm();
+                    setDrawer(null);
+                    setDirty(false);
+                    notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
-        } else if (typeof editingId === "number") {
+        } else {
             updateMutation.mutate(
-                { id: editingId, input },
+                { id: drawer.id, input },
                 {
                     onSuccess: () => {
-                    markSaved();
-                    cancelForm();
-                },
+                        setDrawer(null);
+                        setDirty(false);
+                        notify("Saved and live on your site");
+                    },
                     onError: handleMutationError,
                 },
             );
         }
     }
 
+    function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        commit();
+    }
+
     function handleDelete(link: SocialLink) {
-        if (!window.confirm(`Delete "${link.label}"?`)) {
+        if (!window.confirm(`Delete "${link.label}"? This goes live immediately.`)) {
             return;
         }
 
         deleteMutation.mutate(link.id, {
-            onSuccess: () => markSaved(),
-                onError: (error: unknown) => {
+            onSuccess: () => notify("Deleted"),
+            onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -142,158 +175,46 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
     }
 
     function setField(name: keyof SocialLinkFormFields, value: string) {
-        setFields((current) => ({ ...current, [name]: value }));
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer((current) =>
+            current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
+        );
+        setDirty(true);
     }
 
+    const iconChoices =
+        drawer !== null && !iconOptions.includes(drawer.fields.icon)
+            ? [...iconOptions, drawer.fields.icon]
+            : iconOptions;
+
     const isSaving = createMutation.isPending || updateMutation.isPending;
+    const links = socialLinksQuery.data ?? [];
+    const query = search.trim().toLowerCase();
+    const visible =
+        query === ""
+            ? links
+            : links.filter((link) =>
+                  `${link.label} ${link.href} ${link.icon}`.toLowerCase().includes(query),
+              );
 
     return (
-        <section aria-label="Social links">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Social links
-                </h2>
+        <div>
+            <AdminSectionHead
+                title="Social links"
+                description="Icons shown in the sidebar “Connect” group."
+                action={<AddButton onClick={() => openDrawer("new", emptyFields)}>Add link</AddButton>}
+            />
 
-                <div className="flex items-center gap-3">
-                    {savedAt !== null && (
-                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
-                            Saved {savedAt}
-                        </span>
-                    )}
-
-                <button
-                    type="button"
-                    onClick={startAdd}
-                    className="
-                        font-mono
-                        text-[11px]
-                        text-(--accent-strong)
-                        hover:underline
-                    "
-                >
-                    Add link
-                </button>
-                </div>
+            <div className="mt-5">
+                <AdminSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Search links…"
+                />
             </div>
-
-            {editingId !== null && (
-                <form
-                    onSubmit={handleSubmit}
-                    className="
-                        mt-4
-                        space-y-3
-                        rounded-2xl
-                        border
-                        border-(--glass-border)
-                        bg-(--glass-bg)
-                        p-5
-                        backdrop-blur-xl
-                        backdrop-saturate-160
-                    "
-                >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Label
-                            </span>
-                            <input
-                                value={fields.label}
-                                onChange={(event) => setField("label", event.target.value)}
-                                placeholder="GitHub"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Icon (github, linkedin, email)
-                            </span>
-                            <input
-                                value={fields.icon}
-                                onChange={(event) => setField("icon", event.target.value)}
-                                placeholder="github"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Sort order
-                            </span>
-                            <input
-                                value={fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-                    </div>
-
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            URL
-                        </span>
-                        <input
-                            value={fields.href}
-                            onChange={(event) => setField("href", event.target.value)}
-                            placeholder="https://github.com/…"
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                        />
-                    </label>
-
-                    {formError !== null && (
-                        <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--accent-strong)
-                                bg-(--accent-strong)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-white
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-deep)
-                                hover:bg-(--accent-deep)
-                                disabled:opacity-60
-                            "
-                        >
-                            {isSaving ? "Saving..." : "Save"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={cancelForm}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-(--ink)
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            )}
 
             <div className="mt-4">
                 {socialLinksQuery.isPending ? (
@@ -313,48 +234,108 @@ export function SocialLinksManager({ token, onUnauthorized }: SocialLinksManager
                             Retry
                         </button>
                     </div>
-                ) : socialLinksQuery.data.length === 0 ? (
+                ) : visible.length === 0 ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
-                        No social links yet.
+                        {links.length === 0 ? "No links yet." : "No links match the search."}
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {socialLinksQuery.data.map((link) => (
-                            <li
+                        {visible.map((link) => (
+                            <AdminRow
                                 key={link.id}
-                                className="flex items-center justify-between gap-4 p-4"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate font-display text-[16px] text-(--ink)">
-                                        {link.label}
-                                    </p>
-                                    <p className="mt-0.5 truncate font-mono text-[10.5px] text-(--graphite-soft)">
-                                        {link.href}
-                                    </p>
-                                </div>
-
-                                <div className="flex shrink-0 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEdit(link)}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(link)}
-                                        disabled={deleteMutation.isPending}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>
+                                title={link.label}
+                                subtitle={link.href}
+                                tag={link.icon}
+                                onEdit={() => openDrawer(link.id, toFields(link))}
+                                onDelete={() => handleDelete(link)}
+                                deleting={deleteMutation.isPending}
+                            />
                         ))}
                     </ul>
                 )}
             </div>
-        </section>
+
+            <AdminDrawer
+                open={drawer !== null}
+                title={drawer !== null && drawer.id === "new" ? "Add link" : "Edit link"}
+                onClose={closeDrawer}
+                footer={
+                    <>
+                        <PrimaryButton
+                            type="submit"
+                            form="social-link-editor"
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Saving…" : "Save & publish"}
+                        </PrimaryButton>
+
+                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
+                    </>
+                }
+            >
+                {drawer !== null && (
+                    <form
+                        id="social-link-editor"
+                        onSubmit={handleSubmit}
+                        className="grid gap-3 sm:grid-cols-2"
+                    >
+                        <Field label="Label">
+                            <input
+                                value={drawer.fields.label}
+                                onChange={(event) => setField("label", event.target.value)}
+                                placeholder="GitHub"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Icon">
+                            <select
+                                value={drawer.fields.icon}
+                                onChange={(event) => setField("icon", event.target.value)}
+                                className={adminFieldInputClassName}
+                            >
+                                {iconChoices.map((icon) => (
+                                    <option key={icon} value={icon}>
+                                        {icon}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="URL" wide>
+                            <input
+                                value={drawer.fields.href}
+                                onChange={(event) => setField("href", event.target.value)}
+                                placeholder="https://github.com/…"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Sort order">
+                            <input
+                                value={drawer.fields.sort_order}
+                                onChange={(event) => setField("sort_order", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="0"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        {formError !== null && (
+                            <div className="sm:col-span-2">
+                                <FormError message={formError} />
+                            </div>
+                        )}
+                    </form>
+                )}
+            </AdminDrawer>
+
+            <SaveBar
+                open={touched && drawer !== null}
+                saving={isSaving}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

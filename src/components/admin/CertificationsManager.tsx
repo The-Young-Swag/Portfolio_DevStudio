@@ -13,12 +13,19 @@ import {
     type CertificationInput,
 } from "@/services/certifications/certifications";
 import { isUnauthorized } from "@/services/api";
+import { useAdminToast } from "./toastContext";
+import { AdminDrawer } from "./AdminDrawer";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { PrimaryButton, SecondaryButton } from "./AdminButtons";
+import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
+import { SaveBar } from "./SaveBar";
 import { ImageUploadField } from "./ImageUploadField";
 import { PdfUploadField } from "./PdfUploadField";
 
 type CertificationsManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type CertificationFormFields = {
@@ -102,6 +109,7 @@ function toInput(fields: CertificationFormFields): CertificationInput {
 export function CertificationsManager({
     token,
     onUnauthorized,
+    onDirtyChange,
 }: CertificationsManagerProps) {
     const certificationsQuery = useQuery({
         queryKey: ["certifications"],
@@ -113,14 +121,20 @@ export function CertificationsManager({
     const createMutation = useCreateCertification(token);
     const updateMutation = useUpdateCertification(token);
     const deleteMutation = useDeleteCertification(token);
+    const notify = useAdminToast();
 
-    const [editingId, setEditingId] = useState<number | "new" | null>(null);
-    const [fields, setFields] = useState<CertificationFormFields>(emptyFields);
+    const [drawer, setDrawer] = useState<{
+        id: number | "new";
+        fields: CertificationFormFields;
+        initial: CertificationFormFields;
+    } | null>(null);
+    const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [savedAt, setSavedAt] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
-    function markSaved() {
-        setSavedAt(new Date().toLocaleTimeString());
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function handleMutationError(error: unknown) {
@@ -132,49 +146,67 @@ export function CertificationsManager({
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function startAdd() {
-        setEditingId("new");
-        setFields(emptyFields);
+    function openDrawer(id: number | "new", fields: CertificationFormFields) {
+        setDrawer({ id, fields, initial: fields });
         setFormError(null);
+        setDirty(false);
     }
 
-    function startEdit(certification: Certification) {
-        setEditingId(certification.id);
-        setFields(toFields(certification));
+    function closeDrawer() {
+        if (touched && !window.confirm("Discard unsaved changes?")) {
+            return;
+        }
+
+        setDrawer(null);
         setFormError(null);
+        setDirty(false);
     }
 
-    function cancelForm() {
-        setEditingId(null);
+    function discard() {
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer({ ...drawer, fields: drawer.initial });
         setFormError(null);
+        setDirty(false);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function commit() {
+        if (drawer === null) {
+            return;
+        }
+
         setFormError(null);
+        const input = toInput(drawer.fields);
 
-        const input = toInput(fields);
-
-        if (editingId === "new") {
+        if (drawer.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    markSaved();
-                    cancelForm();
+                    setDrawer(null);
+                    setDirty(false);
+                    notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
-        } else if (typeof editingId === "number") {
+        } else {
             updateMutation.mutate(
-                { id: editingId, input },
+                { id: drawer.id, input },
                 {
                     onSuccess: () => {
-                    markSaved();
-                    cancelForm();
-                },
+                        setDrawer(null);
+                        setDirty(false);
+                        notify("Saved and live on your site");
+                    },
                     onError: handleMutationError,
                 },
             );
         }
+    }
+
+    function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        commit();
     }
 
     function handleDelete(certification: Certification) {
@@ -184,16 +216,16 @@ export function CertificationsManager({
 
         const message =
             childCount > 0
-                ? `Delete "${certification.name}" and its ${childCount} ${childCount === 1 ? "course" : "courses"}?`
-                : `Delete "${certification.name}"?`;
+                ? `Delete "${certification.name}" and its ${childCount} ${childCount === 1 ? "course" : "courses"}? This goes live immediately.`
+                : `Delete "${certification.name}"? This goes live immediately.`;
 
         if (!window.confirm(message)) {
             return;
         }
 
         deleteMutation.mutate(certification.id, {
-            onSuccess: () => markSaved(),
-                onError: (error: unknown) => {
+            onSuccess: () => notify("Deleted"),
+            onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -202,294 +234,52 @@ export function CertificationsManager({
     }
 
     function setField(name: keyof CertificationFormFields, value: string) {
-        setFields((current) => ({ ...current, [name]: value }));
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer((current) =>
+            current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
+        );
+        setDirty(true);
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
-
-    const allCertifications = certificationsQuery.data ?? [];
-    const editingHasChildren =
-        typeof editingId === "number" &&
-        allCertifications.some((item) => item.parent_id === editingId);
-    const parentOptions = allCertifications.filter(
+    const certifications = certificationsQuery.data ?? [];
+    const query = search.trim().toLowerCase();
+    const visible =
+        query === ""
+            ? certifications
+            : certifications.filter((certification) =>
+                  `${certification.name} ${certification.issuer} ${certification.year}`
+                      .toLowerCase()
+                      .includes(query),
+              );
+    const parentOptions = certifications.filter(
         (item) =>
             item.parent_id === null &&
-            (typeof editingId !== "number" || item.id !== editingId),
+            (drawer === null || typeof drawer.id !== "number" || item.id !== drawer.id),
     );
 
     return (
-        <section aria-label="Certifications">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Certifications
-                </h2>
+        <div>
+            <AdminSectionHead
+                title="Certifications"
+                description="Credentials. A certificate can group child certificates under it."
+                action={
+                    <AddButton onClick={() => openDrawer("new", emptyFields)}>
+                        Add certification
+                    </AddButton>
+                }
+            />
 
-                <div className="flex items-center gap-3">
-                    {savedAt !== null && (
-                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
-                            Saved {savedAt}
-                        </span>
-                    )}
-
-                <button
-                    type="button"
-                    onClick={startAdd}
-                    className="
-                        font-mono
-                        text-[11px]
-                        text-(--accent-strong)
-                        hover:underline
-                    "
-                >
-                    Add certification
-                </button>
-                </div>
+            <div className="mt-5">
+                <AdminSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Search certifications…"
+                />
             </div>
-
-            {editingId !== null && (
-                <form
-                    onSubmit={handleSubmit}
-                    className="
-                        mt-4
-                        space-y-3
-                        rounded-2xl
-                        border
-                        border-(--glass-border)
-                        bg-(--glass-bg)
-                        p-5
-                        backdrop-blur-xl
-                        backdrop-saturate-160
-                    "
-                >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Name
-                            </span>
-                            <input
-                                value={fields.name}
-                                onChange={(event) => setField("name", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Issuer
-                            </span>
-                            <input
-                                value={fields.issuer}
-                                onChange={(event) => setField("issuer", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Year
-                            </span>
-                            <input
-                                value={fields.year}
-                                onChange={(event) => setField("year", event.target.value)}
-                                placeholder="2026"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Credential
-                            </span>
-                            <input
-                                value={fields.credential}
-                                onChange={(event) => setField("credential", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Badge
-                            </span>
-                            <input
-                                value={fields.badge}
-                                onChange={(event) => setField("badge", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Code
-                            </span>
-                            <input
-                                value={fields.code}
-                                onChange={(event) => setField("code", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Accent
-                            </span>
-                            <select
-                                value={fields.accent}
-                                onChange={(event) => setField("accent", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            >
-                                {accents.map((accent) => (
-                                    <option key={accent} value={accent}>
-                                        {accent}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Sort order
-                            </span>
-                            <input
-                                value={fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Parent program
-                            </span>
-                            <select
-                                value={fields.parent_id}
-                                onChange={(event) => setField("parent_id", event.target.value)}
-                                disabled={editingHasChildren}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) disabled:opacity-60 dark:bg-black/20"
-                            >
-                                <option value="">Top level</option>
-                                {parentOptions.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                    </div>
-
-                    <div>
-                        <ImageUploadField
-                            label="Image"
-                            value={fields.image}
-                            onChange={(url) => setField("image", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            aspect={21 / 9}
-                            maxEdge={1280}
-                        />
-                    </div>
-
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            Verify link URL
-                        </span>
-                        <input
-                            value={fields.link}
-                            onChange={(event) => setField("link", event.target.value)}
-                            placeholder="https://…"
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                        />
-                    </label>
-
-                    <div>
-                        <PdfUploadField
-                            label="Certificate PDF"
-                            value={fields.pdf}
-                            onChange={(url) => setField("pdf", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            defaultFilename="certificate.pdf"
-                        />
-                    </div>
-
-                    <div>
-                        <ImageUploadField
-                            label="Badge image"
-                            value={fields.badge_image}
-                            onChange={(url) => setField("badge_image", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            aspect={1}
-                            maxEdge={512}
-                        />
-                    </div>
-
-                    <label className="block">
-                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                            Badge link URL
-                        </span>
-                        <input
-                            value={fields.badge_link}
-                            onChange={(event) => setField("badge_link", event.target.value)}
-                            placeholder="https://…"
-                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                        />
-                    </label>
-
-                    {formError !== null && (
-                        <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--accent-strong)
-                                bg-(--accent-strong)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-white
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-deep)
-                                hover:bg-(--accent-deep)
-                                disabled:opacity-60
-                            "
-                        >
-                            {isSaving ? "Saving..." : "Save"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={cancelForm}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-(--ink)
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            )}
 
             <div className="mt-4">
                 {certificationsQuery.isPending ? (
@@ -509,97 +299,206 @@ export function CertificationsManager({
                             Retry
                         </button>
                     </div>
-                ) : certificationsQuery.data.length === 0 ? (
+                ) : visible.length === 0 ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
-                        No certifications yet.
+                        {certifications.length === 0
+                            ? "No certifications yet."
+                            : "No certifications match the search."}
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {(certificationsQuery.data ?? [])
-                            .filter(
-                                (certification) =>
-                                    certification.parent_id === null ||
-                                    !(certificationsQuery.data ?? []).some(
-                                        (parent) => parent.id === certification.parent_id,
-                                    ),
-                            )
-                            .map((certification) => {
-                                const children = (certificationsQuery.data ?? []).filter(
-                                    (item) => item.parent_id === certification.id,
-                                );
-
-                                return (
-                                    <li key={certification.id}>
-                                        <div className="flex items-center justify-between gap-4 p-4">
-                                            <div className="min-w-0">
-                                                <p className="truncate font-display text-[16px] text-(--ink)">
-                                                    {certification.name}
-                                                </p>
-                                                <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
-                                                    {certification.issuer} · {certification.year}
-                                                    {children.length > 0 &&
-                                                        ` · ${children.length} ${children.length === 1 ? "course" : "courses"}`}
-                                                </p>
-                                            </div>
-
-                                            <div className="flex shrink-0 gap-3">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => startEdit(certification)}
-                                                    className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDelete(certification)}
-                                                    disabled={deleteMutation.isPending}
-                                                    className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {children.map((child) => (
-                                            <div
-                                                key={child.id}
-                                                className="ml-4 flex items-center justify-between gap-4 border-l border-(--line) p-4 pl-4"
-                                            >
-                                                <div className="min-w-0">
-                                                    <p className="truncate text-[13px] text-(--ink)">
-                                                        {child.name}
-                                                    </p>
-                                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
-                                                        {child.issuer} · {child.year}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex shrink-0 gap-3">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => startEdit(child)}
-                                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDelete(child)}
-                                                        disabled={deleteMutation.isPending}
-                                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </li>
-                                );
-                            })}
+                        {visible.map((certification) => (
+                            <AdminRow
+                                key={certification.id}
+                                title={certification.name}
+                                subtitle={`${certification.issuer} · ${certification.year}`}
+                                tag={certification.link !== "" ? "Verified" : ""}
+                                onEdit={() => openDrawer(certification.id, toFields(certification))}
+                                onDelete={() => handleDelete(certification)}
+                                deleting={deleteMutation.isPending}
+                            />
+                        ))}
                     </ul>
                 )}
             </div>
-        </section>
+
+            <AdminDrawer
+                open={drawer !== null}
+                title={drawer !== null && drawer.id === "new" ? "Add certification" : "Edit certification"}
+                onClose={closeDrawer}
+                footer={
+                    <>
+                        <PrimaryButton
+                            type="submit"
+                            form="certification-editor"
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Saving…" : "Save & publish"}
+                        </PrimaryButton>
+
+                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
+                    </>
+                }
+            >
+                {drawer !== null && (
+                    <form
+                        id="certification-editor"
+                        onSubmit={handleSubmit}
+                        className="grid gap-3 sm:grid-cols-2"
+                    >
+                        <Field label="Title" wide>
+                            <input
+                                value={drawer.fields.name}
+                                onChange={(event) => setField("name", event.target.value)}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Issuer">
+                            <input
+                                value={drawer.fields.issuer}
+                                onChange={(event) => setField("issuer", event.target.value)}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Year">
+                            <input
+                                value={drawer.fields.year}
+                                onChange={(event) => setField("year", event.target.value)}
+                                placeholder="2026"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Credential">
+                            <input
+                                value={drawer.fields.credential}
+                                onChange={(event) => setField("credential", event.target.value)}
+                                placeholder="Coursera"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Badge">
+                            <input
+                                value={drawer.fields.badge}
+                                onChange={(event) => setField("badge", event.target.value)}
+                                placeholder="IBM"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Credential code">
+                            <input
+                                value={drawer.fields.code}
+                                onChange={(event) => setField("code", event.target.value)}
+                                placeholder="FSD"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Sort order">
+                            <input
+                                value={drawer.fields.sort_order}
+                                onChange={(event) => setField("sort_order", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="0"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Accent">
+                            <select
+                                value={drawer.fields.accent}
+                                onChange={(event) => setField("accent", event.target.value)}
+                                className={adminFieldInputClassName}
+                            >
+                                {accents.map((accent) => (
+                                    <option key={accent} value={accent}>
+                                        {accent}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Parent program" hint="Group courses under a parent certificate">
+                            <select
+                                value={drawer.fields.parent_id}
+                                onChange={(event) => setField("parent_id", event.target.value)}
+                                className={adminFieldInputClassName}
+                            >
+                                <option value="">None (top level)</option>
+                                {parentOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Verify link" wide>
+                            <input
+                                value={drawer.fields.link}
+                                onChange={(event) => setField("link", event.target.value)}
+                                placeholder="https://…"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <ImageUploadField
+                            label="Certificate image"
+                            value={drawer.fields.image}
+                            onChange={(url) => setField("image", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            aspect={21 / 9}
+                            maxEdge={1280}
+                        />
+
+                        <PdfUploadField
+                            label="Certificate PDF"
+                            value={drawer.fields.pdf}
+                            onChange={(url) => setField("pdf", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            defaultFilename="certificate.pdf"
+                        />
+
+                        <ImageUploadField
+                            label="Badge image"
+                            value={drawer.fields.badge_image}
+                            onChange={(url) => setField("badge_image", url)}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            aspect={1}
+                            maxEdge={512}
+                        />
+
+                        <Field label="Badge link" wide>
+                            <input
+                                value={drawer.fields.badge_link}
+                                onChange={(event) => setField("badge_link", event.target.value)}
+                                placeholder="https://…"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        {formError !== null && (
+                            <div className="sm:col-span-2">
+                                <FormError message={formError} />
+                            </div>
+                        )}
+                    </form>
+                )}
+            </AdminDrawer>
+
+            <SaveBar
+                open={touched && drawer !== null}
+                saving={isSaving}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

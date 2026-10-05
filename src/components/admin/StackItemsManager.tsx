@@ -15,10 +15,17 @@ import {
     type StackItemInput,
     type StackItemLevel,
 } from "@/services/stack/stackItems";
+import { useAdminToast } from "./toastContext";
+import { AdminDrawer } from "./AdminDrawer";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { PrimaryButton, SecondaryButton } from "./AdminButtons";
+import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
+import { SaveBar } from "./SaveBar";
 
 type StackItemsManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type StackItemFormFields = {
@@ -79,7 +86,7 @@ function toInput(fields: StackItemFormFields): StackItemInput {
     };
 }
 
-export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerProps) {
+export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: StackItemsManagerProps) {
     const stackQuery = useQuery({
         queryKey: ["stack-items"],
         queryFn: getStackItems,
@@ -90,14 +97,20 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
     const createMutation = useCreateStackItem(token);
     const updateMutation = useUpdateStackItem(token);
     const deleteMutation = useDeleteStackItem(token);
+    const notify = useAdminToast();
 
-    const [editingId, setEditingId] = useState<number | "new" | null>(null);
-    const [fields, setFields] = useState<StackItemFormFields>(emptyFields);
+    const [drawer, setDrawer] = useState<{
+        id: number | "new";
+        fields: StackItemFormFields;
+        initial: StackItemFormFields;
+    } | null>(null);
+    const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [savedAt, setSavedAt] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
 
-    function markSaved() {
-        setSavedAt(new Date().toLocaleTimeString());
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function handleMutationError(error: unknown) {
@@ -109,59 +122,77 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function startAdd() {
-        setEditingId("new");
-        setFields(emptyFields);
+    function openDrawer(id: number | "new", fields: StackItemFormFields) {
+        setDrawer({ id, fields, initial: fields });
         setFormError(null);
+        setDirty(false);
     }
 
-    function startEdit(item: StackItem) {
-        setEditingId(item.id);
-        setFields(toFields(item));
+    function closeDrawer() {
+        if (touched && !window.confirm("Discard unsaved changes?")) {
+            return;
+        }
+
+        setDrawer(null);
         setFormError(null);
+        setDirty(false);
     }
 
-    function cancelForm() {
-        setEditingId(null);
+    function discard() {
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer({ ...drawer, fields: drawer.initial });
         setFormError(null);
+        setDirty(false);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function commit() {
+        if (drawer === null) {
+            return;
+        }
+
         setFormError(null);
+        const input = toInput(drawer.fields);
 
-        const input = toInput(fields);
-
-        if (editingId === "new") {
+        if (drawer.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    markSaved();
-                    cancelForm();
+                    setDrawer(null);
+                    setDirty(false);
+                    notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
-        } else if (typeof editingId === "number") {
+        } else {
             updateMutation.mutate(
-                { id: editingId, input },
+                { id: drawer.id, input },
                 {
                     onSuccess: () => {
-                    markSaved();
-                    cancelForm();
-                },
+                        setDrawer(null);
+                        setDirty(false);
+                        notify("Saved and live on your site");
+                    },
                     onError: handleMutationError,
                 },
             );
         }
     }
 
+    function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        commit();
+    }
+
     function handleDelete(item: StackItem) {
-        if (!window.confirm(`Delete "${item.name}"?`)) {
+        if (!window.confirm(`Delete "${item.name}"? This goes live immediately.`)) {
             return;
         }
 
         deleteMutation.mutate(item.id, {
-            onSuccess: () => markSaved(),
-                onError: (error: unknown) => {
+            onSuccess: () => notify("Deleted"),
+            onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
                 }
@@ -170,192 +201,41 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
     }
 
     function setField(name: keyof StackItemFormFields, value: string | boolean) {
-        setFields((current) => ({ ...current, [name]: value }));
+        if (drawer === null) {
+            return;
+        }
+
+        setDrawer((current) =>
+            current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
+        );
+        setDirty(true);
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
+    const items = stackQuery.data ?? [];
+    const query = search.trim().toLowerCase();
+    const visible =
+        query === ""
+            ? items
+            : items.filter((item) =>
+                  `${item.name} ${item.category} ${item.level}`.toLowerCase().includes(query),
+              );
 
     return (
-        <section aria-label="Stack">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Stack
-                </h2>
+        <div>
+            <AdminSectionHead
+                title="Stack"
+                description="Skills grouped by category. “Core” items are highlighted on the site."
+                action={<AddButton onClick={() => openDrawer("new", emptyFields)}>Add skill</AddButton>}
+            />
 
-                <div className="flex items-center gap-3">
-                    {savedAt !== null && (
-                        <span aria-live="polite" className="font-mono text-[11px] text-(--accent-strong)">
-                            Saved {savedAt}
-                        </span>
-                    )}
-
-                <button
-                    type="button"
-                    onClick={startAdd}
-                    className="
-                        font-mono
-                        text-[11px]
-                        text-(--accent-strong)
-                        hover:underline
-                    "
-                >
-                    Add item
-                </button>
-                </div>
+            <div className="mt-5">
+                <AdminSearchInput
+                    value={search}
+                    onChange={setSearch}
+                    placeholder="Search skills…"
+                />
             </div>
-
-            {editingId !== null && (
-                <form
-                    onSubmit={handleSubmit}
-                    className="
-                        mt-4
-                        space-y-3
-                        rounded-2xl
-                        border
-                        border-(--glass-border)
-                        bg-(--glass-bg)
-                        p-5
-                        backdrop-blur-xl
-                        backdrop-saturate-160
-                    "
-                >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Name
-                            </span>
-                            <input
-                                value={fields.name}
-                                onChange={(event) => setField("name", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Category
-                            </span>
-                            <select
-                                value={fields.category}
-                                onChange={(event) => setField("category", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            >
-                                {categories.map((category) => (
-                                    <option key={category} value={category}>
-                                        {category}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Level
-                            </span>
-                            <select
-                                value={fields.level}
-                                onChange={(event) => setField("level", event.target.value)}
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            >
-                                {levels.map((level) => (
-                                    <option key={level} value={level}>
-                                        {level}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Since year
-                            </span>
-                            <input
-                                value={fields.since_year}
-                                onChange={(event) => setField("since_year", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="—"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Sort order
-                            </span>
-                            <input
-                                value={fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                            />
-                        </label>
-
-                        <label className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={fields.is_core}
-                                onChange={(event) => setField("is_core", event.target.checked)}
-                                className="h-4 w-4 accent-(--accent-strong)"
-                            />
-                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                Core stack
-                            </span>
-                        </label>
-                    </div>
-
-                    {formError !== null && (
-                        <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--accent-strong)
-                                bg-(--accent-strong)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-white
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-deep)
-                                hover:bg-(--accent-deep)
-                                disabled:opacity-60
-                            "
-                        >
-                            {isSaving ? "Saving..." : "Save"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={cancelForm}
-                            className="
-                                rounded-lg
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                px-4
-                                py-2
-                                text-[12.5px]
-                                font-medium
-                                text-(--ink)
-                                transition-colors
-                                duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            )}
 
             <div className="mt-4">
                 {stackQuery.isPending ? (
@@ -375,54 +255,134 @@ export function StackItemsManager({ token, onUnauthorized }: StackItemsManagerPr
                             Retry
                         </button>
                     </div>
-                ) : stackQuery.data.length === 0 ? (
+                ) : visible.length === 0 ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
-                        No stack items yet.
+                        {items.length === 0 ? "No skills yet." : "No skills match the search."}
                     </p>
                 ) : (
                     <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {stackQuery.data.map((item) => (
-                            <li
+                        {visible.map((item) => (
+                            <AdminRow
                                 key={item.id}
-                                className="flex items-center justify-between gap-4 p-4"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate font-display text-[16px] text-(--ink)">
-                                        {item.name}
-                                        {item.is_core && (
-                                            <span className="ml-2 font-mono text-[10px] text-(--accent-strong)">
-                                                core
-                                            </span>
-                                        )}
-                                    </p>
-                                    <p className="mt-0.5 font-mono text-[10.5px] text-(--graphite-soft)">
-                                        {item.category} · {item.level}
-                                        {item.since_year !== null && ` · since ${item.since_year}`}
-                                    </p>
-                                </div>
-
-                                <div className="flex shrink-0 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEdit(item)}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong)"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(item)}
-                                        disabled={deleteMutation.isPending}
-                                        className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500 disabled:opacity-60"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </li>
+                                title={item.name}
+                                subtitle={`${item.category} · ${item.level}`}
+                                tag={item.is_core ? "core" : ""}
+                                onEdit={() => openDrawer(item.id, toFields(item))}
+                                onDelete={() => handleDelete(item)}
+                                deleting={deleteMutation.isPending}
+                            />
                         ))}
                     </ul>
                 )}
             </div>
-        </section>
+
+            <AdminDrawer
+                open={drawer !== null}
+                title={drawer !== null && drawer.id === "new" ? "Add skill" : "Edit skill"}
+                onClose={closeDrawer}
+                footer={
+                    <>
+                        <PrimaryButton
+                            type="submit"
+                            form="stack-item-editor"
+                            disabled={isSaving}
+                        >
+                            {isSaving ? "Saving…" : "Save & publish"}
+                        </PrimaryButton>
+
+                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
+                    </>
+                }
+            >
+                {drawer !== null && (
+                    <form
+                        id="stack-item-editor"
+                        onSubmit={handleSubmit}
+                        className="grid gap-3 sm:grid-cols-2"
+                    >
+                        <Field label="Name" wide>
+                            <input
+                                value={drawer.fields.name}
+                                onChange={(event) => setField("name", event.target.value)}
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Category">
+                            <select
+                                value={drawer.fields.category}
+                                onChange={(event) => setField("category", event.target.value)}
+                                className={adminFieldInputClassName}
+                            >
+                                {categories.map((category) => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Proficiency">
+                            <select
+                                value={drawer.fields.level}
+                                onChange={(event) => setField("level", event.target.value)}
+                                className={adminFieldInputClassName}
+                            >
+                                {levels.map((level) => (
+                                    <option key={level} value={level}>
+                                        {level}
+                                    </option>
+                                ))}
+                            </select>
+                        </Field>
+
+                        <Field label="Since year">
+                            <input
+                                value={drawer.fields.since_year}
+                                onChange={(event) => setField("since_year", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="2024"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <Field label="Sort order">
+                            <input
+                                value={drawer.fields.sort_order}
+                                onChange={(event) => setField("sort_order", event.target.value)}
+                                inputMode="numeric"
+                                placeholder="0"
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={drawer.fields.is_core}
+                                onChange={(event) => setField("is_core", event.target.checked)}
+                                className="h-4 w-4 accent-(--accent-strong)"
+                            />
+                            <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                                Core stack
+                            </span>
+                        </label>
+
+                        {formError !== null && (
+                            <div className="sm:col-span-2">
+                                <FormError message={formError} />
+                            </div>
+                        )}
+                    </form>
+                )}
+            </AdminDrawer>
+
+            <SaveBar
+                open={touched && drawer !== null}
+                saving={isSaving}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

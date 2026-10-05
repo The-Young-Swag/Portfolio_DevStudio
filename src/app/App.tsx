@@ -98,16 +98,17 @@ export function App() {
                             </Suspense>
                         }
                     />
-                    <Route
-                        path="admin"
-                        element={
-                            <Suspense fallback={<PageFallback />}>
-                                <AdminPage />
-                            </Suspense>
-                        }
-                    />
                     <Route path="*" element={<HomePage />} />
                 </Route>
+
+                <Route
+                    path="admin"
+                    element={
+                        <Suspense fallback={<PageFallback />}>
+                            <AdminPage />
+                        </Suspense>
+                    }
+                />
             </Routes>
         </BrowserRouter>
     );

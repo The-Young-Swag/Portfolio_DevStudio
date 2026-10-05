@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { STAT_ICON_KEYS } from "@/components/hero/statIcons";
@@ -11,10 +10,15 @@ import {
     type HeroStat,
     type Profile,
 } from "@/services/profile/profile";
+import { useAdminToast } from "./toastContext";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { AddButton } from "./AdminList";
+import { SaveBar } from "./SaveBar";
 
 type HeroStatsManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type StatRow = HeroStat & { id: number };
@@ -29,7 +33,7 @@ function toRows(stats: HeroStat[], firstId: number): StatRow[] {
     return stats.map((stat, index) => ({ ...stat, id: firstId + index }));
 }
 
-export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProps) {
+export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroStatsManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: getProfile,
@@ -38,22 +42,31 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
     });
 
     const updateMutation = useUpdateProfile(token);
+    const notify = useAdminToast();
 
     const [rows, setRows] = useState<StatRow[] | null>(null);
+    const [initialRows, setInitialRows] = useState<StatRow[] | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
-    const [saved, setSaved] = useState(false);
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
     const [rowIdCounter, setRowIdCounter] = useState(0);
+    const [touched, setTouched] = useState(false);
 
     if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
         const stats = profileQuery.data.hero_stats ?? staticProfile.hero_stats;
         setSyncedProfile(profileQuery.data);
         setRows(toRows(stats, rowIdCounter + 1));
+        setInitialRows(toRows(stats, rowIdCounter + 1));
         setRowIdCounter(rowIdCounter + stats.length);
+        onDirtyChange(false);
+    }
+
+    function markTouched() {
+        setTouched(true);
+        onDirtyChange(true);
     }
 
     function updateRow(id: number, patch: Partial<HeroStat>) {
-        setSaved(false);
+        markTouched();
         setRows((current) =>
             current === null
                 ? current
@@ -62,7 +75,7 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
     }
 
     function moveRow(id: number, direction: -1 | 1) {
-        setSaved(false);
+        markTouched();
         setRows((current) => {
             if (current === null) {
                 return current;
@@ -83,12 +96,12 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
     }
 
     function removeRow(id: number) {
-        setSaved(false);
+        markTouched();
         setRows((current) => (current === null ? current : current.filter((row) => row.id !== id)));
     }
 
     function addRow() {
-        setSaved(false);
+        markTouched();
         setRowIdCounter((counter) => counter + 1);
         setRows((current) => [
             ...(current ?? []),
@@ -96,15 +109,18 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
         ]);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function discard() {
+        setRows(initialRows === null ? null : [...initialRows]);
+        setFormError(null);
+        onDirtyChange(false);
+    }
 
+    function commit() {
         if (rows === null || profileQuery.data === undefined) {
             return;
         }
 
         setFormError(null);
-        setSaved(false);
 
         const hero_stats: HeroStat[] = rows.map(({ label, value, suffix, icon, live }) => ({
             label: label.trim(),
@@ -117,7 +133,11 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
         updateMutation.mutate(
             { ...profileQuery.data, hero_stats },
             {
-                onSuccess: () => setSaved(true),
+                onSuccess: (profile) => {
+                    setInitialRows(toRows(profile.hero_stats ?? [], 0));
+                    onDirtyChange(false);
+                    notify("Saved and live on your site");
+                },
                 onError: (error: unknown) => {
                     if (isUnauthorized(error)) {
                         onUnauthorized();
@@ -131,27 +151,23 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
     }
 
     return (
-        <section aria-label="Hero stats">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Hero stats
-                </h2>
+        <div>
+            <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                    <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                        Home hero
+                    </h1>
 
-                <button
-                    type="button"
-                    onClick={addRow}
-                    className="
-                        font-mono
-                        text-[11px]
-                        text-(--accent-strong)
-                        hover:underline
-                    "
-                >
-                    Add stat
-                </button>
+                    <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
+                        Stats beside your portrait. Live sources are calculated
+                        automatically.
+                    </p>
+                </div>
+
+                <AddButton onClick={addRow}>Add stat</AddButton>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-5">
                 {profileQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading hero stats...
@@ -170,80 +186,59 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={handleSubmit}
-                        className="
-                            space-y-3
-                            rounded-2xl
-                            border
-                            border-(--glass-border)
-                            bg-(--glass-bg)
-                            p-5
-                            backdrop-blur-xl
-                            backdrop-saturate-160
-                        "
-                    >
+                    <>
                         {rows.length === 0 && (
                             <p className="font-mono text-[10.5px] text-(--graphite)">
                                 No stats. The row of stats will be hidden on the site.
                             </p>
                         )}
 
+                        <div className="space-y-3">
                         {rows.map((row, index) => (
                             <div
                                 key={row.id}
-                                className="space-y-2 rounded-xl border border-(--line) p-3"
+                                className="space-y-2 rounded-2xl border border-(--glass-border) bg-(--glass-bg) p-4 backdrop-blur-xl backdrop-saturate-160"
                             >
-                                <div className="grid gap-2 sm:grid-cols-2">
-                                    <label className="block">
-                                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                            Label
-                                        </span>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <Field label="Label">
                                         <input
                                             value={row.label}
                                             onChange={(event) =>
                                                 updateRow(row.id, { label: event.target.value })
                                             }
-                                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                                            className={adminFieldInputClassName}
                                         />
-                                    </label>
+                                    </Field>
 
-                                    <label className="block">
-                                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                            Value
-                                        </span>
+                                    <Field label="Value">
                                         <input
                                             value={row.value}
+                                            disabled={row.live !== null}
+                                            placeholder={row.live !== null ? "Calculated automatically" : ""}
                                             onChange={(event) =>
                                                 updateRow(row.id, { value: event.target.value })
                                             }
-                                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                                            className={adminFieldInputClassName}
                                         />
-                                    </label>
+                                    </Field>
 
-                                    <label className="block">
-                                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                            Suffix
-                                        </span>
+                                    <Field label="Suffix">
                                         <input
                                             value={row.suffix}
                                             onChange={(event) =>
                                                 updateRow(row.id, { suffix: event.target.value })
                                             }
-                                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                                            className={adminFieldInputClassName}
                                         />
-                                    </label>
+                                    </Field>
 
-                                    <label className="block">
-                                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                            Icon
-                                        </span>
+                                    <Field label="Icon">
                                         <select
                                             value={row.icon}
                                             onChange={(event) =>
                                                 updateRow(row.id, { icon: event.target.value })
                                             }
-                                            className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                                            className={adminFieldInputClassName}
                                         >
                                             {STAT_ICON_KEYS.map((key) => (
                                                 <option key={key} value={key}>
@@ -251,13 +246,10 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
                                                 </option>
                                             ))}
                                         </select>
-                                    </label>
+                                    </Field>
                                 </div>
 
-                                <label className="block">
-                                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                        Source
-                                    </span>
+                                <Field label="Source">
                                     <select
                                         value={row.live ?? ""}
                                         onChange={(event) =>
@@ -268,7 +260,7 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
                                                         : (event.target.value as HeroStat["live"]),
                                             })
                                         }
-                                        className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
+                                        className={adminFieldInputClassName}
                                     >
                                         {LIVE_OPTIONS.map((option) => (
                                             <option key={option.label} value={option.value}>
@@ -276,9 +268,9 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
                                             </option>
                                         ))}
                                     </select>
-                                </label>
+                                </Field>
 
-                                <div className="flex gap-3">
+                                <div className="flex gap-4">
                                     <button
                                         type="button"
                                         onClick={() => moveRow(row.id, -1)}
@@ -305,44 +297,23 @@ export function HeroStatsManager({ token, onUnauthorized }: HeroStatsManagerProp
                                 </div>
                             </div>
                         ))}
+                        </div>
 
                         {formError !== null && (
-                            <p className="font-mono text-[11px] text-red-500">{formError}</p>
+                            <div className="mt-3">
+                                <FormError message={formError} />
+                            </div>
                         )}
-
-                        {saved && (
-                            <p className="font-mono text-[11px] text-(--accent-strong)">
-                                Saved.
-                            </p>
-                        )}
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={updateMutation.isPending}
-                                className="
-                                    rounded-lg
-                                    border
-                                    border-(--accent-strong)
-                                    bg-(--accent-strong)
-                                    px-4
-                                    py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    text-white
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-deep)
-                                    hover:bg-(--accent-deep)
-                                    disabled:opacity-60
-                                "
-                            >
-                                {updateMutation.isPending ? "Saving..." : "Save"}
-                            </button>
-                        </div>
-                    </form>
+                    </>
                 )}
             </div>
-        </section>
+
+            <SaveBar
+                open={touched}
+                saving={updateMutation.isPending}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

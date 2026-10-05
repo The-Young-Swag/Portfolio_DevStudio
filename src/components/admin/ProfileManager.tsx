@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateProfile } from "@/hooks/profile/useProfile";
@@ -9,10 +8,15 @@ import {
     type Profile,
     type ProfileInput,
 } from "@/services/profile/profile";
+import { useAdminToast } from "./toastContext";
+import { AdminCard } from "./AdminCard";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
+import { SaveBar } from "./SaveBar";
 
 type ProfileManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 type ProfileFormFields = {
@@ -30,12 +34,6 @@ type ProfileFormFields = {
     contact_email_label: string;
     footer_note: string;
 };
-
-const fieldClassName =
-    "mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20";
-
-const labelClassName =
-    "font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)";
 
 function toFields(profile: Profile): ProfileFormFields {
     return {
@@ -77,7 +75,7 @@ function toInput(fields: ProfileFormFields, current: Profile): ProfileInput {
     };
 }
 
-export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
+export function ProfileManager({ token, onUnauthorized, onDirtyChange }: ProfileManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: getProfile,
@@ -86,34 +84,52 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
     });
 
     const updateMutation = useUpdateProfile(token);
+    const notify = useAdminToast();
 
     const [fields, setFields] = useState<ProfileFormFields | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
-    const [saved, setSaved] = useState(false);
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
+    const [touched, setTouched] = useState(false);
 
     if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
         setSyncedProfile(profileQuery.data);
         setFields(toFields(profileQuery.data));
+        setTouched(false);
+        onDirtyChange(false);
+    }
+
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function setField(name: keyof ProfileFormFields, value: string) {
-        setSaved(false);
         setFields((current) => (current === null ? current : { ...current, [name]: value }));
+        setDirty(true);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function discard() {
+        if (profileQuery.data === undefined) {
+            return;
+        }
 
+        setFields(toFields(profileQuery.data));
+        setFormError(null);
+        setDirty(false);
+    }
+
+    function commit() {
         if (fields === null || profileQuery.data === undefined) {
             return;
         }
 
         setFormError(null);
-        setSaved(false);
 
         updateMutation.mutate(toInput(fields, profileQuery.data), {
-            onSuccess: () => setSaved(true),
+            onSuccess: () => {
+                setDirty(false);
+                notify("Saved and live on your site");
+            },
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
@@ -126,14 +142,16 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
     }
 
     return (
-        <section aria-label="Profile">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Profile
-                </h2>
-            </div>
+        <div>
+            <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                Profile
+            </h1>
 
-            <div className="mt-4">
+            <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
+                Who you are, shown at the top of the home page and in the footer.
+            </p>
+
+            <div className="mt-5">
                 {profileQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading profile...
@@ -152,179 +170,144 @@ export function ProfileManager({ token, onUnauthorized }: ProfileManagerProps) {
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={handleSubmit}
-                        className="
-                            space-y-3
-                            rounded-2xl
-                            border
-                            border-(--glass-border)
-                            bg-(--glass-bg)
-                            p-5
-                            backdrop-blur-xl
-                            backdrop-saturate-160
-                        "
-                    >
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <label className="block">
-                                <span className={labelClassName}>Name</span>
-                                <input
-                                    value={fields.name}
-                                    onChange={(event) => setField("name", event.target.value)}
-                                    className={fieldClassName}
+                    <div className="space-y-4">
+                        <AdminCard title="Basics" subtitle="Name, headline and where you are">
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <Field label="Name">
+                                    <input
+                                        value={fields.name}
+                                        onChange={(event) => setField("name", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+
+                                <Field label="Headline">
+                                    <input
+                                        value={fields.headline}
+                                        onChange={(event) => setField("headline", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+
+                                <Field label="Location">
+                                    <input
+                                        value={fields.location}
+                                        onChange={(event) => setField("location", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+
+                                <Field label="Availability">
+                                    <input
+                                        value={fields.availability}
+                                        onChange={(event) => setField("availability", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
+                        </AdminCard>
+
+                        <AdminCard title="About" subtitle="Your intro paragraph">
+                            <Field label="Description" wide>
+                                <textarea
+                                    value={fields.description}
+                                    onChange={(event) => setField("description", event.target.value)}
+                                    rows={3}
+                                    className={adminFieldInputClassName}
                                 />
-                            </label>
+                            </Field>
+                        </AdminCard>
 
-                            <label className="block">
-                                <span className={labelClassName}>Headline</span>
-                                <input
-                                    value={fields.headline}
-                                    onChange={(event) => setField("headline", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                        <AdminCard title="Links" subtitle="Where people can find you" defaultOpen={false}>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <Field label="GitHub URL">
+                                    <input
+                                        value={fields.github}
+                                        onChange={(event) => setField("github", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
 
-                            <label className="block">
-                                <span className={labelClassName}>Location</span>
-                                <input
-                                    value={fields.location}
-                                    onChange={(event) => setField("location", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                                <Field label="LinkedIn URL">
+                                    <input
+                                        value={fields.linkedin}
+                                        onChange={(event) => setField("linkedin", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
 
-                            <label className="block">
-                                <span className={labelClassName}>Availability</span>
-                                <input
-                                    value={fields.availability}
-                                    onChange={(event) => setField("availability", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                                <Field label="Email">
+                                    <input
+                                        value={fields.email}
+                                        onChange={(event) => setField("email", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
+                        </AdminCard>
 
-                            <label className="block">
-                                <span className={labelClassName}>GitHub URL</span>
-                                <input
-                                    value={fields.github}
-                                    onChange={(event) => setField("github", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                        <AdminCard title="Contact section" subtitle="Heading and button on the contact block" defaultOpen={false}>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                <Field label="Contact heading">
+                                    <input
+                                        value={fields.contact_heading}
+                                        onChange={(event) => setField("contact_heading", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
 
-                            <label className="block">
-                                <span className={labelClassName}>LinkedIn URL</span>
-                                <input
-                                    value={fields.linkedin}
-                                    onChange={(event) => setField("linkedin", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                                <Field label="Contact email button label">
+                                    <input
+                                        value={fields.contact_email_label}
+                                        onChange={(event) => setField("contact_email_label", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
 
-                            <label className="block">
-                                <span className={labelClassName}>Email</span>
-                                <input
-                                    value={fields.email}
-                                    onChange={(event) => setField("email", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
-                        </div>
+                            <div className="mt-3">
+                                <Field label="Contact title" wide>
+                                    <input
+                                        value={fields.contact_title}
+                                        onChange={(event) => setField("contact_title", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
 
-                        <label className="block">
-                            <span className={labelClassName}>Description</span>
-                            <textarea
-                                value={fields.description}
-                                onChange={(event) => setField("description", event.target.value)}
-                                rows={3}
-                                className={fieldClassName}
-                            />
-                        </label>
+                            <div className="mt-3">
+                                <Field label="Contact intro" wide>
+                                    <textarea
+                                        value={fields.contact_intro}
+                                        onChange={(event) => setField("contact_intro", event.target.value)}
+                                        rows={3}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
 
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            <label className="block">
-                                <span className={labelClassName}>Contact heading</span>
-                                <input
-                                    value={fields.contact_heading}
-                                    onChange={(event) => setField("contact_heading", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
+                            <div className="mt-3">
+                                <Field label="Footer note" wide>
+                                    <input
+                                        value={fields.footer_note}
+                                        onChange={(event) => setField("footer_note", event.target.value)}
+                                        className={adminFieldInputClassName}
+                                    />
+                                </Field>
+                            </div>
+                        </AdminCard>
 
-                            <label className="block">
-                                <span className={labelClassName}>Contact email button label</span>
-                                <input
-                                    value={fields.contact_email_label}
-                                    onChange={(event) => setField("contact_email_label", event.target.value)}
-                                    className={fieldClassName}
-                                />
-                            </label>
-                        </div>
-
-                        <label className="block">
-                            <span className={labelClassName}>Contact title</span>
-                            <input
-                                value={fields.contact_title}
-                                onChange={(event) => setField("contact_title", event.target.value)}
-                                className={fieldClassName}
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className={labelClassName}>Contact intro</span>
-                            <textarea
-                                value={fields.contact_intro}
-                                onChange={(event) => setField("contact_intro", event.target.value)}
-                                rows={3}
-                                className={fieldClassName}
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className={labelClassName}>Footer note</span>
-                            <input
-                                value={fields.footer_note}
-                                onChange={(event) => setField("footer_note", event.target.value)}
-                                className={fieldClassName}
-                            />
-                        </label>
-
-                        {formError !== null && (
-                            <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                        )}
-
-                        {saved && (
-                            <p className="font-mono text-[11px] text-(--accent-strong)">
-                                Saved.
-                            </p>
-                        )}
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={updateMutation.isPending}
-                                className="
-                                    rounded-lg
-                                    border
-                                    border-(--accent-strong)
-                                    bg-(--accent-strong)
-                                    px-4
-                                    py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    text-white
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-deep)
-                                    hover:bg-(--accent-deep)
-                                    disabled:opacity-60
-                                "
-                            >
-                                {updateMutation.isPending ? "Saving..." : "Save"}
-                            </button>
-                        </div>
-                    </form>
+                        {formError !== null && <FormError message={formError} />}
+                    </div>
                 )}
             </div>
-        </section>
+
+            <SaveBar
+                open={touched}
+                saving={updateMutation.isPending}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

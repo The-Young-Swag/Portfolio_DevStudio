@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import type { PortraitState } from "@/components/hero/HeroPortrait";
@@ -10,11 +9,16 @@ import {
     type Profile,
     type PortraitState as PortraitContent,
 } from "@/services/profile/profile";
+import { useAdminToast } from "./toastContext";
+import { AdminCard } from "./AdminCard";
+import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ImageUploadField } from "./ImageUploadField";
+import { SaveBar } from "./SaveBar";
 
 type PortraitManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
 const PORTRAIT_STATES: { key: PortraitState; label: string }[] = [
@@ -39,7 +43,7 @@ function toForm(portrait: Record<string, PortraitContent>): PortraitForm {
     return form;
 }
 
-export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps) {
+export function PortraitManager({ token, onUnauthorized, onDirtyChange }: PortraitManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: getProfile,
@@ -48,35 +52,50 @@ export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps)
     });
 
     const updateMutation = useUpdateProfile(token);
+    const notify = useAdminToast();
 
     const [form, setForm] = useState<PortraitForm | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
-    const [saved, setSaved] = useState(false);
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
+    const [touched, setTouched] = useState(false);
 
     if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
         setSyncedProfile(profileQuery.data);
         setForm(toForm(profileQuery.data.portrait));
+        setTouched(false);
+        onDirtyChange(false);
+    }
+
+    function setDirty(next: boolean) {
+        setTouched(next);
+        onDirtyChange(next);
     }
 
     function setStateField(state: PortraitState, field: "image" | "alt", value: string) {
-        setSaved(false);
         setForm((current) =>
             current === null
                 ? current
                 : { ...current, [state]: { ...current[state], [field]: value } },
         );
+        setDirty(true);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function discard() {
+        if (profileQuery.data === undefined) {
+            return;
+        }
 
+        setForm(toForm(profileQuery.data.portrait));
+        setFormError(null);
+        setDirty(false);
+    }
+
+    function commit() {
         if (form === null || profileQuery.data === undefined) {
             return;
         }
 
         setFormError(null);
-        setSaved(false);
 
         const portrait: Record<string, PortraitContent> = {};
 
@@ -90,7 +109,10 @@ export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps)
         updateMutation.mutate(
             { ...profileQuery.data, portrait },
             {
-                onSuccess: () => setSaved(true),
+                onSuccess: () => {
+                    setDirty(false);
+                    notify("Saved and live on your site");
+                },
                 onError: (error: unknown) => {
                     if (isUnauthorized(error)) {
                         onUnauthorized();
@@ -104,19 +126,17 @@ export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps)
     }
 
     return (
-        <section aria-label="Portrait">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Portrait
-                </h2>
-            </div>
+        <div>
+            <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                Portrait
+            </h1>
 
-            <p className="mt-2 max-w-2xl font-mono text-[10.5px] leading-relaxed text-(--graphite)">
+            <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
                 One image per portrait state. Leave a state empty to keep its
                 bundled photo.
             </p>
 
-            <div className="mt-4">
+            <div className="mt-5">
                 {profileQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading portrait...
@@ -135,21 +155,9 @@ export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps)
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={handleSubmit}
-                        className="
-                            space-y-5
-                            rounded-2xl
-                            border
-                            border-(--glass-border)
-                            bg-(--glass-bg)
-                            p-5
-                            backdrop-blur-xl
-                            backdrop-saturate-160
-                        "
-                    >
+                    <div className="space-y-4">
                         {PORTRAIT_STATES.map(({ key, label }) => (
-                            <div key={key}>
+                            <AdminCard key={key} title={label} subtitle="Portrait state">
                                 <ImageUploadField
                                     label={label}
                                     value={form[key].image}
@@ -160,59 +168,32 @@ export function PortraitManager({ token, onUnauthorized }: PortraitManagerProps)
                                     maxEdge={900}
                                 />
 
-                                <label className="mt-2 block">
-                                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                        {label} alt text
-                                    </span>
-                                    <input
-                                        value={form[key].alt}
-                                        onChange={(event) =>
-                                            setStateField(key, "alt", event.target.value)
-                                        }
-                                        placeholder="Portrait of Ivan Harvey Rivera"
-                                        className="mt-1 w-full rounded-lg border border-(--glass-border) bg-white/40 px-3 py-2 text-[13px] text-(--ink) outline-none focus:border-(--accent-strong) dark:bg-black/20"
-                                    />
-                                </label>
-                            </div>
+                                <div className="mt-3">
+                                    <Field label={`${label} alt text`}>
+                                        <input
+                                            value={form[key].alt}
+                                            onChange={(event) =>
+                                                setStateField(key, "alt", event.target.value)
+                                            }
+                                            placeholder="Portrait of Ivan Harvey Rivera"
+                                            className={adminFieldInputClassName}
+                                        />
+                                    </Field>
+                                </div>
+                            </AdminCard>
                         ))}
 
-                        {formError !== null && (
-                            <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                        )}
-
-                        {saved && (
-                            <p className="font-mono text-[11px] text-(--accent-strong)">
-                                Saved.
-                            </p>
-                        )}
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={updateMutation.isPending}
-                                className="
-                                    rounded-lg
-                                    border
-                                    border-(--accent-strong)
-                                    bg-(--accent-strong)
-                                    px-4
-                                    py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    text-white
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-deep)
-                                    hover:bg-(--accent-deep)
-                                    disabled:opacity-60
-                                "
-                            >
-                                {updateMutation.isPending ? "Saving..." : "Save"}
-                            </button>
-                        </div>
-                    </form>
+                        {formError !== null && <FormError message={formError} />}
+                    </div>
                 )}
             </div>
-        </section>
+
+            <SaveBar
+                open={touched}
+                saving={updateMutation.isPending}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }

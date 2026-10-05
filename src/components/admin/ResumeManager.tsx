@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateProfile } from "@/hooks/profile/useProfile";
@@ -7,14 +6,18 @@ import { isUnauthorized } from "@/services/api";
 import {
     getProfile,
 } from "@/services/profile/profile";
+import { useAdminToast } from "./toastContext";
+import { FormError } from "./AdminFields";
+import { SaveBar } from "./SaveBar";
 import { PdfUploadField } from "./PdfUploadField";
 
 type ResumeManagerProps = {
     token: string;
     onUnauthorized: () => void;
+    onDirtyChange: (dirty: boolean) => void;
 };
 
-export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
+export function ResumeManager({ token, onUnauthorized, onDirtyChange }: ResumeManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: getProfile,
@@ -23,11 +26,12 @@ export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
     });
 
     const updateMutation = useUpdateProfile(token);
+    const notify = useAdminToast();
 
     const [resume, setResume] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
-    const [saved, setSaved] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [touched, setTouched] = useState(false);
 
     if (profileQuery.data !== undefined && !loaded) {
         setLoaded(true);
@@ -35,24 +39,37 @@ export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
     }
 
     function handleChange(url: string) {
-        setSaved(false);
         setResume(url);
+        setTouched(true);
+        onDirtyChange(true);
     }
 
-    function handleSubmit(event: FormEvent) {
-        event.preventDefault();
+    function discard() {
+        if (profileQuery.data === undefined) {
+            return;
+        }
 
+        setResume(profileQuery.data.resume ?? "");
+        setFormError(null);
+        setTouched(false);
+        onDirtyChange(false);
+    }
+
+    function commit() {
         if (!loaded || profileQuery.data === undefined) {
             return;
         }
 
         setFormError(null);
-        setSaved(false);
 
         updateMutation.mutate(
             { ...profileQuery.data, resume },
             {
-                onSuccess: () => setSaved(true),
+                onSuccess: () => {
+                    setTouched(false);
+                    onDirtyChange(false);
+                    notify("Saved and live on your site");
+                },
                 onError: (error: unknown) => {
                     if (isUnauthorized(error)) {
                         onUnauthorized();
@@ -66,19 +83,17 @@ export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
     }
 
     return (
-        <section aria-label="Resume">
-            <div className="mt-8 flex items-baseline justify-between">
-                <h2 className="font-display text-[20px] font-medium text-(--ink)">
-                    Resume
-                </h2>
-            </div>
+        <div>
+            <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                Resume
+            </h1>
 
-            <p className="mt-2 max-w-2xl font-mono text-[10.5px] leading-relaxed text-(--graphite)">
+            <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
                 Upload a PDF or paste a link. Clearing the field hides the
                 Resume button on the public site.
             </p>
 
-            <div className="mt-4">
+            <div className="mt-5">
                 {profileQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading resume...
@@ -97,8 +112,7 @@ export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
                         </button>
                     </div>
                 ) : (
-                    <form
-                        onSubmit={handleSubmit}
+                    <div
                         className="
                             space-y-3
                             rounded-2xl
@@ -119,43 +133,17 @@ export function ResumeManager({ token, onUnauthorized }: ResumeManagerProps) {
                             defaultFilename="resume.pdf"
                         />
 
-                        {formError !== null && (
-                            <p className="font-mono text-[11px] text-red-500">{formError}</p>
-                        )}
-
-                        {saved && (
-                            <p className="font-mono text-[11px] text-(--accent-strong)">
-                                Saved.
-                            </p>
-                        )}
-
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={updateMutation.isPending}
-                                className="
-                                    rounded-lg
-                                    border
-                                    border-(--accent-strong)
-                                    bg-(--accent-strong)
-                                    px-4
-                                    py-2
-                                    text-[12.5px]
-                                    font-medium
-                                    text-white
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-deep)
-                                    hover:bg-(--accent-deep)
-                                    disabled:opacity-60
-                                "
-                            >
-                                {updateMutation.isPending ? "Saving..." : "Save"}
-                            </button>
-                        </div>
-                    </form>
+                        {formError !== null && <FormError message={formError} />}
+                    </div>
                 )}
             </div>
-        </section>
+
+            <SaveBar
+                open={touched}
+                saving={updateMutation.isPending}
+                onSave={commit}
+                onDiscard={discard}
+            />
+        </div>
     );
 }
