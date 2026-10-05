@@ -1,30 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 
+import { createNightScheduler } from "./nightScheduler";
+import {
+    getDecimalTime,
+    getSkyState,
+    MOON_COLOR,
+    MOON_GLOW_RADIUS,
+    MOON_RADIUS,
+    SUN_COLOR,
+    SUN_GLOW_RADIUS,
+    SUN_RADIUS,
+} from "./skyState";
 import {
     formatDate,
     formatTime,
     formatTimeZone,
-    getDecimalHour,
-    getPhase,
-    getSkyConfig,
     TIME_ZONE,
 } from "./timeUtils";
-
-import type { TimePhase } from "./timeUtils";
-
-type TimeState = {
-    phase: TimePhase;
-    time: string;
-    dateLabel: string;
-    timeZoneLabel: string;
-    skyTop: string;
-    skyBottom: string;
-    starOpacity: number;
-    cloudOpacity: number;
-};
 
 const stars = [
     [70, 40, 1.4],
@@ -49,191 +44,136 @@ const stars = [
     [90, 115, 1.1],
 ] as const;
 
-/* ---- Animation constants (ported from the Right-Now reference) ---- */
+// One driver tick per second. Sky variables are minute-quantized, so the
+// per-tick work is a single pure state computation plus scheduler math;
+// nothing here re-renders the React tree.
+const TICK_MS = 1000;
+const TICK_SECONDS = TICK_MS / 1000;
 
-// Asia/Manila is fixed at UTC+8 (no DST), so the fractional hour can be
-// derived from the epoch cheaply on every frame.
-const MANILA_OFFSET_MS = 8 * 60 * 60 * 1000;
-
-const SUNRISE = 6.0;
-const SUNSET = 18.65;
-const HORIZON = 210;
-const AMP = 180;
-const MARGIN = 70;
-const WIDTH = 900;
-const RISE_EASE = 0.32;
-const RISE_LEAD_FRAC = 0.125;
-
-const SHOOT_INTERVAL_MS = 2500;
-const METEOR_STREAK_ANIM_S = 0.7;
-const METEOR_SHOWER_DURATION_S = 5;
-const UFO_EARLY_SLOT_WIN = 4;
-const UFO_EARLY_SLOT_LOSE = 7;
-const COMBO_TIME = 16;
-const UFO_FINAL_TIME = 32;
-const METEOR_TAIL_INTERVAL = 8;
+// Stable visibility before the scene (and its night session) may start,
+// so a mid-scroll flicker never reaches the scheduler.
 const VISIBILITY_DEBOUNCE_MS = 400;
 
-const SUN_COLOR = "#F7D88A";
-const MOON_COLOR = "#EDEEF5";
+// Shooting star cadence within a night session.
+const SHOOT_INTERVAL_S = 2.5;
 
-function clamp(value: number, low: number, high: number) {
-    return Math.max(low, Math.min(high, value));
-}
+// Meteor-shower stagger. METEOR_STREAK_ANIM_S must match the CSS
+// `.time-meteor-falling` animation-duration (0.7s): the stagger spreads the
+// streaks so the burst lasts METEOR_SHOWER_DURATION_S end to end.
+const METEOR_STREAK_ANIM_S = 0.7;
+const METEOR_SHOWER_DURATION_S = 5;
 
-function leadRemap(rawF: number) {
-    return RISE_LEAD_FRAC + (1 - RISE_LEAD_FRAC) * rawF;
-}
+// Fixed saucer altitude: clear of the peaks, below the cloud layer.
+const UFO_FLIGHT_Y = 55;
 
-function arcPos(f: number): [number, number] {
-    const x = MARGIN + f * (WIDTH - 2 * MARGIN);
-    const y =
-        HORIZON -
-        AMP * Math.pow(Math.sin(Math.PI * f), RISE_EASE);
-    return [x, y];
-}
+// Dev-only time override (?sky=HH:MM, Manila wall time) so every phase and
+// the night events can be exercised without waiting. The import.meta.env.DEV
+// guard lets the production build drop the branch entirely.
+function resolveNow(): Date {
+    const now = new Date();
 
-function createNightScheduler() {
-    let elapsed = 0;
-    let ufoTimes: number[] = [];
-    let ufoIndex = 0;
-    let meteorFixedTimes: number[] = [];
-    let meteorIndex = 0;
-    let meteorTailNext: number | null = null;
-
-    function reset() {
-        elapsed = 0;
-        const ufoWonCoinToss = Math.random() < 0.5;
-        ufoTimes = [
-            ufoWonCoinToss
-                ? UFO_EARLY_SLOT_WIN
-                : UFO_EARLY_SLOT_LOSE,
-            COMBO_TIME,
-            UFO_FINAL_TIME,
-        ];
-        ufoIndex = 0;
-        meteorFixedTimes = ufoWonCoinToss
-            ? [COMBO_TIME]
-            : [UFO_EARLY_SLOT_WIN, COMBO_TIME];
-        meteorIndex = 0;
-        meteorTailNext = null;
+    if (!import.meta.env.DEV) {
+        return now;
     }
 
-    function tick(dtSeconds: number) {
-        elapsed += dtSeconds;
-        const fired = { ufo: false, meteor: false };
+    const match = /^(\d{1,2}):(\d{2})$/.exec(
+        new URLSearchParams(window.location.search).get("sky") ?? "",
+    );
 
-        if (
-            ufoIndex < ufoTimes.length &&
-            elapsed >= ufoTimes[ufoIndex]
-        ) {
-            ufoIndex++;
-            fired.ufo = true;
-        }
-
-        if (meteorIndex < meteorFixedTimes.length) {
-            if (elapsed >= meteorFixedTimes[meteorIndex]) {
-                meteorIndex++;
-                fired.meteor = true;
-                if (meteorIndex >= meteorFixedTimes.length) {
-                    meteorTailNext =
-                        COMBO_TIME + METEOR_TAIL_INTERVAL;
-                }
-            }
-        } else if (
-            meteorTailNext !== null &&
-            elapsed >= meteorTailNext
-        ) {
-            meteorTailNext += METEOR_TAIL_INTERVAL;
-            fired.meteor = true;
-        }
-
-        return fired;
+    if (!match) {
+        return now;
     }
 
-    reset();
-    return { reset, tick };
-}
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
 
-function getTimeState(): TimeState {
-    const date = new Date();
+    if (hours > 23 || minutes > 59) {
+        return now;
+    }
 
-    const decimalHour = getDecimalHour(date);
-    const phase = getPhase(decimalHour);
-    const sky = getSkyConfig(phase);
+    const [year, month, day] = new Intl.DateTimeFormat("en-CA", {
+        timeZone: TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    })
+        .format(now)
+        .split("-")
+        .map(Number);
 
-    return {
-        phase,
-        time: formatTime(date),
-        dateLabel: formatDate(date),
-        timeZoneLabel: formatTimeZone(date),
-        ...sky,
-    };
+    // Asia/Manila is fixed at UTC+8 (no DST), so the offset is a constant.
+    return new Date(
+        Date.UTC(
+            year,
+            month - 1,
+            day,
+            hours - 8,
+            minutes,
+            now.getSeconds(),
+            now.getMilliseconds(),
+        ),
+    );
 }
 
 export function TimeSection() {
-    const [timeState, setTimeState] =
-        useState<TimeState>(getTimeState);
-    const [sceneActive, setSceneActive] = useState(true);
-
+    const wrapRef = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
-    const celestialRef = useRef<SVGCircleElement>(null);
-    const celestialGlowRef = useRef<SVGCircleElement>(null);
+    const phaseRef = useRef<HTMLParagraphElement>(null);
+    const timeRef = useRef<HTMLParagraphElement>(null);
+    const dateRef = useRef<HTMLParagraphElement>(null);
+    const timeZoneRef = useRef<HTMLParagraphElement>(null);
     const shootingStarRef = useRef<SVGLineElement>(null);
     const meteorGroupRef = useRef<SVGGElement>(null);
     const ufoBaseRef = useRef<SVGGElement>(null);
     const ufoRef = useRef<SVGGElement>(null);
 
-    useEffect(() => {
-        const interval = window.setInterval(() => {
-            setTimeState(getTimeState());
-        }, 1_000);
+    // First-paint values, computed once. Every later update writes through
+    // refs and CSS variables, never through React state.
+    const initialNow = resolveNow();
+    const initialSky = getSkyState(initialNow, TIME_ZONE);
+    const initialVars = {
+        "--sky-top": initialSky.skyTop,
+        "--sky-bottom": initialSky.skyBottom,
+        "--star-opacity": String(initialSky.starOpacity),
+        "--cloud-opacity": String(initialSky.cloudOpacity),
+        "--body-x": `${initialSky.x.toFixed(1)}px`,
+        "--body-y": `${initialSky.y.toFixed(1)}px`,
+        "--sun-opacity": initialSky.body === "sun" ? "1" : "0",
+        "--moon-opacity": initialSky.body === "moon" ? "1" : "0",
+    } as CSSProperties;
 
-        return () => {
-            window.clearInterval(interval);
-        };
-    }, []);
-
-    /* ---- Dynamic sky: sun/moon arc + rare night events ---- */
+    /* ---- Sky driver: single 1s timer, no render loop ---- */
     useEffect(() => {
+        const wrap = wrapRef.current;
         const svg = svgRef.current;
-        const celestial = celestialRef.current;
-        const glow = celestialGlowRef.current;
-        const shootingStar = shootingStarRef.current;
 
-        if (!svg || !celestial || !glow) {
+        if (!wrap || !svg) {
             return;
         }
 
         // TS can't carry the null-check narrowing into the closures below,
         // so capture the guarded references once.
-        const celestialEl: SVGCircleElement = celestial;
-        const glowEl: SVGCircleElement = glow;
+        const wrapEl: HTMLDivElement = wrap;
+        const svgEl: SVGSVGElement = svg;
 
         const reduceMotion =
             window.matchMedia &&
-            window.matchMedia(
-                "(prefers-reduced-motion: reduce)",
-            ).matches;
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        // Debounced visibility gate: only the *stable* in-view state may
-        // start a night session, so a mid-scroll flicker never resets it.
-        // The same signal drives the scene-active flag that pauses the
-        // CSS loops and the frame loop below.
-        let isIntersecting = false;
-        let cardVisible = false;
-        let visibilityDebounceTimer: number | undefined;
+        const scheduler = createNightScheduler();
         let hasSessionStarted = false;
         let nightElapsed = 0;
         let shootNextAt = 0;
-        let lastSecond = -1;
-        let lastFrameTs = 0;
-        let rafId = 0;
-        let visibilityObserver: IntersectionObserver | null = null;
+        let timer = 0;
+        let debounce = 0;
+        let running = false;
+        let isIntersecting = false;
+        let lastMinute = -1;
+        let lastTexts = "";
 
-        const scheduler = createNightScheduler();
+        function fireStreak() {
+            const line = shootingStarRef.current;
 
-        function fireStreak(line: SVGLineElement | null) {
             if (!line) {
                 return;
             }
@@ -278,35 +218,22 @@ export function TimeSection() {
             const baseAngle = 0.4 + Math.random() * 0.4;
             const n = lines.length;
 
-            const order = Array.from(
-                { length: n },
-                (_, i) => i,
-            );
+            const order = Array.from({ length: n }, (_, i) => i);
             for (let i = order.length - 1; i > 0; i--) {
-                const j = Math.floor(
-                    Math.random() * (i + 1),
-                );
-                [order[i], order[j]] = [
-                    order[j],
-                    order[i],
-                ];
+                const j = Math.floor(Math.random() * (i + 1));
+                [order[i], order[j]] = [order[j], order[i]];
             }
 
             const step =
-                (METEOR_SHOWER_DURATION_S -
-                    METEOR_STREAK_ANIM_S) /
-                (n - 1);
+                (METEOR_SHOWER_DURATION_S - METEOR_STREAK_ANIM_S) / (n - 1);
 
             lines.forEach((line, i) => {
-                const angle =
-                    baseAngle + (Math.random() - 0.5) * 0.18;
+                const angle = baseAngle + (Math.random() - 0.5) * 0.18;
                 const offset =
-                    (i - (n - 1) / 2) *
-                    (45 + Math.random() * 20);
+                    (i - (n - 1) / 2) * (45 + Math.random() * 20);
                 const len = 70 + Math.random() * 60;
                 const sx1 = radiantX + offset;
-                const sy1 =
-                    radiantY + (Math.random() - 0.5) * 12;
+                const sy1 = radiantY + (Math.random() - 0.5) * 12;
 
                 line.setAttribute("x1", sx1.toFixed(1));
                 line.setAttribute("y1", sy1.toFixed(1));
@@ -318,13 +245,11 @@ export function TimeSection() {
                     "y2",
                     (sy1 + len * Math.sin(angle)).toFixed(1),
                 );
-                line.style.animationDelay = (
-                    order[i] * step +
-                    (Math.random() - 0.5) * 0.1
-                ).toFixed(2) + "s";
-                line.classList.remove(
-                    "time-meteor-falling",
-                );
+                line.style.animationDelay =
+                    (order[i] * step + (Math.random() - 0.5) * 0.1).toFixed(
+                        2,
+                    ) + "s";
+                line.classList.remove("time-meteor-falling");
                 void line.getBoundingClientRect();
                 line.classList.add("time-meteor-falling");
             });
@@ -338,7 +263,7 @@ export function TimeSection() {
                 return;
             }
 
-            base.setAttribute("transform", "translate(0, 55)");
+            base.setAttribute("transform", `translate(0, ${UFO_FLIGHT_Y})`);
             ufo.classList.remove("time-ufo-flying");
             void ufo.getBoundingClientRect();
             ufo.classList.add("time-ufo-flying");
@@ -349,244 +274,190 @@ export function TimeSection() {
             );
         }
 
-        function setCelestialState(
-            useMoon: boolean,
+        function writeSkyVars(
+            skyTop: string,
+            skyBottom: string,
+            starOpacity: number,
+            cloudOpacity: number,
+            body: string,
+            x: number,
+            y: number,
         ) {
-            const bodyColor = useMoon
-                ? MOON_COLOR
-                : SUN_COLOR;
-            const bodyRadius = useMoon ? 13 : 19;
-            const glowRadius = useMoon ? 30 : 44;
-
-            celestialEl.setAttribute(
-                "r",
-                String(bodyRadius),
+            svgEl.style.setProperty("--sky-top", skyTop);
+            svgEl.style.setProperty("--sky-bottom", skyBottom);
+            svgEl.style.setProperty("--star-opacity", String(starOpacity));
+            svgEl.style.setProperty("--cloud-opacity", String(cloudOpacity));
+            svgEl.style.setProperty("--body-x", `${x.toFixed(1)}px`);
+            svgEl.style.setProperty("--body-y", `${y.toFixed(1)}px`);
+            svgEl.style.setProperty("--sun-opacity", body === "sun" ? "1" : "0");
+            svgEl.style.setProperty(
+                "--moon-opacity",
+                body === "moon" ? "1" : "0",
             );
-            celestialEl.setAttribute("fill", bodyColor);
-            glowEl.setAttribute("r", String(glowRadius));
-            glowEl.setAttribute("fill", bodyColor);
         }
 
-        function tick(now: number) {
-            const dt = Math.min(now - lastFrameTs, 100);
-            lastFrameTs = now;
+        function writeTexts(now: Date, phase: string) {
+            const time = formatTime(now);
+            const date = formatDate(now);
+            const zone = formatTimeZone(now);
+            const key = `${phase}|${time}|${date}|${zone}`;
 
-            if (!cardVisible) {
-                rafId = requestAnimationFrame(tick);
+            if (key === lastTexts) {
                 return;
             }
 
-            const t =
-                ((Date.now() + MANILA_OFFSET_MS) / 3600000) %
-                24;
+            lastTexts = key;
 
-            const isNight = t >= SUNSET || t < SUNRISE;
-
-            const sunF =
-                clamp(
-                    (t - (SUNRISE - 0.7)) / 0.7,
-                    0,
-                    1,
-                ) *
-                clamp(
-                    ((SUNSET + 0.7) - t) / 0.7,
-                    0,
-                    1,
-                );
-            const useMoon = sunF < 0.5;
-
-            // Sun: rises at SUNRISE, sets at SUNSET.
-            const dayFRaw = clamp(
-                (t - SUNRISE) / (SUNSET - SUNRISE),
-                0,
-                1,
-            );
-            const dayF = leadRemap(dayFRaw);
-            const [sunX, sunY] = arcPos(dayF);
-
-            // Moon: continues the same arc through the night.
-            const nightSpan = 24 - SUNSET + SUNRISE;
-            const tNight =
-                t >= SUNSET
-                    ? t - SUNSET
-                    : t + 24 - SUNSET;
-            const nightFRaw = clamp(
-                tNight / nightSpan,
-                0,
-                1,
-            );
-            const nightF = leadRemap(nightFRaw);
-            const [moonX, moonY] = arcPos(nightF);
-
-            const [cx, cy] = useMoon
-                ? [moonX, moonY]
-                : [sunX, sunY];
-
-            celestialEl.setAttribute("cx", cx.toFixed(2));
-            celestialEl.setAttribute("cy", cy.toFixed(2));
-            glowEl.setAttribute("cx", cx.toFixed(2));
-            glowEl.setAttribute("cy", cy.toFixed(2));
-
-            const thisSecond = Math.floor(
-                Date.now() / 1000,
-            );
-
-            if (thisSecond !== lastSecond) {
-                lastSecond = thisSecond;
-                setCelestialState(useMoon);
-
-                if (!isNight) {
-                    hasSessionStarted = false;
-                } else if (
-                    !hasSessionStarted &&
-                    cardVisible
-                ) {
-                    hasSessionStarted = true;
-                    nightElapsed = 0;
-                    shootNextAt =
-                        Math.random() < 0.5
-                            ? 0
-                            : SHOOT_INTERVAL_MS;
-                    scheduler.reset();
-                }
+            if (phaseRef.current) {
+                phaseRef.current.textContent = phase;
             }
 
-            if (
-                isNight &&
-                hasSessionStarted &&
-                cardVisible
-            ) {
-                nightElapsed += dt;
-
-                if (nightElapsed >= shootNextAt) {
-                    shootNextAt += SHOOT_INTERVAL_MS;
-                    fireStreak(shootingStar);
-                }
-
-                const fired = scheduler.tick(dt / 1000);
-
-                if (fired.ufo) {
-                    launchUFO();
-                }
-
-                if (fired.meteor) {
-                    launchMeteorShower();
-                }
+            if (timeRef.current) {
+                timeRef.current.textContent = time;
             }
 
-            rafId = requestAnimationFrame(tick);
+            if (dateRef.current) {
+                dateRef.current.textContent = date;
+            }
+
+            if (timeZoneRef.current) {
+                timeZoneRef.current.textContent = `${TIME_ZONE} · ${zone}`;
+            }
+
+            svgEl.setAttribute("aria-label", `Current time scene: ${phase}`);
         }
 
-        if (reduceMotion) {
-            // Static but sensible placement for reduced-motion users.
-            const t =
-                ((Date.now() + MANILA_OFFSET_MS) / 3600000) %
-                24;
-            const sunF =
-                clamp(
-                    (t - (SUNRISE - 0.7)) / 0.7,
-                    0,
-                    1,
-                ) *
-                clamp(
-                    ((SUNSET + 0.7) - t) / 0.7,
-                    0,
-                    1,
+        function stepNight(isNight: boolean) {
+            if (!isNight) {
+                // Night ended: drop the session so the next night starts a
+                // fresh one. This is the only place the flag resets —
+                // visibility flicker never touches it.
+                hasSessionStarted = false;
+                return;
+            }
+
+            if (!hasSessionStarted) {
+                hasSessionStarted = true;
+                nightElapsed = 0;
+                shootNextAt = Math.random() < 0.5 ? 0 : SHOOT_INTERVAL_S;
+                scheduler.reset();
+            }
+
+            if (reduceMotion) {
+                return;
+            }
+
+            nightElapsed += TICK_SECONDS;
+
+            if (nightElapsed >= shootNextAt) {
+                shootNextAt += SHOOT_INTERVAL_S;
+                fireStreak();
+            }
+
+            const fired = scheduler.tick(TICK_SECONDS);
+
+            if (fired.ufo) {
+                launchUFO();
+            }
+
+            if (fired.meteor) {
+                launchMeteorShower();
+            }
+        }
+
+        function step() {
+            const now = resolveNow();
+            const sky = getSkyState(now, TIME_ZONE);
+            const minute = Math.floor(getDecimalTime(now, TIME_ZONE) * 60);
+
+            if (minute !== lastMinute) {
+                lastMinute = minute;
+                writeSkyVars(
+                    sky.skyTop,
+                    sky.skyBottom,
+                    sky.starOpacity,
+                    sky.cloudOpacity,
+                    sky.body,
+                    sky.x,
+                    sky.y,
                 );
-            const useMoon = sunF < 0.5;
-            const dayFRaw = clamp(
-                (t - SUNRISE) / (SUNSET - SUNRISE),
-                0,
-                1,
-            );
-            const [sunX, sunY] = arcPos(leadRemap(dayFRaw));
-            const nightSpan = 24 - SUNSET + SUNRISE;
-            const tNight =
-                t >= SUNSET
-                    ? t - SUNSET
-                    : t + 24 - SUNSET;
-            const [moonX, moonY] = arcPos(
-                leadRemap(clamp(tNight / nightSpan, 0, 1)),
-            );
-            const [cx, cy] = useMoon
-                ? [moonX, moonY]
-                : [sunX, sunY];
+                writeTexts(now, sky.phase);
+            }
 
-            celestialEl.setAttribute("cx", cx.toFixed(2));
-            celestialEl.setAttribute("cy", cy.toFixed(2));
-            glowEl.setAttribute("cx", cx.toFixed(2));
-            glowEl.setAttribute("cy", cy.toFixed(2));
-            setCelestialState(useMoon);
-            return;
+            stepNight(sky.isNight);
         }
+
+        function start() {
+            if (running) {
+                return;
+            }
+
+            running = true;
+            wrapEl.dataset.sceneActive = "true";
+            lastMinute = -1;
+            step();
+            timer = window.setInterval(step, TICK_MS);
+        }
+
+        function stop() {
+            if (!running) {
+                return;
+            }
+
+            running = false;
+            wrapEl.dataset.sceneActive = "false";
+            window.clearInterval(timer);
+        }
+
+        function scheduleVisibilityUpdate() {
+            window.clearTimeout(debounce);
+            debounce = window.setTimeout(() => {
+                if (isIntersecting) {
+                    start();
+                } else {
+                    stop();
+                }
+            }, VISIBILITY_DEBOUNCE_MS);
+        }
+
+        let visibilityObserver: IntersectionObserver | null = null;
 
         if ("IntersectionObserver" in window) {
             visibilityObserver = new IntersectionObserver(
                 (entries) => {
                     isIntersecting = entries[0].isIntersecting;
-
-                    if (visibilityDebounceTimer) {
-                        window.clearTimeout(
-                            visibilityDebounceTimer,
-                        );
-                    }
-
-                    visibilityDebounceTimer =
-                        window.setTimeout(() => {
-                            cardVisible = isIntersecting;
-                            setSceneActive(isIntersecting);
-                        }, VISIBILITY_DEBOUNCE_MS);
+                    scheduleVisibilityUpdate();
                 },
                 { threshold: 0.3 },
             );
 
-            visibilityObserver.observe(svg);
+            visibilityObserver.observe(svgEl);
         } else {
-            cardVisible = true;
+            start();
         }
 
         function handleVisibilityChange() {
             if (document.hidden) {
-                if (visibilityDebounceTimer) {
-                    window.clearTimeout(visibilityDebounceTimer);
-                }
-
-                cardVisible = false;
-                setSceneActive(false);
+                // Tab hidden: freeze the timer and the CSS loops. The
+                // scheduler keeps its elapsed time, so showing the tab again
+                // resumes the night instead of restarting it.
+                window.clearTimeout(debounce);
+                stop();
             } else if (isIntersecting) {
-                if (visibilityDebounceTimer) {
-                    window.clearTimeout(visibilityDebounceTimer);
-                }
-
-                visibilityDebounceTimer =
-                    window.setTimeout(() => {
-                        cardVisible = isIntersecting;
-                        setSceneActive(isIntersecting);
-                    }, VISIBILITY_DEBOUNCE_MS);
+                scheduleVisibilityUpdate();
             }
         }
 
-        document.addEventListener(
-            "visibilitychange",
-            handleVisibilityChange,
-        );
-
-        rafId = requestAnimationFrame(tick);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
-            cancelAnimationFrame(rafId);
-
+            window.clearInterval(timer);
+            window.clearTimeout(debounce);
             visibilityObserver?.disconnect();
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange,
             );
-
-            if (visibilityDebounceTimer) {
-                window.clearTimeout(
-                    visibilityDebounceTimer,
-                );
-            }
         };
     }, []);
 
@@ -600,7 +471,8 @@ export function TimeSection() {
                 />
 
                 <div
-                    data-scene-active={sceneActive}
+                    ref={wrapRef}
+                    data-scene-active="true"
                     className="
                         mt-4
                         overflow-hidden
@@ -617,9 +489,10 @@ export function TimeSection() {
                         ref={svgRef}
                         viewBox="0 0 900 280"
                         xmlns="http://www.w3.org/2000/svg"
+                        style={initialVars}
                         className="block h-auto w-full"
                         role="img"
-                        aria-label={`Current time scene: ${timeState.phase}`}
+                        aria-label={`Current time scene: ${initialSky.phase}`}
                     >
                         <defs>
                             {/* Sky */}
@@ -631,19 +504,13 @@ export function TimeSection() {
                                 y2="1"
                             >
                                 <stop
-                                    className="time-sky-stop"
+                                    className="time-sky-top"
                                     offset="0%"
-                                    stopColor={
-                                        timeState.skyTop
-                                    }
                                 />
 
                                 <stop
-                                    className="time-sky-stop"
+                                    className="time-sky-bottom"
                                     offset="100%"
-                                    stopColor={
-                                        timeState.skyBottom
-                                    }
                                 />
                             </linearGradient>
 
@@ -667,25 +534,6 @@ export function TimeSection() {
                                     stopOpacity="0"
                                 />
                             </linearGradient>
-
-                            {/* Celestial glow */}
-                            <filter
-                                id="glow"
-                                x="-60%"
-                                y="-60%"
-                                width="220%"
-                                height="220%"
-                            >
-                                <feGaussianBlur
-                                    stdDeviation="8"
-                                    result="blur"
-                                />
-
-                                <feMerge>
-                                    <feMergeNode in="blur" />
-                                    <feMergeNode in="SourceGraphic" />
-                                </feMerge>
-                            </filter>
 
                             {/* Reusable pine tree */}
                             <g id="pineTree">
@@ -745,38 +593,21 @@ export function TimeSection() {
                         />
 
                         {/* Stars */}
-                        <g
-                            style={{
-                                opacity:
-                                    timeState.starOpacity,
-                                transition:
-                                    "opacity 2s ease",
-                            }}
-                        >
-                            {stars.map(
-                                ([cx, cy, r], index) => (
-                                    <circle
-                                        key={index}
-                                        className="time-star"
-                                        cx={cx}
-                                        cy={cy}
-                                        r={r}
-                                        fill="#EDEDEF"
-                                    />
-                                ),
-                            )}
+                        <g className="time-stars">
+                            {stars.map(([cx, cy, r], index) => (
+                                <circle
+                                    key={index}
+                                    className="time-star"
+                                    cx={cx}
+                                    cy={cy}
+                                    r={r}
+                                    fill="#EDEDEF"
+                                />
+                            ))}
                         </g>
 
                         {/* Clouds */}
-                        <g
-                            fill="#FFFFFF"
-                            style={{
-                                opacity:
-                                    timeState.cloudOpacity,
-                                transition:
-                                    "opacity 2s ease",
-                            }}
-                        >
+                        <g className="time-clouds" fill="#FFFFFF">
                             <g className="time-cloud">
                                 <ellipse
                                     cx="190"
@@ -820,7 +651,7 @@ export function TimeSection() {
                         </g>
 
                         {/* Rare shooting star — line attributes are set per
-                            launch by the animation loop. */}
+                            launch by the driver. */}
                         <line
                             ref={shootingStarRef}
                             className="time-shooting-star"
@@ -840,18 +671,16 @@ export function TimeSection() {
                             strokeWidth="1.4"
                             strokeLinecap="round"
                         >
-                            {Array.from({ length: 6 }).map(
-                                (_, index) => (
-                                    <line
-                                        key={index}
-                                        className="time-meteor"
-                                        x1="0"
-                                        y1="0"
-                                        x2="0"
-                                        y2="0"
-                                    />
-                                ),
-                            )}
+                            {Array.from({ length: 6 }).map((_, index) => (
+                                <line
+                                    key={index}
+                                    className="time-meteor"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="0"
+                                />
+                            ))}
                         </g>
 
                         {/* Ultra-rare UFO flyby */}
@@ -873,28 +702,30 @@ export function TimeSection() {
                             fill="url(#mist)"
                         />
 
-                        {/* Sun / Moon glow — position is animated by the
-                            RAF loop; CSS adds the pulsing breathe. */}
-                        <circle
-                            ref={celestialGlowRef}
-                            className="time-glow-pulse time-celestial"
-                            cx="450"
-                            cy="130"
-                            r="30"
-                            fill="#C7CBDA"
-                            opacity="0.2"
-                            filter="url(#glow)"
-                        />
+                        {/* Sun / Moon — positioned by CSS variables so the
+                            glide stays on the compositor; the idle body
+                            crossfades via opacity. */}
+                        <g className="time-body">
+                            <g className="time-body-sun">
+                                <circle
+                                    className="time-glow-pulse"
+                                    r={SUN_GLOW_RADIUS}
+                                    fill={SUN_COLOR}
+                                    opacity="0.25"
+                                />
+                                <circle r={SUN_RADIUS} fill={SUN_COLOR} />
+                            </g>
 
-                        {/* Sun / Moon */}
-                        <circle
-                            ref={celestialRef}
-                            className="time-celestial"
-                            cx="450"
-                            cy="130"
-                            r="13"
-                            fill="#C7CBDA"
-                        />
+                            <g className="time-body-moon">
+                                <circle
+                                    className="time-glow-pulse"
+                                    r={MOON_GLOW_RADIUS}
+                                    fill={MOON_COLOR}
+                                    opacity="0.25"
+                                />
+                                <circle r={MOON_RADIUS} fill={MOON_COLOR} />
+                            </g>
+                        </g>
 
                         {/* Far ridge */}
                         <path
@@ -1016,6 +847,7 @@ export function TimeSection() {
                     >
                         <div>
                             <p
+                                ref={phaseRef}
                                 className="
                                     mb-1
                                     font-mono
@@ -1025,10 +857,11 @@ export function TimeSection() {
                                     text-(--graphite-soft)
                                 "
                             >
-                                {timeState.phase}
+                                {initialSky.phase}
                             </p>
 
                             <p
+                                ref={timeRef}
                                 className="
                                     font-display
                                     text-[30px]
@@ -1036,22 +869,24 @@ export function TimeSection() {
                                     text-(--ink)
                                 "
                             >
-                                {timeState.time}
+                                {formatTime(initialNow)}
                             </p>
                         </div>
 
                         <div className="text-right">
                             <p
+                                ref={dateRef}
                                 className="
                                     font-mono
                                     text-[11.5px]
                                     text-(--graphite)
                                 "
                             >
-                                {timeState.dateLabel}
+                                {formatDate(initialNow)}
                             </p>
 
                             <p
+                                ref={timeZoneRef}
                                 className="
                                     mt-0.5
                                     font-mono
@@ -1059,8 +894,7 @@ export function TimeSection() {
                                     text-(--graphite-soft)
                                 "
                             >
-                                {TIME_ZONE} ·{" "}
-                                {timeState.timeZoneLabel}
+                                {TIME_ZONE} · {formatTimeZone(initialNow)}
                             </p>
                         </div>
                     </div>

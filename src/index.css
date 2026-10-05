@@ -357,6 +357,55 @@ section[id] {
     }
 }
 
+/*
+   RIGHT NOW — SKY SCENE
+
+   Ambient motion is transform/opacity keyframes only, so it stays on the
+   compositor. The driver writes CSS variables at most once a minute; there
+   are no per-frame geometry writes (cx/cy/r/filter/gradient stops).
+*/
+
+.time-sky-top {
+    stop-color: var(--sky-top, #75A9C4);
+    transition: stop-color 2s linear;
+}
+
+.time-sky-bottom {
+    stop-color: var(--sky-bottom, #DCE8E2);
+    transition: stop-color 2s linear;
+}
+
+.time-stars {
+    opacity: var(--star-opacity, 0);
+    transition: opacity 2s ease;
+}
+
+.time-clouds {
+    opacity: var(--cloud-opacity, 0.8);
+    transition: opacity 2s ease;
+}
+
+/* Sun / Moon wrapper: a 60s linear transform transition fed by minutely
+   variable writes, so the body glides continuously with no per-frame work.
+   The idle body crossfades through opacity. */
+.time-body {
+    transform: translate(
+        var(--body-x, 450px),
+        var(--body-y, 130px)
+    );
+    transition: transform 60s linear;
+}
+
+.time-body-sun {
+    opacity: var(--sun-opacity, 1);
+    transition: opacity 1.5s linear;
+}
+
+.time-body-moon {
+    opacity: var(--moon-opacity, 0);
+    transition: opacity 1.5s linear;
+}
+
 @keyframes time-cloud-drift {
     from {
         transform: translateX(-18px);
@@ -411,6 +460,7 @@ section[id] {
 
 .time-cloud {
     animation: time-cloud-drift 18s ease-in-out infinite alternate;
+    will-change: transform;
 }
 
 .time-cloud-slow {
@@ -441,17 +491,6 @@ section[id] {
 
 .time-star:nth-child(4n) {
     animation-delay: 1.5s;
-}
-
-.time-sky-stop {
-    transition: stop-color 2s linear;
-}
-
-.time-celestial,
-.time-glow-pulse {
-    transition:
-        fill 1.4s linear,
-        r 0.8s ease;
 }
 
 .time-glow-pulse {
@@ -508,6 +547,7 @@ section[id] {
 
 .time-ufo-flying {
     animation: time-ufo-fly 5.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    will-change: transform;
 }
 
 @keyframes time-ufo-fly {
@@ -551,6 +591,16 @@ section[id] {
     .time-meteor,
     .time-ufo {
         animation: none;
+    }
+
+    .time-body,
+    .time-body-sun,
+    .time-body-moon,
+    .time-stars,
+    .time-clouds,
+    .time-sky-top,
+    .time-sky-bottom {
+        transition: none;
     }
 }
 
