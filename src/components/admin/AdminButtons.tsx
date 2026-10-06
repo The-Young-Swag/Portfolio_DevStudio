@@ -124,12 +124,15 @@ export function ConfirmDeleteButton({
     onConfirm,
     confirmLabel = "Click again to delete",
     disabled = false,
+    small = false,
 }: {
     onConfirm: () => void;
     confirmLabel?: string;
     disabled?: boolean;
+    small?: boolean;
 }) {
     const [armed, setArmed] = useState(false);
+    const sizeClassName = small ? "px-2.5 py-1 text-[12px]" : "px-4 py-2 text-[13px]";
 
     if (!armed) {
         return (
@@ -137,8 +140,9 @@ export function ConfirmDeleteButton({
                 type="button"
                 onClick={() => setArmed(true)}
                 disabled={disabled}
-                className="
+                className={`
                     inline-flex
+                    shrink-0
                     items-center
                     justify-center
                     gap-2
@@ -146,9 +150,6 @@ export function ConfirmDeleteButton({
                     border
                     border-(--glass-border)
                     bg-(--glass-bg)
-                    px-4
-                    py-2
-                    text-[13px]
                     font-medium
                     text-red-500
                     transition-colors
@@ -158,7 +159,8 @@ export function ConfirmDeleteButton({
                     focus-visible:ring-2
                     focus-visible:ring-red-500
                     disabled:opacity-60
-                "
+                    ${sizeClassName}
+                `}
             >
                 Delete
             </button>
@@ -173,8 +175,9 @@ export function ConfirmDeleteButton({
                 onConfirm();
             }}
             disabled={disabled}
-            className="
+            className={`
                 inline-flex
+                shrink-0
                 items-center
                 justify-center
                 gap-2
@@ -182,9 +185,6 @@ export function ConfirmDeleteButton({
                 border
                 border-red-500
                 bg-red-500
-                px-4
-                py-2
-                text-[13px]
                 font-medium
                 text-white
                 transition-colors
@@ -194,7 +194,8 @@ export function ConfirmDeleteButton({
                 focus-visible:ring-2
                 focus-visible:ring-red-500
                 disabled:opacity-60
-            "
+                ${sizeClassName}
+            `}
         >
             {confirmLabel}
         </button>

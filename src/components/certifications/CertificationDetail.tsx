@@ -1,5 +1,6 @@
 import { Check, Download, ShieldCheck } from "lucide-react";
 
+import { ContentImage } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
 import { CertificationGallery, type GalleryShot } from "./CertificationGallery";
 import { CertificationInfoCard } from "./CertificationInfoCard";
@@ -178,12 +179,37 @@ export function CertificationDetail({
                             <ul className="space-y-4">
                                 {courses.map((course) => (
                                     <li key={course.id} className="flex min-w-0 gap-3">
-                                        <Check
-                                            size={20}
-                                            strokeWidth={2}
-                                            aria-hidden="true"
-                                            className="mt-0.5 shrink-0 text-(--accent-strong)"
-                                        />
+                                        {course.badge_image !== "" ? (
+                                            course.badge_link !== "" ? (
+                                                <a
+                                                    href={course.badge_link}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="mt-0.5 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-strong)"
+                                                >
+                                                    <ContentImage
+                                                        src={course.badge_image}
+                                                        alt={`${course.name} badge`}
+                                                        imageClassName="h-10 w-10 rounded-lg border border-(--line) object-cover"
+                                                        placeholderClassName="h-10 w-10 rounded-lg border border-(--line)"
+                                                    />
+                                                </a>
+                                            ) : (
+                                                <ContentImage
+                                                    src={course.badge_image}
+                                                    alt={`${course.name} badge`}
+                                                    imageClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line) object-cover"
+                                                    placeholderClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line)"
+                                                />
+                                            )
+                                        ) : (
+                                            <Check
+                                                size={20}
+                                                strokeWidth={2}
+                                                aria-hidden="true"
+                                                className="mt-0.5 shrink-0 text-(--accent-strong)"
+                                            />
+                                        )}
 
                                         <span className="min-w-0">
                                             <span className="block break-words text-[15px] leading-relaxed text-(--graphite)">

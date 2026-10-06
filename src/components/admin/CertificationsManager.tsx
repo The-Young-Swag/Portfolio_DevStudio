@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus } from "lucide-react";
 
 import {
     useCreateCertification,
@@ -117,16 +117,22 @@ function subtitleFor(fields: Pick<CertificationFormFields, "issuer" | "year">): 
     );
 }
 
+function FormSubhead({ children }: PropsWithChildren) {
+    return (
+        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft) sm:col-span-2">
+            {children}
+        </p>
+    );
+}
+
 function CertificationForm({
     fields,
-    parentOptions,
     formError,
     token,
     onUnauthorized,
     onField,
 }: {
     fields: CertificationFormFields;
-    parentOptions: Certification[];
     formError: string | null;
     token: string;
     onUnauthorized: () => void;
@@ -134,6 +140,8 @@ function CertificationForm({
 }) {
     return (
         <>
+            <FormSubhead>Details</FormSubhead>
+
             <Field label="Title" wide>
                 <input
                     value={fields.name}
@@ -186,30 +194,6 @@ function CertificationForm({
                 />
             </Field>
 
-            <Field label="Verify link" wide>
-                <input
-                    value={fields.link}
-                    onChange={(event) => onField("link", event.target.value)}
-                    placeholder="https://…"
-                    className={adminFieldInputClassName}
-                />
-            </Field>
-
-            <Field label="Group under" hint="Group courses under a parent certificate">
-                <select
-                    value={fields.parent_id}
-                    onChange={(event) => onField("parent_id", event.target.value)}
-                    className={adminFieldInputClassName}
-                >
-                    <option value="">None (top level)</option>
-                    {parentOptions.map((option) => (
-                        <option key={option.id} value={option.id}>
-                            {option.name}
-                        </option>
-                    ))}
-                </select>
-            </Field>
-
             <Field label="Accent">
                 <select
                     value={fields.accent}
@@ -234,24 +218,49 @@ function CertificationForm({
                 />
             </Field>
 
-            <ImageUploadField
-                label="Certificate image"
-                value={fields.image}
-                onChange={(url) => onField("image", url)}
-                token={token}
-                onUnauthorized={onUnauthorized}
-                aspect={21 / 9}
-                maxEdge={1280}
-            />
+            <FormSubhead>Cover image and files</FormSubhead>
 
-            <PdfUploadField
-                label="Certificate PDF"
-                value={fields.pdf}
-                onChange={(url) => onField("pdf", url)}
-                token={token}
-                onUnauthorized={onUnauthorized}
-                defaultFilename="certificate.pdf"
-            />
+            <div className="sm:col-span-2">
+                <ImageUploadField
+                    label="Certificate image"
+                    value={fields.image}
+                    onChange={(url) => onField("image", url)}
+                    token={token}
+                    onUnauthorized={onUnauthorized}
+                    aspect={21 / 9}
+                    maxEdge={1280}
+                />
+
+                <p className="mt-1 text-[12px] leading-relaxed text-(--graphite-soft)">
+                    Shown on the card. A PDF alone does not make a cover image.
+                </p>
+            </div>
+
+            <div className="sm:col-span-2">
+                <PdfUploadField
+                    label="Certificate PDF"
+                    value={fields.pdf}
+                    onChange={(url) => onField("pdf", url)}
+                    token={token}
+                    onUnauthorized={onUnauthorized}
+                    defaultFilename="certificate.pdf"
+                />
+
+                <p className="mt-1 text-[12px] leading-relaxed text-(--graphite-soft)">
+                    Offered as a download button on the detail page.
+                </p>
+            </div>
+
+            <FormSubhead>Links</FormSubhead>
+
+            <Field label="Verify link" wide>
+                <input
+                    value={fields.link}
+                    onChange={(event) => onField("link", event.target.value)}
+                    placeholder="https://…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
 
             <ImageUploadField
                 label="Badge image"
@@ -306,12 +315,26 @@ export function CertificationsManager({
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [moving, setMoving] = useState(false);
+    const [courseTitle, setCourseTitle] = useState("");
+    const [courseLink, setCourseLink] = useState("");
+    const [courseError, setCourseError] = useState<string | null>(null);
 
     const certifications = certificationsQuery.data ?? [];
+    const listed = certifications.filter(
+        (certification) =>
+            certification.parent_id === null ||
+            !certifications.some((parent) => parent.id === certification.parent_id),
+    );
 
     function setDirty(next: boolean) {
         setTouched(next);
         onDirtyChange(next);
+    }
+
+    function resetCourseForm() {
+        setCourseTitle("");
+        setCourseLink("");
+        setCourseError(null);
     }
 
     function handleMutationError(error: unknown) {
@@ -332,6 +355,7 @@ export function CertificationsManager({
 
         setEditor({ id, fields, initial: fields });
         setFormError(null);
+        resetCourseForm();
         setDirty(false);
     }
 
@@ -343,6 +367,7 @@ export function CertificationsManager({
 
             setEditor(null);
             setFormError(null);
+            resetCourseForm();
             setDirty(false);
             return;
         }
@@ -353,6 +378,7 @@ export function CertificationsManager({
     function closeEditor() {
         setEditor(null);
         setFormError(null);
+        resetCourseForm();
         setDirty(false);
     }
 
@@ -409,8 +435,57 @@ export function CertificationsManager({
         });
     }
 
+    function addCourse(parentId: number) {
+        if (courseTitle.trim() === "") {
+            setCourseError("Give the course a title first.");
+            return;
+        }
+
+        setCourseError(null);
+        const siblings = certifications.filter((item) => item.parent_id === parentId);
+        const nextSortOrder =
+            siblings.length === 0
+                ? 0
+                : Math.max(...siblings.map((item) => item.sort_order)) + 1;
+
+        createMutation.mutate(
+            {
+                name: courseTitle.trim(),
+                issuer: "",
+                year: "",
+                credential: "",
+                badge: "",
+                code: "",
+                accent: "blue",
+                image: "",
+                link: courseLink.trim(),
+                parent_id: parentId,
+                pdf: "",
+                badge_image: "",
+                badge_link: "",
+                sort_order: nextSortOrder,
+            },
+            {
+                onSuccess: () => {
+                    resetCourseForm();
+                    notify("Saved and live on your site");
+                },
+                onError: (error: unknown) => {
+                    if (isUnauthorized(error)) {
+                        onUnauthorized();
+                        return;
+                    }
+
+                    setCourseError(
+                        error instanceof Error ? error.message : "Something went wrong.",
+                    );
+                },
+            },
+        );
+    }
+
     async function move(id: number, direction: -1 | 1) {
-        const swap = reorderSwap(certifications, id, direction);
+        const swap = reorderSwap(listed, id, direction);
 
         if (swap === null || moving) {
             return;
@@ -453,11 +528,14 @@ export function CertificationsManager({
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
     const openId = editor?.id ?? null;
-    const parentOptions = (certifications ?? []).filter(
-        (item) =>
-            item.parent_id === null &&
-            (editor === null || typeof editor.id !== "number" || item.id !== editor.id),
-    );
+    const openItem =
+        typeof openId === "number"
+            ? (certifications.find((item) => item.id === openId) ?? null)
+            : null;
+    const openParentName =
+        openItem?.parent_id === null || openItem?.parent_id === undefined
+            ? null
+            : (certifications.find((item) => item.id === openItem.parent_id)?.name ?? null);
 
     function editorFooter(id: number | "new") {
         const childCount = id === "new" ? 0 : childCountFor(id);
@@ -475,7 +553,7 @@ export function CertificationsManager({
                         <IconButton
                             label="Move certification up"
                             onClick={() => move(id, -1)}
-                            disabled={moving || reorderSwap(certifications, id, -1) === null}
+                            disabled={moving || reorderSwap(listed, id, -1) === null}
                         >
                             <ArrowUp size={16} strokeWidth={2} aria-hidden="true" />
                         </IconButton>
@@ -483,7 +561,7 @@ export function CertificationsManager({
                         <IconButton
                             label="Move certification down"
                             onClick={() => move(id, 1)}
-                            disabled={moving || reorderSwap(certifications, id, 1) === null}
+                            disabled={moving || reorderSwap(listed, id, 1) === null}
                         >
                             <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
                         </IconButton>
@@ -505,6 +583,117 @@ export function CertificationsManager({
                         onConfirm={closeEditor}
                         confirmLabel="Click again to discard"
                     />
+                )}
+            </div>
+        );
+    }
+
+    function coursesSection(parentId: number) {
+        const courses = certifications.filter((item) => item.parent_id === parentId);
+
+        return (
+            <div className="sm:col-span-2">
+                <FormSubhead>Included courses</FormSubhead>
+
+                {courses.length > 0 && (
+                    <ul className="mt-2 divide-y divide-(--line) rounded-xl border border-(--line)">
+                        {courses.map((course) => (
+                            <li
+                                key={course.id}
+                                className="flex items-center gap-2 px-3 py-2"
+                            >
+                                <button
+                                    type="button"
+                                    onClick={() => openEditor(course.id, toFields(course))}
+                                    title={`Edit ${course.name}`}
+                                    className="
+                                        min-w-0
+                                        flex-1
+                                        truncate
+                                        text-left
+                                        text-[13.5px]
+                                        text-(--ink)
+                                        hover:text-(--accent-strong)
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
+                                    "
+                                >
+                                    {course.name}
+                                </button>
+
+                                {course.link !== "" && (
+                                    <a
+                                        href={course.link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="shrink-0 font-mono text-[11px] text-(--accent-strong) hover:underline"
+                                    >
+                                        Verify ↗
+                                    </a>
+                                )}
+
+                                <ConfirmDeleteButton
+                                    onConfirm={() => handleDelete(course.id)}
+                                    disabled={deleteMutation.isPending}
+                                    small
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                    <input
+                        value={courseTitle}
+                        onChange={(event) => setCourseTitle(event.target.value)}
+                        placeholder="Course title"
+                        aria-label="New course title"
+                        className={`${adminFieldInputClassName} min-w-36 flex-[2]`}
+                    />
+
+                    <input
+                        value={courseLink}
+                        onChange={(event) => setCourseLink(event.target.value)}
+                        placeholder="Verify link (optional)"
+                        aria-label="New course verify link"
+                        className={`${adminFieldInputClassName} min-w-36 flex-[2]`}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => addCourse(parentId)}
+                        disabled={createMutation.isPending}
+                        className="
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-lg
+                            border
+                            border-(--accent-strong)
+                            bg-(--accent-strong)
+                            px-3
+                            py-2
+                            text-[13px]
+                            font-medium
+                            text-white
+                            transition-colors
+                            duration-150
+                            hover:border-(--accent-deep)
+                            hover:bg-(--accent-deep)
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-(--accent-strong)
+                            disabled:opacity-60
+                        "
+                    >
+                        <Plus size={14} strokeWidth={2} aria-hidden="true" />
+                        {createMutation.isPending ? "Adding…" : "Add"}
+                    </button>
+                </div>
+
+                {courseError !== null && (
+                    <p className="mt-1.5 font-mono text-[11px] text-red-500">{courseError}</p>
                 )}
             </div>
         );
@@ -553,7 +742,6 @@ export function CertificationsManager({
                                     >
                                         <CertificationForm
                                             fields={editor.fields}
-                                            parentOptions={parentOptions}
                                             formError={formError}
                                             token={token}
                                             onUnauthorized={onUnauthorized}
@@ -565,13 +753,13 @@ export function CertificationsManager({
                                 </AccordionItem>
                             )}
 
-                            {certifications.length === 0 && openId !== "new" && (
+                            {listed.length === 0 && openId !== "new" && (
                                 <p className="px-5 py-4 font-mono text-[10.5px] text-(--graphite)">
                                     No certifications yet.
                                 </p>
                             )}
 
-                            {certifications.map((certification) => {
+                            {listed.map((certification) => {
                                 const open = openId === certification.id;
 
                                 return (
@@ -606,12 +794,22 @@ export function CertificationsManager({
                                                 >
                                                     <CertificationForm
                                                         fields={editor.fields}
-                                                        parentOptions={parentOptions}
                                                         formError={formError}
                                                         token={token}
                                                         onUnauthorized={onUnauthorized}
                                                         onField={setField}
                                                     />
+
+                                                    {openParentName !== null && (
+                                                        <p className="text-[12px] leading-relaxed text-(--graphite-soft) sm:col-span-2">
+                                                            Part of {openParentName}. Courses group
+                                                            here automatically.
+                                                        </p>
+                                                    )}
+
+                                                    {typeof editor.id === "number" &&
+                                                        openItem?.parent_id === null &&
+                                                        coursesSection(editor.id)}
                                                 </form>
 
                                                 {editorFooter(certification.id)}
