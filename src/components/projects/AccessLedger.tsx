@@ -1,37 +1,5 @@
 import type { Project } from "@/services/projects/projects";
-type SourceState = { kind: "public"; url: string } | { kind: "hidden" };
-
-type DemoState =
-    | { kind: "public"; url: string }
-    | { kind: "internal" }
-    | { kind: "offline" }
-    | { kind: "none" }
-    | { kind: "hidden" };
-
-function sourceState(project: Project): SourceState {
-    const access = project.source_access ?? (project.repo_url !== "" ? "public" : null);
-
-    if (access === "public" && project.repo_url !== "") {
-        return { kind: "public", url: project.repo_url };
-    }
-
-    // A private repository is hidden entirely: no link, no label.
-    return { kind: "hidden" };
-}
-
-function demoState(project: Project): DemoState {
-    const access = project.demo_access ?? (project.live_url !== "" ? "public" : null);
-
-    if (access === "public" && project.live_url !== "") {
-        return { kind: "public", url: project.live_url };
-    }
-
-    if (access === "internal" || access === "offline" || access === "none") {
-        return { kind: access };
-    }
-
-    return { kind: "hidden" };
-}
+import { demoState, hasLedgerContent, sourceState } from "./projectStatus";
 
 function StatusDot({ kind }: { kind: "open" | "restricted" | "unavailable" }) {
     if (kind === "open") {
@@ -70,7 +38,7 @@ export function AccessLedger({ project }: { project: Project }) {
     const source = sourceState(project);
     const demo = demoState(project);
 
-    if (source.kind === "hidden" && demo.kind === "hidden" && project.access_note === "") {
+    if (!hasLedgerContent(project)) {
         return null;
     }
 

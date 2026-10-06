@@ -56,6 +56,48 @@ export type LinkAction =
     | { kind: "text"; text: string }
     | { kind: "none" };
 
+export type SourceState = { kind: "public"; url: string } | { kind: "hidden" };
+
+export type DemoState =
+    | { kind: "public"; url: string }
+    | { kind: "internal" }
+    | { kind: "offline" }
+    | { kind: "none" }
+    | { kind: "hidden" };
+
+export function sourceState(project: Project): SourceState {
+    const access = project.source_access ?? (project.repo_url !== "" ? "public" : null);
+
+    if (access === "public" && project.repo_url !== "") {
+        return { kind: "public", url: project.repo_url };
+    }
+
+    // A private repository is hidden entirely: no link, no label.
+    return { kind: "hidden" };
+}
+
+export function demoState(project: Project): DemoState {
+    const access = project.demo_access ?? (project.live_url !== "" ? "public" : null);
+
+    if (access === "public" && project.live_url !== "") {
+        return { kind: "public", url: project.live_url };
+    }
+
+    if (access === "internal" || access === "offline" || access === "none") {
+        return { kind: access };
+    }
+
+    return { kind: "hidden" };
+}
+
+export function hasLedgerContent(project: Project): boolean {
+    return (
+        sourceState(project).kind !== "hidden" ||
+        demoState(project).kind !== "hidden" ||
+        project.access_note !== ""
+    );
+}
+
 export function sourceAction(project: Project): LinkAction {
     if (project.source_access !== "private" && isHttpUrl(project.repo_url)) {
         return { kind: "link", href: project.repo_url };

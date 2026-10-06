@@ -38,25 +38,27 @@ export function ProjectsSection() {
                         </p>
                     </>
                 ) : (
-                    <Carousel
-                        label="Projects"
-                        heading={
-                            <SectionHeading
-                                number="02"
-                                title="Projects"
-                                id="projects"
-                            />
-                        }
-                        previousLabel="Previous projects"
-                        nextLabel="Next projects"
-                        gap="1.25rem"
-                    >
-                        {projects.map((project, index) => (
-                            <div key={project.id} className="carousel-card">
-                                <ProjectCard project={project} index={index} />
-                            </div>
-                        ))}
-                    </Carousel>
+                    <div className="home-projects">
+                        <Carousel
+                            label="Projects"
+                            heading={
+                                <SectionHeading
+                                    number="02"
+                                    title="Projects"
+                                    id="projects"
+                                />
+                            }
+                            previousLabel="Previous projects"
+                            nextLabel="Next projects"
+                            gap="1.25rem"
+                        >
+                            {projects.map((project, index) => (
+                                <div key={project.id} className="carousel-card">
+                                    <ProjectCard project={project} index={index} />
+                                </div>
+                            ))}
+                        </Carousel>
+                    </div>
                 )}
 
                 <Link
