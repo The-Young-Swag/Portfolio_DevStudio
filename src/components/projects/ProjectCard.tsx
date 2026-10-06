@@ -8,7 +8,6 @@ import { hasLedgerContent } from "./projectStatus";
 
 type ProjectCardProps = {
     project: Project;
-    index: number;
 };
 
 // Descriptions longer than ~3 card lines are clamped with an expand
@@ -16,11 +15,10 @@ type ProjectCardProps = {
 // the stored text is. Short descriptions render fully, unchanged.
 const DESCRIPTION_PREVIEW_LIMIT = 150;
 
-export function ProjectCard({ project, index }: ProjectCardProps) {
+export function ProjectCard({ project }: ProjectCardProps) {
     const { title, description, stack, year, category, thumbnail } = project;
     const [expanded, setExpanded] = useState(false);
     const needsClamp = description.length > DESCRIPTION_PREVIEW_LIMIT;
-    const number = String(index + 1).padStart(2, "0");
     return (
         <article
             className="
@@ -39,7 +37,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
                 hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/20,0_16px_40px_-20px_var(--accent-strong)/35]
-                sm:min-h-[37.5rem]
+                sm:min-h-[calc(37.5rem-7px)]
             "
         >
             {thumbnail !== "" && (
@@ -58,27 +56,17 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                         "
                         placeholderClassName="h-full w-full"
                     />
-
-                    <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-white backdrop-blur-md">
-                        {number}
-                    </span>
                 </div>
             )}
 
             <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
-                    {thumbnail === "" && (
-                        <>
-                            <span className="shrink-0">{number}</span>
-                            <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
-                        </>
-                    )}
                     <span className="shrink-0">{year}</span>
                     <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
                     <span title={category} className="min-w-0 truncate">{category}</span>
                 </div>
 
-                <h3 className="mt-3 font-display text-[22px] leading-tight text-(--ink)">
+                <h3 className="mt-3 font-display text-[20px] leading-tight text-(--ink)">
                     {title}
                 </h3>
 
