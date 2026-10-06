@@ -23,13 +23,6 @@ export const profile = {
 
     hero_stats: [
         {
-            label: "Experience",
-            value: "",
-            suffix: "yrs",
-            icon: "calendardays",
-            live: "experience" as const,
-        },
-        {
             label: "Contributions / Year",
             value: "",
             suffix: "",

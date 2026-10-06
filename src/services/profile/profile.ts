@@ -10,7 +10,7 @@ export type HeroStat = {
     value: string;
     suffix: string;
     icon: string;
-    live: "experience" | "contributions" | null;
+    live: "contributions" | null;
 };
 
 export type AlsoTrueItem = {

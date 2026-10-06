@@ -25,7 +25,6 @@ type StatRow = HeroStat & { id: number };
 
 const LIVE_OPTIONS = [
     { value: "", label: "Fixed value" },
-    { value: "experience", label: "Experience (live)" },
     { value: "contributions", label: "Contributions (live)" },
 ] as const;
 

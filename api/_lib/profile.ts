@@ -10,7 +10,7 @@ const heroStatSchema = z.object({
     value: z.string().default(""),
     suffix: z.string().default(""),
     icon: z.string().default(""),
-    live: z.enum(["experience", "contributions"]).nullable().default(null),
+    live: z.enum(["contributions"]).nullable().default(null),
 });
 
 const alsoTrueItemSchema = z.object({
@@ -50,7 +50,7 @@ export type HeroStat = {
     value: string;
     suffix: string;
     icon: string;
-    live: "experience" | "contributions" | null;
+    live: "contributions" | null;
 };
 
 export type AlsoTrueItem = {

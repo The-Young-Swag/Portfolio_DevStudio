@@ -9,15 +9,7 @@ import { StatItem } from "./StatItem";
 import { AlsoTrue } from "./AlsoTrue";
 import { resolveStatIcon } from "./statIcons";
 
-function resolveStatValue(
-    stat: HeroStat,
-    experience: string,
-    contributions: string,
-): string {
-    if (stat.live === "experience") {
-        return experience;
-    }
-
+function resolveStatValue(stat: HeroStat, contributions: string): string {
     if (stat.live === "contributions") {
         return contributions;
     }
@@ -28,46 +20,6 @@ function resolveStatValue(
 export function HeroStats() {
     const { data } = useAllGitHubContributions();
     const { profile } = useProfile();
-
-    const now = new Date();
-
-    const currentYear = now.getFullYear();
-    
-    const startOfYear = new Date(
-        currentYear,
-        0,
-        1,
-    );
-    
-    const startOfNextYear = new Date(
-        currentYear + 1,
-        0,
-        1,
-    );
-    
-    const yearProgress =
-        (now.getTime() - startOfYear.getTime()) /
-        (startOfNextYear.getTime() -
-            startOfYear.getTime());
-    
-    const currentYearDecimal =
-        currentYear + yearProgress;
-    
-    const earliestGitHubYear =
-        data?.availableYears.length
-            ? Math.min(...data.availableYears)
-            : undefined;
-    
-    const experienceYears =
-        earliestGitHubYear !== undefined
-            ? currentYearDecimal -
-              earliestGitHubYear
-            : undefined;
-    
-    const experience =
-        experienceYears !== undefined
-            ? experienceYears.toFixed(1)
-            : "—";
 
     const contributions =
         data?.calendarsByPeriod["last-12-months"]?.totalContributions;
@@ -90,7 +42,7 @@ export function HeroStats() {
                         >
                             <StatItem
                                 label={stat.label}
-                                value={resolveStatValue(stat, experience, contributionsValue)}
+                                value={resolveStatValue(stat, contributionsValue)}
                                 suffix={stat.suffix === "" ? undefined : stat.suffix}
                                 icon={resolveStatIcon(stat.icon)}
                             />
