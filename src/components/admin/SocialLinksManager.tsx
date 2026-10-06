@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 import {
     useCreateSocialLink,
@@ -14,11 +15,10 @@ import {
     type SocialLinkInput,
 } from "@/services/social-links/socialLinks";
 import { useAdminToast } from "./toastContext";
-import { AdminDrawer } from "./AdminDrawer";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
-import { PrimaryButton, SecondaryButton } from "./AdminButtons";
-import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
-import { SaveBar } from "./SaveBar";
+import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
+import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
+import { reorderSwap } from "./reorder";
 
 type SocialLinksManagerProps = {
     token: string;
@@ -60,6 +60,74 @@ function toInput(fields: SocialLinkFormFields): SocialLinkInput {
     };
 }
 
+function toInputForItem(link: SocialLink, sortOrder: number): SocialLinkInput {
+    return toInput({ ...toFields(link), sort_order: String(sortOrder) });
+}
+
+function SocialLinkForm({
+    fields,
+    iconChoices,
+    formError,
+    onField,
+}: {
+    fields: SocialLinkFormFields;
+    iconChoices: string[];
+    formError: string | null;
+    onField: (name: keyof SocialLinkFormFields, value: string) => void;
+}) {
+    return (
+        <>
+            <Field label="Label">
+                <input
+                    value={fields.label}
+                    onChange={(event) => onField("label", event.target.value)}
+                    placeholder="GitHub"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Icon">
+                <select
+                    value={fields.icon}
+                    onChange={(event) => onField("icon", event.target.value)}
+                    className={adminFieldInputClassName}
+                >
+                    {iconChoices.map((icon) => (
+                        <option key={icon} value={icon}>
+                            {icon}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="URL" wide>
+                <input
+                    value={fields.href}
+                    onChange={(event) => onField("href", event.target.value)}
+                    placeholder="https://github.com/…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Sort order">
+                <input
+                    value={fields.sort_order}
+                    onChange={(event) => onField("sort_order", event.target.value)}
+                    inputMode="numeric"
+                    placeholder="0"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            {formError !== null && (
+                <div className="sm:col-span-2">
+                    <FormError message={formError} />
+                </div>
+            )}
+        </>
+    );
+}
+
 export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: SocialLinksManagerProps) {
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
@@ -73,14 +141,16 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
     const deleteMutation = useDeleteSocialLink(token);
     const notify = useAdminToast();
 
-    const [drawer, setDrawer] = useState<{
+    const [editor, setEditor] = useState<{
         id: number | "new";
         fields: SocialLinkFormFields;
         initial: SocialLinkFormFields;
     } | null>(null);
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [search, setSearch] = useState("");
+    const [moving, setMoving] = useState(false);
+
+    const links = socialLinksQuery.data ?? [];
 
     function setDirty(next: boolean) {
         setTouched(next);
@@ -96,56 +166,61 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function openDrawer(id: number | "new", fields: SocialLinkFormFields) {
-        setDrawer({ id, fields, initial: fields });
+    function openEditor(id: number | "new", fields: SocialLinkFormFields) {
+        if (editor !== null && editor.id !== id && touched) {
+            if (!window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+        }
+
+        setEditor({ id, fields, initial: fields });
         setFormError(null);
         setDirty(false);
     }
 
-    function closeDrawer() {
-        if (touched && !window.confirm("Discard unsaved changes?")) {
+    function toggleEditor(id: number | "new", fields: SocialLinkFormFields) {
+        if (editor !== null && editor.id === id) {
+            if (touched && !window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+
+            setEditor(null);
+            setFormError(null);
+            setDirty(false);
             return;
         }
 
-        setDrawer(null);
-        setFormError(null);
-        setDirty(false);
+        openEditor(id, fields);
     }
 
-    function discard() {
-        if (drawer === null) {
-            return;
-        }
-
-        setDrawer({ ...drawer, fields: drawer.initial });
+    function closeEditor() {
+        setEditor(null);
         setFormError(null);
         setDirty(false);
     }
 
     function commit() {
-        if (drawer === null) {
+        if (editor === null) {
             return;
         }
 
         setFormError(null);
-        const input = toInput(drawer.fields);
+        const input = toInput(editor.fields);
 
-        if (drawer.id === "new") {
+        if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    setDrawer(null);
-                    setDirty(false);
+                    closeEditor();
                     notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
         } else {
             updateMutation.mutate(
-                { id: drawer.id, input },
+                { id: editor.id, input },
                 {
                     onSuccess: () => {
-                        setDrawer(null);
-                        setDirty(false);
+                        closeEditor();
                         notify("Saved and live on your site");
                     },
                     onError: handleMutationError,
@@ -159,13 +234,12 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
         commit();
     }
 
-    function handleDelete(link: SocialLink) {
-        if (!window.confirm(`Delete "${link.label}"? This goes live immediately.`)) {
-            return;
-        }
-
-        deleteMutation.mutate(link.id, {
-            onSuccess: () => notify("Deleted"),
+    function handleDelete(id: number) {
+        deleteMutation.mutate(id, {
+            onSuccess: () => {
+                closeEditor();
+                notify("Deleted");
+            },
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
@@ -174,49 +248,108 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
         });
     }
 
-    function setField(name: keyof SocialLinkFormFields, value: string) {
-        if (drawer === null) {
+    async function move(id: number, direction: -1 | 1) {
+        const swap = reorderSwap(links, id, direction);
+
+        if (swap === null || moving) {
             return;
         }
 
-        setDrawer((current) =>
+        setMoving(true);
+
+        try {
+            await updateMutation.mutateAsync({
+                id: swap.item.id,
+                input: toInputForItem(swap.item, swap.itemOrder),
+            });
+            await updateMutation.mutateAsync({
+                id: swap.neighbor.id,
+                input: toInputForItem(swap.neighbor, swap.neighborOrder),
+            });
+            notify("Order saved");
+        } catch (error) {
+            if (isUnauthorized(error)) {
+                onUnauthorized();
+                return;
+            }
+
+            setFormError(error instanceof Error ? error.message : "Something went wrong.");
+        } finally {
+            setMoving(false);
+        }
+    }
+
+    function setField(name: keyof SocialLinkFormFields, value: string) {
+        if (editor === null) {
+            return;
+        }
+
+        setEditor((current) =>
             current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
         );
         setDirty(true);
     }
 
     const iconChoices =
-        drawer !== null && !iconOptions.includes(drawer.fields.icon)
-            ? [...iconOptions, drawer.fields.icon]
+        editor !== null && !iconOptions.includes(editor.fields.icon)
+            ? [...iconOptions, editor.fields.icon]
             : iconOptions;
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
-    const links = socialLinksQuery.data ?? [];
-    const query = search.trim().toLowerCase();
-    const visible =
-        query === ""
-            ? links
-            : links.filter((link) =>
-                  `${link.label} ${link.href} ${link.icon}`.toLowerCase().includes(query),
-              );
+    const openId = editor?.id ?? null;
+
+    function editorFooter(id: number | "new") {
+        return (
+            <div className="mt-5 flex items-center gap-2.5 border-t border-(--line) pt-4">
+                <PrimaryButton type="submit" form="social-link-editor" disabled={isSaving}>
+                    {isSaving ? "Saving…" : "Save & publish"}
+                </PrimaryButton>
+
+                <span className="flex-1" />
+
+                {id !== "new" && (
+                    <>
+                        <IconButton
+                            label="Move link up"
+                            onClick={() => move(id, -1)}
+                            disabled={moving || reorderSwap(links, id, -1) === null}
+                        >
+                            <ArrowUp size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <IconButton
+                            label="Move link down"
+                            onClick={() => move(id, 1)}
+                            disabled={moving || reorderSwap(links, id, 1) === null}
+                        >
+                            <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <ConfirmDeleteButton
+                            onConfirm={() => handleDelete(id)}
+                            disabled={deleteMutation.isPending}
+                        />
+                    </>
+                )}
+
+                {id === "new" && (
+                    <ConfirmDeleteButton
+                        onConfirm={closeEditor}
+                        confirmLabel="Click again to discard"
+                    />
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
             <AdminSectionHead
                 title="Social links"
-                description="Icons shown in the sidebar “Connect” group."
-                action={<AddButton onClick={() => openDrawer("new", emptyFields)}>Add link</AddButton>}
+                description="Shown in the site's Connect group."
             />
 
-            <div className="mt-5">
-                <AdminSearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Search links…"
-                />
-            </div>
-
-            <div className="mt-4">
+            <div className="mt-6">
                 {socialLinksQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading social links...
@@ -234,108 +367,79 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
                             Retry
                         </button>
                     </div>
-                ) : visible.length === 0 ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        {links.length === 0 ? "No links yet." : "No links match the search."}
-                    </p>
                 ) : (
-                    <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {visible.map((link) => (
-                            <AdminRow
-                                key={link.id}
-                                title={link.label}
-                                subtitle={link.href}
-                                tag={link.icon}
-                                onEdit={() => openDrawer(link.id, toFields(link))}
-                                onDelete={() => handleDelete(link)}
-                                deleting={deleteMutation.isPending}
-                            />
-                        ))}
-                    </ul>
+                    <div className="rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
+                        <div className="divide-y divide-(--line)">
+                            {openId === "new" && editor !== null && (
+                                <AccordionItem
+                                    open
+                                    title={editor.fields.label || "New link"}
+                                    subtitle={editor.fields.href || "Not saved yet"}
+                                    onToggle={() => toggleEditor("new", emptyFields)}
+                                >
+                                    <form
+                                        id="social-link-editor"
+                                        onSubmit={handleSubmit}
+                                        className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                    >
+                                        <SocialLinkForm
+                                            fields={editor.fields}
+                                            iconChoices={iconChoices}
+                                            formError={formError}
+                                            onField={setField}
+                                        />
+                                    </form>
+
+                                    {editorFooter("new")}
+                                </AccordionItem>
+                            )}
+
+                            {links.length === 0 && openId !== "new" && (
+                                <p className="px-5 py-4 font-mono text-[10.5px] text-(--graphite)">
+                                    No links yet.
+                                </p>
+                            )}
+
+                            {links.map((link) => {
+                                const open = openId === link.id;
+
+                                return (
+                                    <AccordionItem
+                                        key={link.id}
+                                        open={open}
+                                        title={open ? editor?.fields.label || link.label : link.label}
+                                        subtitle={open && editor ? editor.fields.href || "Not saved yet" : link.href}
+                                        onToggle={() => toggleEditor(link.id, toFields(link))}
+                                    >
+                                        {open && editor !== null && (
+                                            <>
+                                                <form
+                                                    id="social-link-editor"
+                                                    onSubmit={handleSubmit}
+                                                    className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                                >
+                                                    <SocialLinkForm
+                                                        fields={editor.fields}
+                                                        iconChoices={iconChoices}
+                                                        formError={formError}
+                                                        onField={setField}
+                                                    />
+                                                </form>
+
+                                                {editorFooter(link.id)}
+                                            </>
+                                        )}
+                                    </AccordionItem>
+                                );
+                            })}
+                        </div>
+
+                        <AddRowButton onClick={() => openEditor("new", emptyFields)}>
+                            Add link
+                        </AddRowButton>
+                    </div>
                 )}
             </div>
-
-            <AdminDrawer
-                open={drawer !== null}
-                title={drawer !== null && drawer.id === "new" ? "Add link" : "Edit link"}
-                onClose={closeDrawer}
-                footer={
-                    <>
-                        <PrimaryButton
-                            type="submit"
-                            form="social-link-editor"
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Saving…" : "Save & publish"}
-                        </PrimaryButton>
-
-                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
-                    </>
-                }
-            >
-                {drawer !== null && (
-                    <form
-                        id="social-link-editor"
-                        onSubmit={handleSubmit}
-                        className="grid gap-3 sm:grid-cols-2"
-                    >
-                        <Field label="Label">
-                            <input
-                                value={drawer.fields.label}
-                                onChange={(event) => setField("label", event.target.value)}
-                                placeholder="GitHub"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Icon">
-                            <select
-                                value={drawer.fields.icon}
-                                onChange={(event) => setField("icon", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                {iconChoices.map((icon) => (
-                                    <option key={icon} value={icon}>
-                                        {icon}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="URL" wide>
-                            <input
-                                value={drawer.fields.href}
-                                onChange={(event) => setField("href", event.target.value)}
-                                placeholder="https://github.com/…"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Sort order">
-                            <input
-                                value={drawer.fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        {formError !== null && (
-                            <div className="sm:col-span-2">
-                                <FormError message={formError} />
-                            </div>
-                        )}
-                    </form>
-                )}
-            </AdminDrawer>
-
-            <SaveBar
-                open={touched && drawer !== null}
-                saving={isSaving}
-                onSave={commit}
-                onDiscard={discard}
-            />
         </div>
     );
 }
