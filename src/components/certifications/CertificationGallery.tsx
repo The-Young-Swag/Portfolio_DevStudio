@@ -44,7 +44,8 @@ export function CertificationGallery({ title, shots }: CertificationGalleryProps
                 <PdfEmbed
                     src={active.url}
                     title={caption}
-                    className="h-[min(70vh,42rem)] w-full overflow-hidden rounded-[1.125rem] border border-(--line)"
+                    interactive
+                    className="h-[min(70vh,42rem)] w-full overflow-hidden rounded-[1.125rem] border border-(--line) bg-white"
                 />
             ) : (
                 <button

@@ -8,4 +8,5 @@ export * from "./CertificationRail";
 export * from "./CertificationShowcase";
 export * from "./CertificationsSection";
 export * from "./PdfEmbed";
+export * from "./PdfLightbox";
 export * from "./VerificationBadge";

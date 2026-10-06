@@ -2,6 +2,12 @@ type PdfEmbedProps = {
     src: string;
     title: string;
     className?: string;
+    /**
+     * Thumbnails render non-interactive (no scrolling, first page
+     * fitted) so they behave like static images. The detail preview
+     * stays interactive so multi-page documents can be scrolled.
+     */
+    interactive?: boolean;
 };
 
 /**
@@ -11,12 +17,14 @@ type PdfEmbedProps = {
  * libraries. Callers inside clickable cards pass pointer-events-none
  * so the embed never swallows clicks.
  */
-export function PdfEmbed({ src, title, className }: PdfEmbedProps) {
+export function PdfEmbed({ src, title, className, interactive = false }: PdfEmbedProps) {
+    const params = interactive ? "#toolbar=0&navpanes=0" : "#toolbar=0&navpanes=0&page=1&view=Fit";
+
     return (
-        <object
-            data={`${src}#toolbar=0&navpanes=0`}
-            type="application/pdf"
+        <iframe
+            src={`${src}${params}`}
             title={title}
+            scrolling={interactive ? "auto" : "no"}
             className={className}
         />
     );

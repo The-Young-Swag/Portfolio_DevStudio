@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import type { Certification } from "@/services/certifications/certifications";
 import { CertificationDetail } from "./CertificationDetail";
 import { CertificationRail } from "./CertificationRail";
+import { PdfLightbox } from "./PdfLightbox";
 import { certTabId } from "./certificationIds";
 
 function idFromHash(): number | null {
@@ -23,6 +24,7 @@ export function CertificationShowcase({
     certifications: Certification[];
 }) {
     const [selectedId, setSelectedId] = useState<number | null>(() => idFromHash());
+    const [pdfPreview, setPdfPreview] = useState<Certification | null>(null);
 
     const childrenByParent = new Map<number, Certification[]>();
 
@@ -68,8 +70,13 @@ export function CertificationShowcase({
     }, []);
 
     function select(id: number) {
+        const certification = listed.find((item) => item.id === id) ?? null;
         setSelectedId(id);
         window.history.replaceState(null, "", `#certification-${id}`);
+
+        if (certification && certification.image === "" && certification.pdf !== "") {
+            setPdfPreview(certification);
+        }
     }
 
     if (active === null) {
@@ -92,6 +99,14 @@ export function CertificationShowcase({
                     tabId={certifications.length === 1 ? null : certTabId(active.id)}
                 />
             </div>
+
+            {pdfPreview !== null && (
+                <PdfLightbox
+                    src={pdfPreview.pdf}
+                    title={pdfPreview.name}
+                    onClose={() => setPdfPreview(null)}
+                />
+            )}
         </div>
     );
 }
