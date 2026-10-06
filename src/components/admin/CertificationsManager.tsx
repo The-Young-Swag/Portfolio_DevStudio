@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent, PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowDown, ArrowUp, Pencil, Plus } from "lucide-react";
@@ -539,9 +539,21 @@ export function CertificationsManager({
         openItem?.parent_id === null || openItem?.parent_id === undefined
             ? null
             : (certifications.find((item) => item.id === openItem.parent_id)?.name ?? null);
+    // A child course has no row of its own in the list below, so its
+    // editor renders in a dedicated slot at the top instead of nowhere.
+    const isOrphanOpen =
+        editor !== null && openItem !== null && !listed.some((item) => item.id === openId);
+    const orphanRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (isOrphanOpen) {
+            orphanRef.current?.scrollIntoView({ block: "nearest" });
+        }
+    }, [isOrphanOpen]);
 
     function editorFooter(id: number | "new") {
         const childCount = id === "new" ? 0 : childCountFor(id);
+        const reorderable = id !== "new" && listed.some((item) => item.id === id);
 
         return (
             <div className="mt-5 flex items-center gap-2.5 border-t border-(--line) pt-4">
@@ -551,7 +563,7 @@ export function CertificationsManager({
 
                 <span className="flex-1" />
 
-                {id !== "new" && (
+                {reorderable && (
                     <>
                         <IconButton
                             label="Move certification up"
@@ -568,17 +580,19 @@ export function CertificationsManager({
                         >
                             <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
                         </IconButton>
-
-                        <ConfirmDeleteButton
-                            onConfirm={() => handleDelete(id)}
-                            disabled={deleteMutation.isPending}
-                            confirmLabel={
-                                childCount > 0
-                                    ? `Click again to delete + ${childCount} ${childCount === 1 ? "course" : "courses"}`
-                                    : undefined
-                            }
-                        />
                     </>
+                )}
+
+                {id !== "new" && (
+                    <ConfirmDeleteButton
+                        onConfirm={() => handleDelete(id)}
+                        disabled={deleteMutation.isPending}
+                        confirmLabel={
+                            childCount > 0
+                                ? `Click again to delete + ${childCount} ${childCount === 1 ? "course" : "courses"}`
+                                : undefined
+                        }
+                    />
                 )}
 
                 {id === "new" && (
@@ -756,10 +770,47 @@ export function CertificationsManager({
                                 </AccordionItem>
                             )}
 
-                            {listed.length === 0 && openId !== "new" && (
+                            {listed.length === 0 && openId !== "new" && !isOrphanOpen && (
                                 <p className="px-5 py-4 font-mono text-[10.5px] text-(--graphite)">
                                     No certifications yet.
                                 </p>
+                            )}
+
+                            {isOrphanOpen && editor !== null && openItem !== null && (
+                                <div ref={orphanRef}>
+                                    <AccordionItem
+                                        open
+                                        title={editor.fields.name || openItem.name}
+                                        subtitle={subtitleFor(editor.fields)}
+                                        tag={editor.fields.credential}
+                                        onToggle={() =>
+                                            toggleEditor(openItem.id, toFields(openItem))
+                                        }
+                                    >
+                                        <form
+                                            id="certification-editor"
+                                            onSubmit={handleSubmit}
+                                            className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                        >
+                                            <CertificationForm
+                                                fields={editor.fields}
+                                                formError={formError}
+                                                token={token}
+                                                onUnauthorized={onUnauthorized}
+                                                onField={setField}
+                                            />
+
+                                            {openParentName !== null && (
+                                                <p className="text-[12px] leading-relaxed text-(--graphite-soft) sm:col-span-2">
+                                                    Part of {openParentName}. Courses group
+                                                    here automatically.
+                                                </p>
+                                            )}
+                                        </form>
+
+                                        {editorFooter(openItem.id)}
+                                    </AccordionItem>
+                                </div>
                             )}
 
                             {listed.map((certification) => {
