@@ -111,11 +111,11 @@ export function HeroInfo() {
 
                 <HeroLink href={profile.linkedin} label="linkedin" external />
 
+                <HeroLink href={`mailto:${profile.email}`} label="email" external={false} />
+
                 {resume !== "" && (
                     <HeroLink href={resume} label="résumé" external />
                 )}
-
-                <HeroLink href={`mailto:${profile.email}`} label="email" external={false} />
             </div>
         </div>
     );
