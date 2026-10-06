@@ -21,6 +21,12 @@ type ImageUploadFieldProps = {
     onUnauthorized: () => void;
     aspect: number;
     maxEdge: number;
+    /**
+     * Set to false for documents (certificates, badges) that must be
+     * stored whole. The file still gets resized and compressed, but no
+     * crop dialog is shown.
+     */
+    crop?: boolean;
 };
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -88,6 +94,7 @@ export function ImageUploadField({
     onUnauthorized,
     aspect,
     maxEdge,
+    crop: allowCrop = true,
 }: ImageUploadFieldProps) {
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -139,24 +146,25 @@ export function ImageUploadField({
         }
 
         setError(null);
-        setCropSrc(URL.createObjectURL(file));
-    }
+        const src = URL.createObjectURL(file);
 
-    async function handleSaveCrop() {
-        if (!cropSrc || !croppedPixels) {
+        if (!allowCrop) {
+            void saveWholeImage(src);
             return;
         }
 
+        setCropSrc(src);
+    }
+
+    async function processAndUpload(image: HTMLImageElement, pixels: Area) {
         setSaving(true);
         setError(null);
 
         try {
-            const image = await loadImage(cropSrc);
-            const blob = await cropToWebp(image, croppedPixels, maxEdge);
+            const blob = await cropToWebp(image, pixels, maxEdge);
             const uploaded = await uploadImage(blob, token);
 
             onChange(uploaded.url);
-            closeDialog();
         } catch (saveError) {
             if (saveError instanceof ApiError && saveError.status === 401) {
                 onUnauthorized();
@@ -167,6 +175,31 @@ export function ImageUploadField({
         } finally {
             setSaving(false);
         }
+    }
+
+    async function saveWholeImage(src: string) {
+        try {
+            const image = await loadImage(src);
+            await processAndUpload(image, {
+                x: 0,
+                y: 0,
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+            });
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : "Unable to save the image.");
+        } finally {
+            URL.revokeObjectURL(src);
+        }
+    }
+
+    async function handleSaveCrop() {
+        if (!cropSrc || !croppedPixels) {
+            return;
+        }
+
+        await processAndUpload(await loadImage(cropSrc), croppedPixels);
+        closeDialog();
     }
 
     return (
@@ -213,6 +246,7 @@ export function ImageUploadField({
                 <button
                     type="button"
                     onClick={() => fileRef.current?.click()}
+                    disabled={saving}
                     className="
                         shrink-0
                         rounded-lg
@@ -228,9 +262,10 @@ export function ImageUploadField({
                         duration-150
                         hover:border-(--accent-strong)
                         hover:text-(--accent-strong)
+                        disabled:opacity-60
                     "
                 >
-                    Upload…
+                    {saving && !dialogOpen ? "Saving…" : "Upload…"}
                 </button>
 
                 <input

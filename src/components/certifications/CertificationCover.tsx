@@ -1,5 +1,6 @@
 import { ContentImage, ImagePlaceholder } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
+import { PdfEmbed } from "./PdfEmbed";
 import { VerificationBadge } from "./VerificationBadge";
 
 const ACCENT_TONES: Record<Certification["accent"], string> = {
@@ -9,13 +10,13 @@ const ACCENT_TONES: Record<Certification["accent"], string> = {
 };
 
 type CertificationCoverProps = {
-    certification: Pick<Certification, "accent" | "image" | "link" | "name">;
+    certification: Pick<Certification, "accent" | "image" | "link" | "name" | "pdf">;
 };
 
 /**
- * Certificate thumbnail: the real uploaded image when present,
- * otherwise the conventional neutral placeholder. Never a drawn
- * imitation of a certificate.
+ * Certificate thumbnail: the real uploaded image when present, the
+ * uploaded PDF rendered live when there is no image, otherwise the
+ * conventional neutral placeholder. Never a drawn imitation.
  */
 export function CertificationCover({ certification }: CertificationCoverProps) {
     return (
@@ -37,6 +38,14 @@ export function CertificationCover({ certification }: CertificationCoverProps) {
                     imageClassName="absolute inset-0 h-full w-full object-cover"
                     placeholderClassName="absolute inset-0 h-full w-full"
                 />
+            ) : certification.pdf !== "" ? (
+                <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
+                    <PdfEmbed
+                        src={certification.pdf}
+                        title=""
+                        className="pointer-events-none h-full w-full"
+                    />
+                </span>
             ) : (
                 <ImagePlaceholder className="absolute inset-0 h-full w-full" />
             )}

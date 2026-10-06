@@ -14,6 +14,10 @@ function buildShots(certification: Certification): GalleryShot[] {
         shots.push({ url: certification.image, caption: "Certificate" });
     }
 
+    if (certification.pdf !== "") {
+        shots.push({ url: certification.pdf, caption: "Certificate PDF", kind: "pdf" });
+    }
+
     if (certification.badge_image !== "") {
         shots.push({
             url: certification.badge_image,
