@@ -39,7 +39,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/20,0_16px_40px_-20px_var(--accent-strong)/35]
             "
         >
-            <div className="relative aspect-video overflow-hidden border-b border-(--line)">
+            <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
                 <ContentImage
                     src={thumbnail}
                     alt={`${title} preview`}
@@ -60,14 +60,14 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 </span>
             </div>
 
-            <div className="flex flex-1 flex-col p-5">
+            <div className="flex flex-1 flex-col p-4">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
                     <span className="shrink-0">{year}</span>
                     <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
                     <span title={category} className="min-w-0 truncate">{category}</span>
                 </div>
 
-                <h3 className="mt-3 font-display text-[22px] leading-tight text-(--ink)">
+                <h3 className="mt-2.5 font-display text-[20px] leading-tight text-(--ink)">
                     {title}
                 </h3>
 
@@ -102,7 +102,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                     </button>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-1.5">
+                <div className="mt-4 flex flex-wrap gap-1.5">
                     {stack.map((technology) => (
                         <span
                             key={technology}
@@ -126,8 +126,8 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                     ))}
                 </div>
 
-                <div className="mt-auto pt-5">
-                    <div className="border-t hairline pt-4">
+                <div className="mt-auto pt-4">
+                    <div className="border-t hairline pt-3">
                         <AccessLedger project={project} />
                     </div>
                 </div>

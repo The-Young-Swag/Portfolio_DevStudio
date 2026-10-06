@@ -17,7 +17,7 @@ export function ProjectsSection() {
                     <>
                         <SectionHeading
                             number="02"
-                            title="Selected projects"
+                            title="Projects"
                             id="projects"
                         />
 
@@ -29,7 +29,7 @@ export function ProjectsSection() {
                     <>
                         <SectionHeading
                             number="02"
-                            title="Selected projects"
+                            title="Projects"
                             id="projects"
                         />
 
@@ -39,11 +39,11 @@ export function ProjectsSection() {
                     </>
                 ) : (
                     <Carousel
-                        label="Selected projects"
+                        label="Projects"
                         heading={
                             <SectionHeading
                                 number="02"
-                                title="Selected projects"
+                                title="Projects"
                                 id="projects"
                             />
                         }

@@ -1,7 +1,5 @@
 import { Star } from "lucide-react";
 
-import { LevelDot, type ProficiencyLevel } from "./LevelDot";
-
 const pillClassName = `
     inline-flex
     items-center
@@ -21,7 +19,6 @@ const pillClassName = `
 
 type SkillPillProps = {
     name: string;
-    level: ProficiencyLevel;
     isCore: boolean;
     onClick?: () => void;
 };
@@ -33,18 +30,18 @@ function CoreStar() {
             strokeWidth={2}
             aria-hidden="true"
             fill="currentColor"
-            className="shrink-0 text-amber-600 dark:text-amber-400"
+            className="shrink-0 text-amber-500 dark:text-amber-400"
         />
     );
 }
 
 /**
- * Compact skill pill with proficiency dot and core marker. Renders as a
+ * Compact skill pill with a gold star for core skills. Renders as a
  * button when an onClick handler is given (admin editing), otherwise as a
  * static pill (public pages).
  */
-export function SkillPill({ name, level, isCore, onClick }: SkillPillProps) {
-    const accessibleName = `${name}, ${level}${isCore ? ", core skill" : ""}`;
+export function SkillPill({ name, isCore, onClick }: SkillPillProps) {
+    const accessibleName = isCore ? `${name}, core skill` : name;
 
     if (onClick !== undefined) {
         return (
@@ -65,7 +62,6 @@ export function SkillPill({ name, level, isCore, onClick }: SkillPillProps) {
                     focus-visible:ring-(--accent-strong)
                 `}
             >
-                <LevelDot level={level} />
                 {name}
                 {isCore && <CoreStar />}
             </button>
@@ -74,10 +70,9 @@ export function SkillPill({ name, level, isCore, onClick }: SkillPillProps) {
 
     return (
         <span className={pillClassName} title={accessibleName}>
-            <LevelDot level={level} />
             {name}
             {isCore && <CoreStar />}
-            <span className="sr-only">{`, ${level}${isCore ? ", core skill" : ""}`}</span>
+            {isCore && <span className="sr-only">, core skill</span>}
         </span>
     );
 }

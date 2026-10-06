@@ -73,7 +73,7 @@ export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSideba
                             w-8
                             items-center
                             justify-center
-                            rounded-lg
+                            rounded-full
                             bg-(--accent-strong)
                             font-display
                             text-[13px]
@@ -88,7 +88,7 @@ export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSideba
                         src={defaultPortrait}
                         alt=""
                         onError={() => setPortraitFailed(true)}
-                        className="h-8 w-8 shrink-0 rounded-lg border border-(--glass-border) object-cover"
+                        className="h-8 w-8 shrink-0 rounded-full border border-(--glass-border) object-cover"
                     />
                 )}
 
