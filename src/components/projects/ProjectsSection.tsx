@@ -52,9 +52,9 @@ export function ProjectsSection() {
                             nextLabel="Next projects"
                             gap="1.25rem"
                         >
-                            {projects.map((project, index) => (
+                            {projects.map((project) => (
                                 <div key={project.id} className="carousel-card">
-                                    <ProjectCard project={project} index={index} />
+                                    <ProjectCard project={project} />
                                 </div>
                             ))}
                         </Carousel>

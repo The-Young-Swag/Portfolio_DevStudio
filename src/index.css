@@ -307,11 +307,6 @@ section[id] {
 */
 .home-projects .carousel-track {
     padding-bottom: 8px;
-    scrollbar-width: none;
-}
-
-.home-projects .carousel-track::-webkit-scrollbar {
-    display: none;
 }
 
 .home-projects .carousel-card {
