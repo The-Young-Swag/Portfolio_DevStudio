@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 import {
     useCreateProject,
@@ -14,12 +15,11 @@ import {
 } from "@/services/projects/projects";
 import { isUnauthorized } from "@/services/api";
 import { useAdminToast } from "./toastContext";
-import { AdminDrawer } from "./AdminDrawer";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
-import { PrimaryButton, SecondaryButton } from "./AdminButtons";
-import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
-import { SaveBar } from "./SaveBar";
+import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
+import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
 import { ImageUploadField } from "./ImageUploadField";
+import { reorderSwap } from "./reorder";
 
 type ProjectsManagerProps = {
     token: string;
@@ -158,51 +158,308 @@ function toInput(
     };
 }
 
-const PROJECT_TABS = ["Basics", "Links", "Case study", "Screenshots"] as const;
+function toInputForItem(project: Project, sortOrder: number): ProjectInput {
+    return toInput(
+        { ...toFields(project), sort_order: String(sortOrder) },
+        project.case_screenshots.map((shot) => ({ id: -1, url: shot.url, caption: shot.caption })),
+    );
+}
 
-function ProjectTabs({ tab, onChange }: { tab: number; onChange: (tab: number) => void }) {
+function subtitleFor(fields: Pick<ProjectFormFields, "year" | "category">): string {
     return (
-        <div
-            role="tablist"
-            aria-label="Project sections"
-            className="
-                inline-flex
-                gap-1
-                rounded-2xl
-                border
-                border-(--line)
-                bg-(--glass-bg)
-                p-1
-            "
-        >
-            {PROJECT_TABS.map((label, index) => (
-                <button
-                    key={label}
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === index}
-                    onClick={() => onChange(index)}
-                    className={`
-                        rounded-xl
-                        px-3.5
-                        py-1.5
-                        text-[13px]
-                        transition-colors
-                        duration-150
-                        focus-visible:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-(--accent-strong)
-                        ${
-                            tab === index
-                                ? "bg-(--accent-strong) font-semibold text-white"
-                                : "text-(--graphite) hover:text-(--ink)"
-                        }
-                    `}
+        [fields.year, fields.category].filter((part) => part !== "").join(" · ") ||
+        "Not saved yet"
+    );
+}
+
+function ProjectForm({
+    fields,
+    screenshots,
+    formError,
+    token,
+    onUnauthorized,
+    onField,
+    onScreenshot,
+    onMoveScreenshot,
+    onRemoveScreenshot,
+    onAddScreenshot,
+}: {
+    fields: ProjectFormFields;
+    screenshots: ScreenshotDraft[];
+    formError: string | null;
+    token: string;
+    onUnauthorized: () => void;
+    onField: (name: keyof ProjectFormFields, value: string | boolean) => void;
+    onScreenshot: (id: number, patch: Partial<ScreenshotDraft>) => void;
+    onMoveScreenshot: (id: number, direction: -1 | 1) => void;
+    onRemoveScreenshot: (id: number) => void;
+    onAddScreenshot: () => void;
+}) {
+    return (
+        <>
+            <Field label="Title" wide>
+                <input
+                    value={fields.title}
+                    onChange={(event) => onField("title", event.target.value)}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Year">
+                <input
+                    value={fields.year}
+                    onChange={(event) => onField("year", event.target.value)}
+                    inputMode="numeric"
+                    placeholder="2026"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Category">
+                <input
+                    value={fields.category}
+                    onChange={(event) => onField("category", event.target.value)}
+                    placeholder="Document archival"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Description" hint="One or two sentences" wide>
+                <textarea
+                    value={fields.description}
+                    onChange={(event) => onField("description", event.target.value)}
+                    rows={3}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Stack" hint="Comma-separated" wide>
+                <input
+                    value={fields.stack}
+                    onChange={(event) => onField("stack", event.target.value)}
+                    placeholder="React, TypeScript, Turso"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Repository URL" wide>
+                <input
+                    value={fields.repo_url}
+                    onChange={(event) => onField("repo_url", event.target.value)}
+                    placeholder="https://github.com/…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Live URL" wide>
+                <input
+                    value={fields.live_url}
+                    onChange={(event) => onField("live_url", event.target.value)}
+                    placeholder="https://…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <ImageUploadField
+                label="Thumbnail"
+                value={fields.thumbnail}
+                onChange={(url) => onField("thumbnail", url)}
+                token={token}
+                onUnauthorized={onUnauthorized}
+                aspect={16 / 9}
+                maxEdge={1280}
+            />
+
+            <Field label="Source access">
+                <select
+                    value={fields.source_access}
+                    onChange={(event) => onField("source_access", event.target.value)}
+                    className={adminFieldInputClassName}
                 >
-                    {label}
-                </button>
-            ))}
-        </div>
+                    {SOURCE_OPTIONS.map((option) => (
+                        <option key={option.label} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="Demo access">
+                <select
+                    value={fields.demo_access}
+                    onChange={(event) => onField("demo_access", event.target.value)}
+                    className={adminFieldInputClassName}
+                >
+                    {DEMO_OPTIONS.map((option) => (
+                        <option key={option.label} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="Access note" hint="Shown when links are unavailable" wide>
+                <input
+                    value={fields.access_note}
+                    onChange={(event) => onField("access_note", event.target.value)}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Sort order">
+                <input
+                    value={fields.sort_order}
+                    onChange={(event) => onField("sort_order", event.target.value)}
+                    inputMode="numeric"
+                    placeholder="0"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Highlights" hint="One per line" wide>
+                <textarea
+                    value={fields.highlights}
+                    onChange={(event) => onField("highlights", event.target.value)}
+                    rows={4}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <div className="rounded-xl border border-(--line) p-4 sm:col-span-2">
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={fields.has_case_study}
+                        onChange={(event) => onField("has_case_study", event.target.checked)}
+                        className="h-4 w-4 accent-(--accent-strong)"
+                    />
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                        Has case study
+                    </span>
+                </label>
+
+                <p className="mt-3 font-mono text-[10.5px] leading-relaxed text-(--graphite)">
+                    Never show a dead link. Redact personal data in
+                    screenshots. Describe your own role precisely.
+                    Prefer a short screen recording link, redacted
+                    screenshots, or your own architecture diagram as
+                    proof.
+                </p>
+
+                <div className="mt-3 space-y-3">
+                    <Field label="Problem">
+                        <textarea
+                            value={fields.case_problem}
+                            onChange={(event) => onField("case_problem", event.target.value)}
+                            rows={2}
+                            className={adminFieldInputClassName}
+                        />
+                    </Field>
+
+                    <Field label="My role">
+                        <textarea
+                            value={fields.case_role}
+                            onChange={(event) => onField("case_role", event.target.value)}
+                            rows={2}
+                            className={adminFieldInputClassName}
+                        />
+                    </Field>
+
+                    <Field label="What I built">
+                        <textarea
+                            value={fields.case_solution}
+                            onChange={(event) => onField("case_solution", event.target.value)}
+                            rows={2}
+                            className={adminFieldInputClassName}
+                        />
+                    </Field>
+
+                    <Field label="Result">
+                        <textarea
+                            value={fields.case_result}
+                            onChange={(event) => onField("case_result", event.target.value)}
+                            rows={2}
+                            className={adminFieldInputClassName}
+                        />
+                    </Field>
+                </div>
+            </div>
+
+            <div className="sm:col-span-2">
+                <div className="flex items-baseline justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
+                        Screenshots
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={onAddScreenshot}
+                        className="font-mono text-[11px] text-(--accent-strong) hover:underline"
+                    >
+                        Add screenshot
+                    </button>
+                </div>
+
+                {screenshots.map((shot, index) => (
+                    <div
+                        key={shot.id}
+                        className="mt-3 space-y-2 rounded-xl border border-(--line) p-3"
+                    >
+                        <ImageUploadField
+                            label={`Screenshot ${index + 1}`}
+                            value={shot.url}
+                            onChange={(url) => onScreenshot(shot.id, { url })}
+                            token={token}
+                            onUnauthorized={onUnauthorized}
+                            aspect={16 / 9}
+                            maxEdge={1280}
+                        />
+
+                        <Field label="Caption">
+                            <input
+                                value={shot.caption}
+                                onChange={(event) =>
+                                    onScreenshot(shot.id, { caption: event.target.value })
+                                }
+                                className={adminFieldInputClassName}
+                            />
+                        </Field>
+
+                        <div className="flex gap-4">
+                            <button
+                                type="button"
+                                onClick={() => onMoveScreenshot(shot.id, -1)}
+                                disabled={index === 0}
+                                className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong) disabled:opacity-40"
+                            >
+                                ↑ Up
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onMoveScreenshot(shot.id, 1)}
+                                disabled={index === screenshots.length - 1}
+                                className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong) disabled:opacity-40"
+                            >
+                                ↓ Down
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => onRemoveScreenshot(shot.id)}
+                                className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500"
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {formError !== null && (
+                <div className="sm:col-span-2">
+                    <FormError message={formError} />
+                </div>
+            )}
+        </>
     );
 }
 
@@ -219,7 +476,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     const deleteMutation = useDeleteProject(token);
     const notify = useAdminToast();
 
-    const [drawer, setDrawer] = useState<{
+    const [editor, setEditor] = useState<{
         id: number | "new";
         fields: ProjectFormFields;
         initial: ProjectFormFields;
@@ -228,9 +485,10 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     } | null>(null);
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [search, setSearch] = useState("");
-    const [tab, setTab] = useState(0);
+    const [moving, setMoving] = useState(false);
     const [shotIdCounter, setShotIdCounter] = useState(0);
+
+    const projects = projectsQuery.data ?? [];
 
     function setDirty(next: boolean) {
         setTouched(next);
@@ -246,61 +504,65 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function openDrawer(id: number | "new", project?: Project) {
+    function openEditor(id: number | "new", project?: Project) {
+        if (editor !== null && editor.id !== id && touched) {
+            if (!window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+        }
+
         const fields = project === undefined ? emptyFields : toFields(project);
         const screenshots =
             project === undefined ? [] : toScreenshots(project, shotIdCounter + 1);
         setShotIdCounter((counter) => counter + screenshots.length);
-        setDrawer({ id, fields, initial: fields, screenshots, initialScreenshots: screenshots });
-        setFormError(null);
-        setTab(0);
-        setDirty(false);
-    }
-
-    function closeDrawer() {
-        if (touched && !window.confirm("Discard unsaved changes?")) {
-            return;
-        }
-
-        setDrawer(null);
+        setEditor({ id, fields, initial: fields, screenshots, initialScreenshots: screenshots });
         setFormError(null);
         setDirty(false);
     }
 
-    function discard() {
-        if (drawer === null) {
+    function toggleEditor(id: number | "new", project?: Project) {
+        if (editor !== null && editor.id === id) {
+            if (touched && !window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+
+            setEditor(null);
+            setFormError(null);
+            setDirty(false);
             return;
         }
 
-        setDrawer({ ...drawer, fields: drawer.initial, screenshots: drawer.initialScreenshots });
+        openEditor(id, project);
+    }
+
+    function closeEditor() {
+        setEditor(null);
         setFormError(null);
         setDirty(false);
     }
 
     function commit() {
-        if (drawer === null) {
+        if (editor === null) {
             return;
         }
 
         setFormError(null);
-        const input = toInput(drawer.fields, drawer.screenshots);
+        const input = toInput(editor.fields, editor.screenshots);
 
-        if (drawer.id === "new") {
+        if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    setDrawer(null);
-                    setDirty(false);
+                    closeEditor();
                     notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
         } else {
             updateMutation.mutate(
-                { id: drawer.id, input },
+                { id: editor.id, input },
                 {
                     onSuccess: () => {
-                        setDrawer(null);
-                        setDirty(false);
+                        closeEditor();
                         notify("Saved and live on your site");
                     },
                     onError: handleMutationError,
@@ -314,13 +576,12 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
         commit();
     }
 
-    function handleDelete(project: Project) {
-        if (!window.confirm(`Delete "${project.title}"? This goes live immediately.`)) {
-            return;
-        }
-
-        deleteMutation.mutate(project.id, {
-            onSuccess: () => notify("Deleted"),
+    function handleDelete(id: number) {
+        deleteMutation.mutate(id, {
+            onSuccess: () => {
+                closeEditor();
+                notify("Deleted");
+            },
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
@@ -329,23 +590,54 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
         });
     }
 
-    function setField(name: keyof ProjectFormFields, value: string | boolean) {
-        if (drawer === null) {
+    async function move(id: number, direction: -1 | 1) {
+        const swap = reorderSwap(projects, id, direction);
+
+        if (swap === null || moving) {
             return;
         }
 
-        setDrawer((current) =>
+        setMoving(true);
+
+        try {
+            await updateMutation.mutateAsync({
+                id: swap.item.id,
+                input: toInputForItem(swap.item, swap.itemOrder),
+            });
+            await updateMutation.mutateAsync({
+                id: swap.neighbor.id,
+                input: toInputForItem(swap.neighbor, swap.neighborOrder),
+            });
+            notify("Order saved");
+        } catch (error) {
+            if (isUnauthorized(error)) {
+                onUnauthorized();
+                return;
+            }
+
+            setFormError(error instanceof Error ? error.message : "Something went wrong.");
+        } finally {
+            setMoving(false);
+        }
+    }
+
+    function setField(name: keyof ProjectFormFields, value: string | boolean) {
+        if (editor === null) {
+            return;
+        }
+
+        setEditor((current) =>
             current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
         );
         setDirty(true);
     }
 
     function updateScreenshots(updater: (shots: ScreenshotDraft[]) => ScreenshotDraft[]) {
-        if (drawer === null) {
+        if (editor === null) {
             return;
         }
 
-        setDrawer((current) =>
+        setEditor((current) =>
             current === null ? current : { ...current, screenshots: updater(current.screenshots) },
         );
         setDirty(true);
@@ -384,35 +676,60 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
-    const projects = projectsQuery.data ?? [];
-    const query = search.trim().toLowerCase();
-    const visible =
-        query === ""
-            ? projects
-            : projects.filter((project) =>
-                  `${project.title} ${project.category} ${project.year}`
-                      .toLowerCase()
-                      .includes(query),
-              );
-    const screenshots = drawer?.screenshots ?? [];
+    const openId = editor?.id ?? null;
+
+    function editorFooter(id: number | "new") {
+        return (
+            <div className="mt-5 flex items-center gap-2.5 border-t border-(--line) pt-4">
+                <PrimaryButton type="submit" form="project-editor" disabled={isSaving}>
+                    {isSaving ? "Saving…" : "Save & publish"}
+                </PrimaryButton>
+
+                <span className="flex-1" />
+
+                {id !== "new" && (
+                    <>
+                        <IconButton
+                            label="Move project up"
+                            onClick={() => move(id, -1)}
+                            disabled={moving || reorderSwap(projects, id, -1) === null}
+                        >
+                            <ArrowUp size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <IconButton
+                            label="Move project down"
+                            onClick={() => move(id, 1)}
+                            disabled={moving || reorderSwap(projects, id, 1) === null}
+                        >
+                            <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <ConfirmDeleteButton
+                            onConfirm={() => handleDelete(id)}
+                            disabled={deleteMutation.isPending}
+                        />
+                    </>
+                )}
+
+                {id === "new" && (
+                    <ConfirmDeleteButton
+                        onConfirm={closeEditor}
+                        confirmLabel="Click again to discard"
+                    />
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
             <AdminSectionHead
                 title="Projects"
-                description="Case studies shown on the home page."
-                action={<AddButton onClick={() => openDrawer("new")}>Add project</AddButton>}
+                description="Case studies on the home page."
             />
 
-            <div className="mt-5">
-                <AdminSearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Search projects…"
-                />
-            </div>
-
-            <div className="mt-4">
+            <div className="mt-6">
                 {projectsQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading projects...
@@ -430,343 +747,101 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                             Retry
                         </button>
                     </div>
-                ) : visible.length === 0 ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        {projects.length === 0 ? "No projects yet." : "No projects match the search."}
-                    </p>
                 ) : (
-                    <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {visible.map((project) => (
-                            <AdminRow
-                                key={project.id}
-                                title={project.title}
-                                subtitle={`${project.year} · ${project.category}`}
-                                tag={project.has_case_study ? "Case study" : ""}
-                                onEdit={() => openDrawer(project.id, project)}
-                                onDelete={() => handleDelete(project)}
-                                deleting={deleteMutation.isPending}
-                            />
-                        ))}
-                    </ul>
+                    <div className="rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
+                        <div className="divide-y divide-(--line)">
+                            {openId === "new" && editor !== null && (
+                                <AccordionItem
+                                    open
+                                    title={editor.fields.title || "New project"}
+                                    subtitle={subtitleFor(editor.fields)}
+                                    tag={editor.fields.has_case_study ? "Case study" : ""}
+                                    onToggle={() => toggleEditor("new")}
+                                >
+                                    <form
+                                        id="project-editor"
+                                        onSubmit={handleSubmit}
+                                        className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                    >
+                                        <ProjectForm
+                                            fields={editor.fields}
+                                            screenshots={editor.screenshots}
+                                            formError={formError}
+                                            token={token}
+                                            onUnauthorized={onUnauthorized}
+                                            onField={setField}
+                                            onScreenshot={updateScreenshot}
+                                            onMoveScreenshot={moveScreenshot}
+                                            onRemoveScreenshot={removeScreenshot}
+                                            onAddScreenshot={addScreenshot}
+                                        />
+                                    </form>
+
+                                    {editorFooter("new")}
+                                </AccordionItem>
+                            )}
+
+                            {projects.length === 0 && openId !== "new" && (
+                                <p className="px-5 py-4 font-mono text-[10.5px] text-(--graphite)">
+                                    No projects yet.
+                                </p>
+                            )}
+
+                            {projects.map((project) => {
+                                const open = openId === project.id;
+
+                                return (
+                                    <AccordionItem
+                                        key={project.id}
+                                        open={open}
+                                        title={
+                                            open
+                                                ? editor?.fields.title || project.title
+                                                : project.title
+                                        }
+                                        subtitle={
+                                            open && editor
+                                                ? subtitleFor(editor.fields)
+                                                : subtitleFor(toFields(project))
+                                        }
+                                        tag={project.has_case_study ? "Case study" : ""}
+                                        onToggle={() => toggleEditor(project.id, project)}
+                                    >
+                                        {open && editor !== null && (
+                                            <>
+                                                <form
+                                                    id="project-editor"
+                                                    onSubmit={handleSubmit}
+                                                    className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                                >
+                                                    <ProjectForm
+                                                        fields={editor.fields}
+                                                        screenshots={editor.screenshots}
+                                                        formError={formError}
+                                                        token={token}
+                                                        onUnauthorized={onUnauthorized}
+                                                        onField={setField}
+                                                        onScreenshot={updateScreenshot}
+                                                        onMoveScreenshot={moveScreenshot}
+                                                        onRemoveScreenshot={removeScreenshot}
+                                                        onAddScreenshot={addScreenshot}
+                                                    />
+                                                </form>
+
+                                                {editorFooter(project.id)}
+                                            </>
+                                        )}
+                                    </AccordionItem>
+                                );
+                            })}
+                        </div>
+
+                        <AddRowButton onClick={() => openEditor("new")}>
+                            Add project
+                        </AddRowButton>
+                    </div>
                 )}
             </div>
-
-            <AdminDrawer
-                open={drawer !== null}
-                title={drawer !== null && drawer.id === "new" ? "Add project" : "Edit project"}
-                onClose={closeDrawer}
-                footer={
-                    <>
-                        <PrimaryButton
-                            type="submit"
-                            form="project-editor"
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Saving…" : "Save & publish"}
-                        </PrimaryButton>
-
-                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
-                    </>
-                }
-            >
-                {drawer !== null && (
-                    <>
-                        <ProjectTabs tab={tab} onChange={setTab} />
-
-                        <form
-                            id="project-editor"
-                            onSubmit={handleSubmit}
-                            className="grid gap-3 sm:grid-cols-2"
-                        >
-                            {tab === 0 && (
-                                <>
-                                    <Field label="Title" wide>
-                            <input
-                                value={drawer.fields.title}
-                                onChange={(event) => setField("title", event.target.value)}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Year">
-                            <input
-                                value={drawer.fields.year}
-                                onChange={(event) => setField("year", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="2026"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Category">
-                            <input
-                                value={drawer.fields.category}
-                                onChange={(event) => setField("category", event.target.value)}
-                                placeholder="Document archival"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Description" hint="One or two sentences" wide>
-                            <textarea
-                                value={drawer.fields.description}
-                                onChange={(event) => setField("description", event.target.value)}
-                                rows={3}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Stack" hint="Comma-separated" wide>
-                            <input
-                                value={drawer.fields.stack}
-                                onChange={(event) => setField("stack", event.target.value)}
-                                placeholder="React, TypeScript, Turso"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <ImageUploadField
-                            label="Thumbnail"
-                            value={drawer.fields.thumbnail}
-                            onChange={(url) => setField("thumbnail", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            aspect={16 / 9}
-                            maxEdge={1280}
-                        />
-
-                        <Field label="Sort order">
-                            <input
-                                value={drawer.fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Highlights" hint="One per line" wide>
-                            <textarea
-                                value={drawer.fields.highlights}
-                                onChange={(event) => setField("highlights", event.target.value)}
-                                rows={4}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-                    </>
-                )}
-
-                {tab === 1 && (
-                    <>
-                        <Field label="Repository URL" wide>
-                            <input
-                                value={drawer.fields.repo_url}
-                                onChange={(event) => setField("repo_url", event.target.value)}
-                                placeholder="https://github.com/…"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Live URL" wide>
-                            <input
-                                value={drawer.fields.live_url}
-                                onChange={(event) => setField("live_url", event.target.value)}
-                                placeholder="https://…"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Source access">
-                            <select
-                                value={drawer.fields.source_access}
-                                onChange={(event) => setField("source_access", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                {SOURCE_OPTIONS.map((option) => (
-                                    <option key={option.label} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Demo access">
-                            <select
-                                value={drawer.fields.demo_access}
-                                onChange={(event) => setField("demo_access", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                {DEMO_OPTIONS.map((option) => (
-                                    <option key={option.label} value={option.value}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Access note" hint="Shown when links are unavailable" wide>
-                            <input
-                                value={drawer.fields.access_note}
-                                onChange={(event) => setField("access_note", event.target.value)}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-                    </>
-                )}
-
-                {tab === 2 && (
-                    <>
-                        <div className="rounded-xl border border-(--line) p-4 sm:col-span-2">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={drawer.fields.has_case_study}
-                                    onChange={(event) => setField("has_case_study", event.target.checked)}
-                                    className="h-4 w-4 accent-(--accent-strong)"
-                                />
-                                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                    Has case study
-                                </span>
-                            </label>
-
-                            <p className="mt-3 font-mono text-[10.5px] leading-relaxed text-(--graphite)">
-                                Never show a dead link. Redact personal data in
-                                screenshots. Describe your own role precisely.
-                                Prefer a short screen recording link, redacted
-                                screenshots, or your own architecture diagram as
-                                proof.
-                            </p>
-
-                            <div className="mt-3 space-y-3">
-                                <Field label="Problem">
-                                    <textarea
-                                        value={drawer.fields.case_problem}
-                                        onChange={(event) => setField("case_problem", event.target.value)}
-                                        rows={2}
-                                        className={adminFieldInputClassName}
-                                    />
-                                </Field>
-
-                                <Field label="My role">
-                                    <textarea
-                                        value={drawer.fields.case_role}
-                                        onChange={(event) => setField("case_role", event.target.value)}
-                                        rows={2}
-                                        className={adminFieldInputClassName}
-                                    />
-                                </Field>
-
-                                <Field label="What I built">
-                                    <textarea
-                                        value={drawer.fields.case_solution}
-                                        onChange={(event) => setField("case_solution", event.target.value)}
-                                        rows={2}
-                                        className={adminFieldInputClassName}
-                                    />
-                                </Field>
-
-                                <Field label="Result">
-                                    <textarea
-                                        value={drawer.fields.case_result}
-                                        onChange={(event) => setField("case_result", event.target.value)}
-                                        rows={2}
-                                        className={adminFieldInputClassName}
-                                    />
-                                </Field>
-                            </div>
-                        </div>
-                    </>
-                )}
-
-                {tab === 3 && (
-                    <>
-                        <div className="sm:col-span-2">
-                            <div className="flex items-baseline justify-between">
-                                <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
-                                    Screenshots
-                                </span>
-
-                                <button
-                                    type="button"
-                                    onClick={addScreenshot}
-                                    className="font-mono text-[11px] text-(--accent-strong) hover:underline"
-                                >
-                                    Add screenshot
-                                </button>
-                            </div>
-
-                            {screenshots.map((shot, index) => (
-                                <div
-                                    key={shot.id}
-                                    className="mt-3 space-y-2 rounded-xl border border-(--line) p-3"
-                                >
-                                    <ImageUploadField
-                                        label={`Screenshot ${index + 1}`}
-                                        value={shot.url}
-                                        onChange={(url) => updateScreenshot(shot.id, { url })}
-                                        token={token}
-                                        onUnauthorized={onUnauthorized}
-                                        aspect={16 / 9}
-                                        maxEdge={1280}
-                                    />
-
-                                    <Field label="Caption">
-                                        <input
-                                            value={shot.caption}
-                                            onChange={(event) =>
-                                                updateScreenshot(shot.id, { caption: event.target.value })
-                                            }
-                                            className={adminFieldInputClassName}
-                                        />
-                                    </Field>
-
-                                    <div className="flex gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => moveScreenshot(shot.id, -1)}
-                                            disabled={index === 0}
-                                            className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong) disabled:opacity-40"
-                                        >
-                                            ↑ Up
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => moveScreenshot(shot.id, 1)}
-                                            disabled={index === screenshots.length - 1}
-                                            className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-(--accent-strong) disabled:opacity-40"
-                                        >
-                                            ↓ Down
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeScreenshot(shot.id)}
-                                            className="font-mono text-[11px] text-(--graphite) transition-colors duration-150 hover:text-red-500"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-
-                        {formError !== null && (
-                            <div className="sm:col-span-2">
-                                <FormError message={formError} />
-                            </div>
-                        )}
-                    </form>
-                    </>
-                )}
-            </AdminDrawer>
-
-            <SaveBar
-                open={touched && drawer !== null}
-                saving={isSaving}
-                onSave={commit}
-                onDiscard={discard}
-            />
         </div>
     );
 }
