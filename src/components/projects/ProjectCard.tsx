@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import { ContentImage } from "@/components/ui";
 import type { Project } from "@/services/projects/projects";
 import { AccessLedger } from "./AccessLedger";
+import { hasLedgerContent } from "./projectStatus";
 
 type ProjectCardProps = {
     project: Project;
@@ -19,6 +20,7 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
     const { title, description, stack, year, category, thumbnail } = project;
     const [expanded, setExpanded] = useState(false);
     const needsClamp = description.length > DESCRIPTION_PREVIEW_LIMIT;
+    const number = String(index + 1).padStart(2, "0");
     return (
         <article
             className="
@@ -37,37 +39,46 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
                 hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/20,0_16px_40px_-20px_var(--accent-strong)/35]
+                sm:min-h-[37.5rem]
             "
         >
-            <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
-                <ContentImage
-                    src={thumbnail}
-                    alt={`${title} preview`}
-                    imageClassName="
-                        h-full
-                        w-full
-                        object-cover
-                        transition-transform
-                        duration-700
-                        ease-[cubic-bezier(0.22,1,0.36,1)]
-                        motion-safe:group-hover:scale-[1.04]
-                    "
-                    placeholderClassName="h-full w-full"
-                />
+            {thumbnail !== "" && (
+                <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
+                    <ContentImage
+                        src={thumbnail}
+                        alt={`${title} preview`}
+                        imageClassName="
+                            h-full
+                            w-full
+                            object-cover
+                            transition-transform
+                            duration-700
+                            ease-[cubic-bezier(0.22,1,0.36,1)]
+                            motion-safe:group-hover:scale-[1.04]
+                        "
+                        placeholderClassName="h-full w-full"
+                    />
 
-                <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-white backdrop-blur-md">
-                    {String(index + 1).padStart(2, "0")}
-                </span>
-            </div>
+                    <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 font-mono text-[10px] text-white backdrop-blur-md">
+                        {number}
+                    </span>
+                </div>
+            )}
 
-            <div className="flex flex-1 flex-col p-4">
+            <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
+                    {thumbnail === "" && (
+                        <>
+                            <span className="shrink-0">{number}</span>
+                            <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
+                        </>
+                    )}
                     <span className="shrink-0">{year}</span>
                     <span aria-hidden="true" className="shrink-0 opacity-40">·</span>
                     <span title={category} className="min-w-0 truncate">{category}</span>
                 </div>
 
-                <h3 className="mt-2.5 font-display text-[20px] leading-tight text-(--ink)">
+                <h3 className="mt-3 font-display text-[22px] leading-tight text-(--ink)">
                     {title}
                 </h3>
 
@@ -127,9 +138,11 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
                 </div>
 
                 <div className="mt-auto pt-4">
-                    <div className="border-t hairline pt-3">
-                        <AccessLedger project={project} />
-                    </div>
+                    {(hasLedgerContent(project) || project.has_case_study) && (
+                        <div className="border-t hairline pt-4">
+                            <AccessLedger project={project} />
+                        </div>
+                    )}
                 </div>
 
                 {project.has_case_study && (

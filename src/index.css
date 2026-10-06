@@ -299,6 +299,38 @@ section[id] {
 }
 
 /*
+   HOME PROJECTS
+   Cards run wider than the certification cards and settle at a roomy,
+   uniform height (about twice the certification card). The track
+   scrollbar is hidden because the arrow buttons already handle
+   navigation.
+*/
+.home-projects .carousel-track {
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.home-projects .carousel-track::-webkit-scrollbar {
+    display: none;
+}
+
+.home-projects .carousel-card {
+    flex: 0 0 calc((100% - 0.05 * var(--carousel-gap, 1.25rem)) / 1.05);
+}
+
+@media (min-width: 640px) {
+    .home-projects .carousel-card {
+        flex-basis: calc((100% - 0.6 * var(--carousel-gap, 1.25rem)) / 1.6);
+    }
+}
+
+@media (min-width: 1024px) {
+    .home-projects .carousel-card {
+        flex-basis: calc((100% - 1.2 * var(--carousel-gap, 1.25rem)) / 2.2);
+    }
+}
+
+/*
    MOBILE DRAWER
 */
 
