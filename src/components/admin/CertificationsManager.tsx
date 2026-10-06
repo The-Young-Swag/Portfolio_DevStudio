@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowDown, ArrowUp } from "lucide-react";
 
 import {
     useCreateCertification,
@@ -14,13 +15,12 @@ import {
 } from "@/services/certifications/certifications";
 import { isUnauthorized } from "@/services/api";
 import { useAdminToast } from "./toastContext";
-import { AdminDrawer } from "./AdminDrawer";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
-import { PrimaryButton, SecondaryButton } from "./AdminButtons";
-import { AddButton, AdminRow, AdminSearchInput, AdminSectionHead } from "./AdminList";
-import { SaveBar } from "./SaveBar";
+import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
+import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
 import { ImageUploadField } from "./ImageUploadField";
 import { PdfUploadField } from "./PdfUploadField";
+import { reorderSwap } from "./reorder";
 
 type CertificationsManagerProps = {
     token: string;
@@ -106,6 +106,181 @@ function toInput(fields: CertificationFormFields): CertificationInput {
     };
 }
 
+function toInputForItem(certification: Certification, sortOrder: number): CertificationInput {
+    return toInput({ ...toFields(certification), sort_order: String(sortOrder) });
+}
+
+function subtitleFor(fields: Pick<CertificationFormFields, "issuer" | "year">): string {
+    return (
+        [fields.issuer, fields.year].filter((part) => part !== "").join(" · ") ||
+        "Not saved yet"
+    );
+}
+
+function CertificationForm({
+    fields,
+    parentOptions,
+    formError,
+    token,
+    onUnauthorized,
+    onField,
+}: {
+    fields: CertificationFormFields;
+    parentOptions: Certification[];
+    formError: string | null;
+    token: string;
+    onUnauthorized: () => void;
+    onField: (name: keyof CertificationFormFields, value: string) => void;
+}) {
+    return (
+        <>
+            <Field label="Title" wide>
+                <input
+                    value={fields.name}
+                    onChange={(event) => onField("name", event.target.value)}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Issuer">
+                <input
+                    value={fields.issuer}
+                    onChange={(event) => onField("issuer", event.target.value)}
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Date">
+                <input
+                    value={fields.year}
+                    onChange={(event) => onField("year", event.target.value)}
+                    placeholder="2026"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Platform">
+                <input
+                    value={fields.credential}
+                    onChange={(event) => onField("credential", event.target.value)}
+                    placeholder="Coursera"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Badge">
+                <input
+                    value={fields.badge}
+                    onChange={(event) => onField("badge", event.target.value)}
+                    placeholder="IBM"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Credential code">
+                <input
+                    value={fields.code}
+                    onChange={(event) => onField("code", event.target.value)}
+                    placeholder="FSD"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Verify link" wide>
+                <input
+                    value={fields.link}
+                    onChange={(event) => onField("link", event.target.value)}
+                    placeholder="https://…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <Field label="Group under" hint="Group courses under a parent certificate">
+                <select
+                    value={fields.parent_id}
+                    onChange={(event) => onField("parent_id", event.target.value)}
+                    className={adminFieldInputClassName}
+                >
+                    <option value="">None (top level)</option>
+                    {parentOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                            {option.name}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="Accent">
+                <select
+                    value={fields.accent}
+                    onChange={(event) => onField("accent", event.target.value)}
+                    className={adminFieldInputClassName}
+                >
+                    {accents.map((accent) => (
+                        <option key={accent} value={accent}>
+                            {accent}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="Sort order">
+                <input
+                    value={fields.sort_order}
+                    onChange={(event) => onField("sort_order", event.target.value)}
+                    inputMode="numeric"
+                    placeholder="0"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            <ImageUploadField
+                label="Certificate image"
+                value={fields.image}
+                onChange={(url) => onField("image", url)}
+                token={token}
+                onUnauthorized={onUnauthorized}
+                aspect={21 / 9}
+                maxEdge={1280}
+            />
+
+            <PdfUploadField
+                label="Certificate PDF"
+                value={fields.pdf}
+                onChange={(url) => onField("pdf", url)}
+                token={token}
+                onUnauthorized={onUnauthorized}
+                defaultFilename="certificate.pdf"
+            />
+
+            <ImageUploadField
+                label="Badge image"
+                value={fields.badge_image}
+                onChange={(url) => onField("badge_image", url)}
+                token={token}
+                onUnauthorized={onUnauthorized}
+                aspect={1}
+                maxEdge={512}
+            />
+
+            <Field label="Badge link" wide>
+                <input
+                    value={fields.badge_link}
+                    onChange={(event) => onField("badge_link", event.target.value)}
+                    placeholder="https://…"
+                    className={adminFieldInputClassName}
+                />
+            </Field>
+
+            {formError !== null && (
+                <div className="sm:col-span-2">
+                    <FormError message={formError} />
+                </div>
+            )}
+        </>
+    );
+}
+
 export function CertificationsManager({
     token,
     onUnauthorized,
@@ -123,14 +298,16 @@ export function CertificationsManager({
     const deleteMutation = useDeleteCertification(token);
     const notify = useAdminToast();
 
-    const [drawer, setDrawer] = useState<{
+    const [editor, setEditor] = useState<{
         id: number | "new";
         fields: CertificationFormFields;
         initial: CertificationFormFields;
     } | null>(null);
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
-    const [search, setSearch] = useState("");
+    const [moving, setMoving] = useState(false);
+
+    const certifications = certificationsQuery.data ?? [];
 
     function setDirty(next: boolean) {
         setTouched(next);
@@ -146,56 +323,61 @@ export function CertificationsManager({
         setFormError(error instanceof Error ? error.message : "Something went wrong.");
     }
 
-    function openDrawer(id: number | "new", fields: CertificationFormFields) {
-        setDrawer({ id, fields, initial: fields });
+    function openEditor(id: number | "new", fields: CertificationFormFields) {
+        if (editor !== null && editor.id !== id && touched) {
+            if (!window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+        }
+
+        setEditor({ id, fields, initial: fields });
         setFormError(null);
         setDirty(false);
     }
 
-    function closeDrawer() {
-        if (touched && !window.confirm("Discard unsaved changes?")) {
+    function toggleEditor(id: number | "new", fields: CertificationFormFields) {
+        if (editor !== null && editor.id === id) {
+            if (touched && !window.confirm("Discard unsaved changes?")) {
+                return;
+            }
+
+            setEditor(null);
+            setFormError(null);
+            setDirty(false);
             return;
         }
 
-        setDrawer(null);
-        setFormError(null);
-        setDirty(false);
+        openEditor(id, fields);
     }
 
-    function discard() {
-        if (drawer === null) {
-            return;
-        }
-
-        setDrawer({ ...drawer, fields: drawer.initial });
+    function closeEditor() {
+        setEditor(null);
         setFormError(null);
         setDirty(false);
     }
 
     function commit() {
-        if (drawer === null) {
+        if (editor === null) {
             return;
         }
 
         setFormError(null);
-        const input = toInput(drawer.fields);
+        const input = toInput(editor.fields);
 
-        if (drawer.id === "new") {
+        if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
-                    setDrawer(null);
-                    setDirty(false);
+                    closeEditor();
                     notify("Saved and live on your site");
                 },
                 onError: handleMutationError,
             });
         } else {
             updateMutation.mutate(
-                { id: drawer.id, input },
+                { id: editor.id, input },
                 {
                     onSuccess: () => {
-                        setDrawer(null);
-                        setDirty(false);
+                        closeEditor();
                         notify("Saved and live on your site");
                     },
                     onError: handleMutationError,
@@ -209,22 +391,16 @@ export function CertificationsManager({
         commit();
     }
 
-    function handleDelete(certification: Certification) {
-        const childCount = (certificationsQuery.data ?? []).filter(
-            (item) => item.parent_id === certification.id,
-        ).length;
+    function childCountFor(id: number): number {
+        return certifications.filter((item) => item.parent_id === id).length;
+    }
 
-        const message =
-            childCount > 0
-                ? `Delete "${certification.name}" and its ${childCount} ${childCount === 1 ? "course" : "courses"}? This goes live immediately.`
-                : `Delete "${certification.name}"? This goes live immediately.`;
-
-        if (!window.confirm(message)) {
-            return;
-        }
-
-        deleteMutation.mutate(certification.id, {
-            onSuccess: () => notify("Deleted"),
+    function handleDelete(id: number) {
+        deleteMutation.mutate(id, {
+            onSuccess: () => {
+                closeEditor();
+                notify("Deleted");
+            },
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
@@ -233,55 +409,115 @@ export function CertificationsManager({
         });
     }
 
-    function setField(name: keyof CertificationFormFields, value: string) {
-        if (drawer === null) {
+    async function move(id: number, direction: -1 | 1) {
+        const swap = reorderSwap(certifications, id, direction);
+
+        if (swap === null || moving) {
             return;
         }
 
-        setDrawer((current) =>
+        setMoving(true);
+
+        try {
+            await updateMutation.mutateAsync({
+                id: swap.item.id,
+                input: toInputForItem(swap.item, swap.itemOrder),
+            });
+            await updateMutation.mutateAsync({
+                id: swap.neighbor.id,
+                input: toInputForItem(swap.neighbor, swap.neighborOrder),
+            });
+            notify("Order saved");
+        } catch (error) {
+            if (isUnauthorized(error)) {
+                onUnauthorized();
+                return;
+            }
+
+            setFormError(error instanceof Error ? error.message : "Something went wrong.");
+        } finally {
+            setMoving(false);
+        }
+    }
+
+    function setField(name: keyof CertificationFormFields, value: string) {
+        if (editor === null) {
+            return;
+        }
+
+        setEditor((current) =>
             current === null ? current : { ...current, fields: { ...current.fields, [name]: value } },
         );
         setDirty(true);
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
-    const certifications = certificationsQuery.data ?? [];
-    const query = search.trim().toLowerCase();
-    const visible =
-        query === ""
-            ? certifications
-            : certifications.filter((certification) =>
-                  `${certification.name} ${certification.issuer} ${certification.year}`
-                      .toLowerCase()
-                      .includes(query),
-              );
-    const parentOptions = certifications.filter(
+    const openId = editor?.id ?? null;
+    const parentOptions = (certifications ?? []).filter(
         (item) =>
             item.parent_id === null &&
-            (drawer === null || typeof drawer.id !== "number" || item.id !== drawer.id),
+            (editor === null || typeof editor.id !== "number" || item.id !== editor.id),
     );
+
+    function editorFooter(id: number | "new") {
+        const childCount = id === "new" ? 0 : childCountFor(id);
+
+        return (
+            <div className="mt-5 flex items-center gap-2.5 border-t border-(--line) pt-4">
+                <PrimaryButton type="submit" form="certification-editor" disabled={isSaving}>
+                    {isSaving ? "Saving…" : "Save & publish"}
+                </PrimaryButton>
+
+                <span className="flex-1" />
+
+                {id !== "new" && (
+                    <>
+                        <IconButton
+                            label="Move certification up"
+                            onClick={() => move(id, -1)}
+                            disabled={moving || reorderSwap(certifications, id, -1) === null}
+                        >
+                            <ArrowUp size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <IconButton
+                            label="Move certification down"
+                            onClick={() => move(id, 1)}
+                            disabled={moving || reorderSwap(certifications, id, 1) === null}
+                        >
+                            <ArrowDown size={16} strokeWidth={2} aria-hidden="true" />
+                        </IconButton>
+
+                        <ConfirmDeleteButton
+                            onConfirm={() => handleDelete(id)}
+                            disabled={deleteMutation.isPending}
+                            confirmLabel={
+                                childCount > 0
+                                    ? `Click again to delete + ${childCount} ${childCount === 1 ? "course" : "courses"}`
+                                    : undefined
+                            }
+                        />
+                    </>
+                )}
+
+                {id === "new" && (
+                    <ConfirmDeleteButton
+                        onConfirm={closeEditor}
+                        confirmLabel="Click again to discard"
+                    />
+                )}
+            </div>
+        );
+    }
 
     return (
         <div>
             <AdminSectionHead
                 title="Certifications"
-                description="Credentials. A certificate can group child certificates under it."
-                action={
-                    <AddButton onClick={() => openDrawer("new", emptyFields)}>
-                        Add certification
-                    </AddButton>
-                }
+                description="Shown on the Certificates page."
             />
 
-            <div className="mt-5">
-                <AdminSearchInput
-                    value={search}
-                    onChange={setSearch}
-                    placeholder="Search certifications…"
-                />
-            </div>
-
-            <div className="mt-4">
+            <div className="mt-6">
                 {certificationsQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading certifications...
@@ -299,206 +535,99 @@ export function CertificationsManager({
                             Retry
                         </button>
                     </div>
-                ) : visible.length === 0 ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        {certifications.length === 0
-                            ? "No certifications yet."
-                            : "No certifications match the search."}
-                    </p>
                 ) : (
-                    <ul className="divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
-                        {visible.map((certification) => (
-                            <AdminRow
-                                key={certification.id}
-                                title={certification.name}
-                                subtitle={`${certification.issuer} · ${certification.year}`}
-                                tag={certification.link !== "" ? "Verified" : ""}
-                                onEdit={() => openDrawer(certification.id, toFields(certification))}
-                                onDelete={() => handleDelete(certification)}
-                                deleting={deleteMutation.isPending}
-                            />
-                        ))}
-                    </ul>
+                    <div className="rounded-2xl border border-(--glass-border) bg-(--glass-bg) backdrop-blur-xl backdrop-saturate-160">
+                        <div className="divide-y divide-(--line)">
+                            {openId === "new" && editor !== null && (
+                                <AccordionItem
+                                    open
+                                    title={editor.fields.name || "New certification"}
+                                    subtitle={subtitleFor(editor.fields)}
+                                    tag={editor.fields.credential}
+                                    onToggle={() => toggleEditor("new", emptyFields)}
+                                >
+                                    <form
+                                        id="certification-editor"
+                                        onSubmit={handleSubmit}
+                                        className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                    >
+                                        <CertificationForm
+                                            fields={editor.fields}
+                                            parentOptions={parentOptions}
+                                            formError={formError}
+                                            token={token}
+                                            onUnauthorized={onUnauthorized}
+                                            onField={setField}
+                                        />
+                                    </form>
+
+                                    {editorFooter("new")}
+                                </AccordionItem>
+                            )}
+
+                            {certifications.length === 0 && openId !== "new" && (
+                                <p className="px-5 py-4 font-mono text-[10.5px] text-(--graphite)">
+                                    No certifications yet.
+                                </p>
+                            )}
+
+                            {certifications.map((certification) => {
+                                const open = openId === certification.id;
+
+                                return (
+                                    <AccordionItem
+                                        key={certification.id}
+                                        open={open}
+                                        title={
+                                            open
+                                                ? editor?.fields.name || certification.name
+                                                : certification.name
+                                        }
+                                        subtitle={
+                                            open && editor
+                                                ? subtitleFor(editor.fields)
+                                                : subtitleFor(certification)
+                                        }
+                                        tag={
+                                            open && editor
+                                                ? editor.fields.credential
+                                                : certification.credential
+                                        }
+                                        onToggle={() =>
+                                            toggleEditor(certification.id, toFields(certification))
+                                        }
+                                    >
+                                        {open && editor !== null && (
+                                            <>
+                                                <form
+                                                    id="certification-editor"
+                                                    onSubmit={handleSubmit}
+                                                    className="grid gap-x-4 gap-y-3.5 sm:grid-cols-2"
+                                                >
+                                                    <CertificationForm
+                                                        fields={editor.fields}
+                                                        parentOptions={parentOptions}
+                                                        formError={formError}
+                                                        token={token}
+                                                        onUnauthorized={onUnauthorized}
+                                                        onField={setField}
+                                                    />
+                                                </form>
+
+                                                {editorFooter(certification.id)}
+                                            </>
+                                        )}
+                                    </AccordionItem>
+                                );
+                            })}
+                        </div>
+
+                        <AddRowButton onClick={() => openEditor("new", emptyFields)}>
+                            Add certification
+                        </AddRowButton>
+                    </div>
                 )}
             </div>
-
-            <AdminDrawer
-                open={drawer !== null}
-                title={drawer !== null && drawer.id === "new" ? "Add certification" : "Edit certification"}
-                onClose={closeDrawer}
-                footer={
-                    <>
-                        <PrimaryButton
-                            type="submit"
-                            form="certification-editor"
-                            disabled={isSaving}
-                        >
-                            {isSaving ? "Saving…" : "Save & publish"}
-                        </PrimaryButton>
-
-                        <SecondaryButton onClick={closeDrawer}>Cancel</SecondaryButton>
-                    </>
-                }
-            >
-                {drawer !== null && (
-                    <form
-                        id="certification-editor"
-                        onSubmit={handleSubmit}
-                        className="grid gap-3 sm:grid-cols-2"
-                    >
-                        <Field label="Title" wide>
-                            <input
-                                value={drawer.fields.name}
-                                onChange={(event) => setField("name", event.target.value)}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Issuer">
-                            <input
-                                value={drawer.fields.issuer}
-                                onChange={(event) => setField("issuer", event.target.value)}
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Year">
-                            <input
-                                value={drawer.fields.year}
-                                onChange={(event) => setField("year", event.target.value)}
-                                placeholder="2026"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Credential">
-                            <input
-                                value={drawer.fields.credential}
-                                onChange={(event) => setField("credential", event.target.value)}
-                                placeholder="Coursera"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Badge">
-                            <input
-                                value={drawer.fields.badge}
-                                onChange={(event) => setField("badge", event.target.value)}
-                                placeholder="IBM"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Credential code">
-                            <input
-                                value={drawer.fields.code}
-                                onChange={(event) => setField("code", event.target.value)}
-                                placeholder="FSD"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Sort order">
-                            <input
-                                value={drawer.fields.sort_order}
-                                onChange={(event) => setField("sort_order", event.target.value)}
-                                inputMode="numeric"
-                                placeholder="0"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <Field label="Accent">
-                            <select
-                                value={drawer.fields.accent}
-                                onChange={(event) => setField("accent", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                {accents.map((accent) => (
-                                    <option key={accent} value={accent}>
-                                        {accent}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Parent program" hint="Group courses under a parent certificate">
-                            <select
-                                value={drawer.fields.parent_id}
-                                onChange={(event) => setField("parent_id", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                <option value="">None (top level)</option>
-                                {parentOptions.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Verify link" wide>
-                            <input
-                                value={drawer.fields.link}
-                                onChange={(event) => setField("link", event.target.value)}
-                                placeholder="https://…"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        <ImageUploadField
-                            label="Certificate image"
-                            value={drawer.fields.image}
-                            onChange={(url) => setField("image", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            aspect={21 / 9}
-                            maxEdge={1280}
-                        />
-
-                        <PdfUploadField
-                            label="Certificate PDF"
-                            value={drawer.fields.pdf}
-                            onChange={(url) => setField("pdf", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            defaultFilename="certificate.pdf"
-                        />
-
-                        <ImageUploadField
-                            label="Badge image"
-                            value={drawer.fields.badge_image}
-                            onChange={(url) => setField("badge_image", url)}
-                            token={token}
-                            onUnauthorized={onUnauthorized}
-                            aspect={1}
-                            maxEdge={512}
-                        />
-
-                        <Field label="Badge link" wide>
-                            <input
-                                value={drawer.fields.badge_link}
-                                onChange={(event) => setField("badge_link", event.target.value)}
-                                placeholder="https://…"
-                                className={adminFieldInputClassName}
-                            />
-                        </Field>
-
-                        {formError !== null && (
-                            <div className="sm:col-span-2">
-                                <FormError message={formError} />
-                            </div>
-                        )}
-                    </form>
-                )}
-            </AdminDrawer>
-
-            <SaveBar
-                open={touched && drawer !== null}
-                saving={isSaving}
-                onSave={commit}
-                onDiscard={discard}
-            />
         </div>
     );
 }
