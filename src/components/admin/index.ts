@@ -7,6 +7,7 @@ export * from "./AdminSidebar";
 export * from "./AdminToast";
 export * from "./AdminTopBar";
 export * from "./adminSections";
+export * from "./reorder";
 export * from "./toastContext";
 export * from "./AlsoTrueManager";
 export * from "./CertificationsManager";

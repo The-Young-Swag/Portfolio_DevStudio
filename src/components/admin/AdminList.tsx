@@ -1,30 +1,102 @@
-import { GripVertical, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import type { PropsWithChildren, ReactNode } from "react";
+import { ChevronDown, Plus } from "lucide-react";
+import type { PropsWithChildren } from "react";
 
-import { IconButton, PrimaryButton } from "./AdminButtons";
+import { PrimaryButton } from "./AdminButtons";
 
 export function AdminSectionHead({
     title,
     description,
-    action,
 }: {
     title: string;
     description: string;
-    action?: ReactNode;
 }) {
     return (
         <div className="flex items-start gap-4">
             <div className="min-w-0 flex-1">
-                <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                <h1 className="font-display text-[32px] font-medium tracking-tight text-(--ink)">
                     {title}
                 </h1>
 
-                <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
+                <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-(--graphite)">
                     {description}
                 </p>
             </div>
+        </div>
+    );
+}
 
-            {action}
+type AccordionItemProps = PropsWithChildren<{
+    open: boolean;
+    title: string;
+    subtitle: string;
+    tag?: string;
+    onToggle: () => void;
+}>;
+
+/**
+ * One expandable list row: stacked serif title over muted subtitle,
+ * optional tag and a rotating chevron, with the editor rendered below
+ * when open. Matches the admin mockup rows.
+ */
+export function AccordionItem({
+    open,
+    title,
+    subtitle,
+    tag,
+    onToggle,
+    children,
+}: AccordionItemProps) {
+    return (
+        <div>
+            <button
+                type="button"
+                aria-expanded={open}
+                onClick={onToggle}
+                className="
+                    flex
+                    w-full
+                    items-center
+                    gap-3.5
+                    px-5
+                    py-4
+                    text-left
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-inset
+                    focus-visible:ring-(--accent-strong)
+                "
+            >
+                <span className="min-w-0 flex-1">
+                    <span className="block truncate font-display text-[17px] font-medium text-(--ink)">
+                        {title}
+                    </span>
+
+                    <span className="mt-0.5 block truncate text-[13px] text-(--graphite)">
+                        {subtitle}
+                    </span>
+                </span>
+
+                {tag !== undefined && tag !== "" && (
+                    <span className="hidden shrink-0 rounded-full border border-(--accent-strong)/50 px-2.5 py-1 font-mono text-[11px] font-medium text-(--accent-strong) min-[820px]:inline-flex">
+                        {tag}
+                    </span>
+                )}
+
+                <ChevronDown
+                    size={18}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className={`
+                        shrink-0
+                        text-(--graphite-soft)
+                        transition-transform
+                        duration-200
+                        ${open ? "rotate-180" : ""}
+                    `}
+                />
+            </button>
+
+            {open && <div className="px-5 pb-5 pt-1">{children}</div>}
         </div>
     );
 }
@@ -38,117 +110,36 @@ export function AddButton({ onClick, children }: PropsWithChildren<{ onClick: ()
     );
 }
 
-export function AdminSearchInput({
-    value,
-    onChange,
-    placeholder,
-}: {
-    value: string;
-    onChange: (value: string) => void;
-    placeholder: string;
-}) {
-    return (
-        <div className="relative">
-            <Search
-                size={15}
-                strokeWidth={2}
-                aria-hidden="true"
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--graphite-soft)"
-            />
-
-            <input
-                type="search"
-                value={value}
-                onChange={(event) => onChange(event.target.value)}
-                placeholder={placeholder}
-                aria-label={placeholder}
-                className="
-                    w-full
-                    rounded-xl
-                    border
-                    border-(--glass-border)
-                    bg-(--glass-bg)
-                    py-2
-                    pl-9
-                    pr-3
-                    text-[13px]
-                    text-(--ink)
-                    outline-none
-                    placeholder:text-(--graphite-soft)
-                    focus:border-(--accent-strong)
-                "
-            />
-        </div>
-    );
-}
-
-export function AdminRow({
-    title,
-    subtitle,
-    tag,
-    onEdit,
-    onDelete,
-    deleting = false,
+export function AddRowButton({
+    onClick,
     children,
-}: PropsWithChildren<{
-    title: string;
-    subtitle?: string;
-    tag?: string;
-    onEdit: () => void;
-    onDelete: () => void;
-    deleting?: boolean;
-}>) {
+}: PropsWithChildren<{ onClick: () => void }>) {
     return (
-        <li className="flex items-center gap-3 p-4 transition-colors duration-150 hover:bg-(--accent-strong)/5">
-            <span aria-hidden="true" className="shrink-0 text-(--graphite-soft)">
-                <GripVertical size={15} strokeWidth={2} />
-            </span>
-
-            <button
-                type="button"
-                onClick={onEdit}
-                className="
-                    min-w-0
-                    flex-1
-                    text-left
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-(--accent-strong)
-                "
-            >
-                <span className="block truncate font-display text-[16px] text-(--ink)">
-                    {title}
-                </span>
-
-                {subtitle !== undefined && subtitle !== "" && (
-                    <span className="mt-0.5 block truncate font-mono text-[10.5px] text-(--graphite-soft)">
-                        {subtitle}
-                    </span>
-                )}
-            </button>
-
-            {tag !== undefined && tag !== "" && (
-                <span className="hidden shrink-0 rounded-full border border-(--accent-strong)/40 px-2.5 py-1 font-mono text-[10px] text-(--accent-strong) sm:inline-block">
-                    {tag}
-                </span>
-            )}
-
+        <button
+            type="button"
+            onClick={onClick}
+            className="
+                flex
+                w-full
+                items-center
+                gap-2.5
+                border-t
+                border-(--line)
+                px-5
+                py-[15px]
+                font-semibold
+                text-(--accent-strong)
+                transition-colors
+                duration-150
+                hover:text-(--accent-deep)
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-inset
+                focus-visible:ring-(--accent-strong)
+            "
+        >
+            <Plus size={17} strokeWidth={2} aria-hidden="true" />
             {children}
-
-            <span className="flex shrink-0">
-                <IconButton label={`Edit ${title}`} onClick={onEdit}>
-                    <Pencil size={15} strokeWidth={2} aria-hidden="true" />
-                </IconButton>
-
-                <IconButton
-                    label={`Delete ${title}`}
-                    tone="danger"
-                    onClick={onDelete}
-                    disabled={deleting}
-                >
-                    <Trash2 size={15} strokeWidth={2} aria-hidden="true" />
-                </IconButton>
-            </span>
-        </li>
+        </button>
     );
 }
