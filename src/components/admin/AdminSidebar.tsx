@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
+import profileDefault from "@/assets/images/profile-default.webp";
 import { useTheme } from "@/context/theme";
+import { useProfile } from "@/hooks/profile/useProfile";
 import { ADMIN_GROUPS, type AdminSectionId } from "./adminSections";
 
 type AdminSidebarProps = {
@@ -10,9 +13,28 @@ type AdminSidebarProps = {
     onNavigate: (id: AdminSectionId) => void;
 };
 
+function initialsFor(name: string): string {
+    const parts = name.trim().split(/\s+/).filter((part) => part !== "");
+
+    if (parts.length === 0) {
+        return "?";
+    }
+
+    const first = parts[0]?.charAt(0) ?? "";
+    const last = parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? "") : "";
+
+    return `${first}${last}`.toUpperCase();
+}
+
 export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSidebarProps) {
     const { theme, toggleTheme } = useTheme();
+    const { profile } = useProfile();
+    const [portraitFailed, setPortraitFailed] = useState(false);
     const dark = theme === "dark";
+
+    const displayName = profile.name.trim() === "" ? "Content admin" : profile.name;
+    const defaultPortrait = profile.portrait["profile-default"]?.image || profileDefault;
+    const siteHost = typeof window === "undefined" ? "" : window.location.host;
 
     return (
         <aside
@@ -42,32 +64,43 @@ export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSideba
             "
         >
             <div className="mr-2 hidden shrink-0 items-center gap-2.5 min-[820px]:mb-3 min-[820px]:flex">
-                <span
-                    aria-hidden="true"
-                    className="
-                        flex
-                        h-8
-                        w-8
-                        items-center
-                        justify-center
-                        rounded-lg
-                        bg-(--accent-strong)
-                        font-display
-                        text-[13px]
-                        font-semibold
-                        text-white
-                    "
-                >
-                    IR
-                </span>
+                {portraitFailed ? (
+                    <span
+                        aria-hidden="true"
+                        className="
+                            flex
+                            h-8
+                            w-8
+                            items-center
+                            justify-center
+                            rounded-lg
+                            bg-(--accent-strong)
+                            font-display
+                            text-[13px]
+                            font-semibold
+                            text-white
+                        "
+                    >
+                        {initialsFor(displayName)}
+                    </span>
+                ) : (
+                    <img
+                        src={defaultPortrait}
+                        alt=""
+                        onError={() => setPortraitFailed(true)}
+                        className="h-8 w-8 shrink-0 rounded-lg border border-(--glass-border) object-cover"
+                    />
+                )}
 
                 <span className="min-w-0">
-                    <span className="block text-[13.5px] font-semibold text-(--ink)">
-                        Content admin
+                    <span className="block truncate text-[13.5px] font-semibold text-(--ink)">
+                        {displayName}
                     </span>
-                    <span className="block font-mono text-[10.5px] text-(--graphite-soft)">
-                        ivanharvey.dev
-                    </span>
+                    {siteHost !== "" && (
+                        <span className="block truncate font-mono text-[10.5px] text-(--graphite-soft)">
+                            {siteHost}
+                        </span>
+                    )}
                 </span>
             </div>
 
