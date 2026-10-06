@@ -1,4 +1,4 @@
-import { Check, Download, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck } from "lucide-react";
 
 import { ContentImage } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
@@ -30,33 +30,20 @@ function buildShots(certification: Certification): GalleryShot[] {
 }
 
 function CourseLinks({ course }: { course: Certification }) {
-    if (course.link === "" && course.pdf === "") {
+    if (course.link === "") {
         return null;
     }
 
     return (
         <span className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
-            {course.link !== "" && (
-                <a
-                    href={course.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-[11px] text-(--accent-strong) hover:underline"
-                >
-                    Verify ↗
-                </a>
-            )}
-
-            {course.pdf !== "" && (
-                <a
-                    href={course.pdf}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-[11px] text-(--accent-strong) hover:underline"
-                >
-                    Certificate PDF ↗
-                </a>
-            )}
+            <a
+                href={course.link}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-[11px] text-(--accent-strong) hover:underline"
+            >
+                Verify ↗
+            </a>
         </span>
     );
 }
@@ -74,7 +61,6 @@ export function CertificationDetail({
 }: CertificationDetailProps) {
     const shots = buildShots(certification);
     const hasVerify = certification.link !== "";
-    const hasPdf = certification.pdf !== "";
 
     return (
         <article
@@ -102,66 +88,34 @@ export function CertificationDetail({
                     </h2>
                 </div>
 
-                {(hasVerify || hasPdf) && (
+                {hasVerify && (
                     <div className="flex flex-wrap gap-2.5">
-                        {hasVerify && (
-                            <a
-                                href={certification.link}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="
-                                    inline-flex
-                                    items-center
-                                    gap-2
-                                    rounded-[0.875rem]
-                                    bg-(--accent-strong)
-                                    px-4
-                                    py-2.5
-                                    text-[13.5px]
-                                    font-medium
-                                    text-white
-                                    transition-colors
-                                    duration-150
-                                    hover:bg-(--accent-deep)
-                                    focus-visible:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-(--accent-strong)
-                                "
-                            >
-                                <ShieldCheck size={16} strokeWidth={2} aria-hidden="true" />
-                                Verify credential
-                            </a>
-                        )}
-
-                        {hasPdf && (
-                            <a
-                                href={certification.pdf}
-                                download
-                                className="
-                                    inline-flex
-                                    items-center
-                                    gap-2
-                                    rounded-[0.875rem]
-                                    border
-                                    border-(--glass-border)
-                                    bg-(--glass-bg)
-                                    px-4
-                                    py-2.5
-                                    text-[13.5px]
-                                    font-medium
-                                    text-(--ink)
-                                    transition-colors
-                                    duration-150
-                                    hover:border-(--accent-strong)
-                                    focus-visible:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-(--accent-strong)
-                                "
-                            >
-                                <Download size={16} strokeWidth={2} aria-hidden="true" />
-                                Download PDF
-                            </a>
-                        )}
+                        <a
+                            href={certification.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-[0.875rem]
+                                bg-(--accent-strong)
+                                px-4
+                                py-2.5
+                                text-[13.5px]
+                                font-medium
+                                text-white
+                                transition-colors
+                                duration-150
+                                hover:bg-(--accent-deep)
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-(--accent-strong)
+                            "
+                        >
+                            <ShieldCheck size={16} strokeWidth={2} aria-hidden="true" />
+                            Verify credential
+                        </a>
                     </div>
                 )}
             </header>

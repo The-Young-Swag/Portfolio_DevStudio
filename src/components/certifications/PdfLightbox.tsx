@@ -53,14 +53,7 @@ export function PdfLightbox({ src, title, onClose }: PdfLightboxProps) {
                 />
 
                 <div className="mt-3 flex items-center justify-between gap-4">
-                    <a
-                        href={src}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="truncate font-mono text-[11px] text-white/80 hover:underline"
-                    >
-                        Open original ↗
-                    </a>
+                    <p className="truncate font-mono text-[11px] text-white/80">{title}</p>
 
                     <button
                         type="button"
