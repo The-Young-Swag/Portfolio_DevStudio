@@ -1,7 +1,7 @@
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { StackCategorySection } from "@/components/stack";
-import { SectionHeading } from "@/components/ui";
+import { CoreLegend, SectionHeading } from "@/components/ui";
 import { useStackItems } from "@/hooks/stack/useStackItems";
 import type { StackItem, StackItemCategory } from "@/services/stack/stackItems";
 
@@ -32,6 +32,10 @@ export function StackPage() {
             <Section id="tools">
                 <Container>
                     <SectionHeading number="01" title="Tools" id="tools" />
+
+                    {!isPending && stackItems.length > 0 && (
+                        <CoreLegend className="mt-4" />
+                    )}
 
                     {isPending ? (
                         <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">

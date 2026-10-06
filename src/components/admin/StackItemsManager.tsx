@@ -8,7 +8,7 @@ import {
     useDeleteStackItem,
     useUpdateStackItem,
 } from "@/hooks/stack/useStackItems";
-import { SkillPill } from "@/components/ui";
+import { CoreLegend, SkillPill } from "@/components/ui";
 import { isUnauthorized } from "@/services/api";
 import {
     getStackItems,
@@ -408,6 +408,9 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
             </form>
 
             <div className="mt-2">
+                {!stackQuery.isPending && items.length > 0 && (
+                    <CoreLegend className="mb-1" />
+                )}
                 {stackQuery.isPending ? (
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading stack...
