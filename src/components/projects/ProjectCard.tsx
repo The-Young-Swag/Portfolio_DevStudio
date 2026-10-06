@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { ContentImage } from "@/components/ui";
+import { ContentImage, TechPill } from "@/components/ui";
 import type { Project } from "@/services/projects/projects";
 import { AccessLedger } from "./AccessLedger";
 import { hasLedgerContent } from "./projectStatus";
@@ -15,10 +15,125 @@ type ProjectCardProps = {
 // the stored text is. Short descriptions render fully, unchanged.
 const DESCRIPTION_PREVIEW_LIMIT = 150;
 
-export function ProjectCard({ project }: ProjectCardProps) {
-    const { title, description, stack, year, category, thumbnail } = project;
+function ProjectCover({ title, thumbnail }: { title: string; thumbnail: string }) {
+    if (thumbnail === "") {
+        return null;
+    }
+
+    return (
+        <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
+            <ContentImage
+                src={thumbnail}
+                alt={`${title} preview`}
+                imageClassName="
+                    h-full
+                    w-full
+                    object-cover
+                    transition-transform
+                    duration-700
+                    ease-[cubic-bezier(0.22,1,0.36,1)]
+                    motion-safe:group-hover:scale-[1.04]
+                "
+                placeholderClassName="h-full w-full"
+            />
+        </div>
+    );
+}
+
+function ProjectDescription({
+    title,
+    description,
+}: {
+    title: string;
+    description: string;
+}) {
     const [expanded, setExpanded] = useState(false);
     const needsClamp = description.length > DESCRIPTION_PREVIEW_LIMIT;
+    const clamped = needsClamp && !expanded;
+
+    return (
+        <>
+            <p
+                className={`mt-2 text-[13px] leading-5 text-(--graphite)${clamped ? " line-clamp-3" : ""}`}
+            >
+                {description}
+            </p>
+
+            {needsClamp && (
+                <button
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-label={expanded ? `Show less: ${title}` : `Read more: ${title}`}
+                    onClick={() => setExpanded((open) => !open)}
+                    className="
+                        mt-1
+                        inline-flex
+                        min-h-[44px]
+                        items-center
+                        font-mono
+                        text-[11px]
+                        text-(--accent-strong)
+                        hover:underline
+                    "
+                >
+                    {expanded ? "Show less ↑" : "Read more ↓"}
+                </button>
+            )}
+        </>
+    );
+}
+
+function ProjectTags({ stack }: { stack: string[] }) {
+    if (stack.length === 0) {
+        return null;
+    }
+
+    return (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+            {stack.map((technology) => (
+                <TechPill key={technology} name={technology} />
+            ))}
+        </div>
+    );
+}
+
+function ProjectFooter({ project }: { project: Project }) {
+    const showLedger = hasLedgerContent(project);
+
+    if (!showLedger && !project.has_case_study) {
+        return null;
+    }
+
+    return (
+        <div className="mt-auto pt-4">
+            {showLedger && (
+                <div className="border-t hairline pt-4">
+                    <AccessLedger project={project} />
+                </div>
+            )}
+
+            {project.has_case_study && (
+                <div className="mt-3">
+                    <Link
+                        to={`/projects#project-${project.id}`}
+                        className="
+                            font-mono
+                            text-[11px]
+                            text-(--accent-strong)
+                            hover:underline
+                        "
+                    >
+                        Read case study →
+                    </Link>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export function ProjectCard({ project }: ProjectCardProps) {
+    const { title, description, stack, year, category, thumbnail } = project;
+
     return (
         <article
             className="
@@ -37,27 +152,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
                 hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/20,0_16px_40px_-20px_var(--accent-strong)/35]
-                sm:min-h-[35rem]
+                sm:min-h-[26rem]
             "
         >
-            {thumbnail !== "" && (
-                <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
-                    <ContentImage
-                        src={thumbnail}
-                        alt={`${title} preview`}
-                        imageClassName="
-                            h-full
-                            w-full
-                            object-cover
-                            transition-transform
-                            duration-700
-                            ease-[cubic-bezier(0.22,1,0.36,1)]
-                            motion-safe:group-hover:scale-[1.04]
-                        "
-                        placeholderClassName="h-full w-full"
-                    />
-                </div>
-            )}
+            <ProjectCover title={title} thumbnail={thumbnail} />
 
             <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite)">
@@ -70,84 +168,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
                     {title}
                 </h3>
 
-                <p
-                    className={
-                        expanded || !needsClamp
-                            ? "mt-2 text-[13px] leading-5 text-(--graphite)"
-                            : "mt-2 line-clamp-3 text-[13px] leading-5 text-(--graphite)"
-                    }
-                >
-                    {description}
-                </p>
+                <ProjectDescription title={title} description={description} />
 
-                {needsClamp && (
-                    <button
-                        type="button"
-                        aria-expanded={expanded}
-                        aria-label={expanded ? `Show less: ${title}` : `Read more: ${title}`}
-                        onClick={() => setExpanded((open) => !open)}
-                        className="
-                            mt-1
-                            inline-flex
-                            min-h-[44px]
-                            items-center
-                            font-mono
-                            text-[11px]
-                            text-(--accent-strong)
-                            hover:underline
-                        "
-                    >
-                        {expanded ? "Show less ↑" : "Read more ↓"}
-                    </button>
-                )}
+                <ProjectTags stack={stack} />
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                    {stack.map((technology) => (
-                        <span
-                            key={technology}
-                            className="
-                                rounded-full
-                                border
-                                border-(--accent-strong)/50
-                                px-2.5
-                                py-1
-                                font-mono
-                                text-[9.5px]
-                                text-(--graphite)
-                                transition-colors
-                                duration-500
-                                group-hover:border-(--accent-strong)
-                                group-hover:text-(--ink)
-                            "
-                        >
-                            {technology}
-                        </span>
-                    ))}
-                </div>
-
-                <div className="mt-auto pt-4">
-                    {(hasLedgerContent(project) || project.has_case_study) && (
-                        <div className="border-t hairline pt-4">
-                            <AccessLedger project={project} />
-                        </div>
-                    )}
-                </div>
-
-                {project.has_case_study && (
-                    <div className="mt-3">
-                        <Link
-                            to={`/projects#project-${project.id}`}
-                            className="
-                                font-mono
-                                text-[11px]
-                                text-(--accent-strong)
-                                hover:underline
-                            "
-                        >
-                            Read case study →
-                        </Link>
-                    </div>
-                )}
+                <ProjectFooter project={project} />
             </div>
         </article>
     );
