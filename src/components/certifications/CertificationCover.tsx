@@ -1,4 +1,4 @@
-import { ContentImage } from "@/components/ui";
+import { ContentImage, ImagePlaceholder } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
 import { VerificationBadge } from "./VerificationBadge";
 
@@ -8,41 +8,15 @@ const ACCENT_TONES: Record<Certification["accent"], string> = {
     viridian: "from-[#1c3a2c] to-[#4d7a52]",
 };
 
-// Paper-certificate miniature used wherever a real scan is missing. Purely
-// decorative: the lines carry no information.
-function CertificateSheet({ className }: { className?: string }) {
-    return (
-        <span
-            aria-hidden="true"
-            className={`
-                flex
-                w-[58%]
-                flex-col
-                items-center
-                justify-center
-                gap-[7px]
-                overflow-hidden
-                rounded-[6px]
-                bg-[#fbfaf6]
-                p-3
-                shadow-[0_8px_24px_-10px_rgba(0,0,0,0.5)]
-                ring-1
-                ring-[#cfc9b3]
-                ring-inset
-                ${className ?? ""}
-            `}
-        >
-            <span className="h-[3px] w-[46%] rounded-full bg-[#d8d3c0]" />
-            <span className="h-[3px] w-[28%] rounded-full bg-[#d8d3c0]" />
-            <span className="h-[3px] w-[60%] rounded-full bg-[#d8d3c0]" />
-        </span>
-    );
-}
-
 type CertificationCoverProps = {
     certification: Pick<Certification, "accent" | "image" | "link" | "name">;
 };
 
+/**
+ * Certificate thumbnail: the real uploaded image when present,
+ * otherwise the conventional neutral placeholder. Never a drawn
+ * imitation of a certificate.
+ */
 export function CertificationCover({ certification }: CertificationCoverProps) {
     return (
         <span
@@ -64,7 +38,7 @@ export function CertificationCover({ certification }: CertificationCoverProps) {
                     placeholderClassName="absolute inset-0 h-full w-full"
                 />
             ) : (
-                <CertificateSheet />
+                <ImagePlaceholder className="absolute inset-0 h-full w-full" />
             )}
 
             <span className="absolute left-2.5 top-2.5">
