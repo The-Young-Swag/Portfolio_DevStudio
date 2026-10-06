@@ -37,7 +37,7 @@ export function CertificationItem({
                 className,
             )}
         >
-            <div className="relative h-28 overflow-hidden border-b border-(--line)">
+            <div className="relative h-36 overflow-hidden border-b border-(--line)">
                 <ContentImage
                     src={image}
                     alt={`${name} certificate`}

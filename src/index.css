@@ -315,13 +315,13 @@ section[id] {
 
 @media (min-width: 640px) {
     .home-projects .carousel-card {
-        flex-basis: calc((100% - 0.6 * var(--carousel-gap, 1.25rem)) / 1.6);
+        flex-basis: calc((100% - 0.55 * var(--carousel-gap, 1.25rem)) / 1.55);
     }
 }
 
 @media (min-width: 1024px) {
     .home-projects .carousel-card {
-        flex-basis: calc((100% - 1.2 * var(--carousel-gap, 1.25rem)) / 2.2);
+        flex-basis: calc((100% - 1.05 * var(--carousel-gap, 1.25rem)) / 2.05);
     }
 }
 

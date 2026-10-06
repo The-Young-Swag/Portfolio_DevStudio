@@ -37,7 +37,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 ease-[cubic-bezier(0.22,1,0.36,1)]
                 hover:bg-(--glass-bg-strong)
                 hover:shadow-[inset_0_1px_0_var(--glass-highlight),0_0_0_1px_var(--accent-strong)/20,0_16px_40px_-20px_var(--accent-strong)/35]
-                sm:min-h-[calc(37.5rem-7px)]
+                sm:min-h-[35rem]
             "
         >
             {thumbnail !== "" && (
