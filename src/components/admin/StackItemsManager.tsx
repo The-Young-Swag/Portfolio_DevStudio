@@ -8,7 +8,7 @@ import {
     useDeleteStackItem,
     useUpdateStackItem,
 } from "@/hooks/stack/useStackItems";
-import { LevelDot, SkillPill } from "@/components/ui";
+import { SkillPill } from "@/components/ui";
 import { isUnauthorized } from "@/services/api";
 import {
     getStackItems,
@@ -47,14 +47,12 @@ const categories: { value: StackItemCategory; title: string }[] = [
     { value: "tool", title: "Tools" },
 ];
 
-const levels: StackItemLevel[] = ["learning", "comfortable", "confident"];
-
 function isCategory(value: string): value is StackItemCategory {
     return categories.some((category) => category.value === value);
 }
 
 function isLevel(value: string): value is StackItemLevel {
-    return (levels as readonly string[]).includes(value);
+    return value === "learning" || value === "comfortable" || value === "confident";
 }
 
 function toFields(item: StackItem): StackItemFormFields {
@@ -109,7 +107,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
 
     const [quickName, setQuickName] = useState("");
     const [quickCategory, setQuickCategory] = useState<StackItemCategory>("language");
-    const [quickLevel, setQuickLevel] = useState<StackItemLevel>("confident");
     const [quickError, setQuickError] = useState<string | null>(null);
 
     const [drawer, setDrawer] = useState<{
@@ -207,7 +204,7 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
             {
                 name: quickName.trim(),
                 category: quickCategory,
-                level: quickLevel,
+                level: "comfortable",
                 since_year: null,
                 is_core: false,
                 sort_order: nextSortOrder,
@@ -374,21 +371,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                     ))}
                 </select>
 
-                <select
-                    value={quickLevel}
-                    onChange={(event) =>
-                        isLevel(event.target.value) && setQuickLevel(event.target.value)
-                    }
-                    aria-label="New skill proficiency"
-                    className={`${adminFieldInputClassName} min-w-28 flex-1`}
-                >
-                    {levels.map((level) => (
-                        <option key={level} value={level}>
-                            {level}
-                        </option>
-                    ))}
-                </select>
-
                 <button
                     type="submit"
                     disabled={createMutation.isPending}
@@ -424,19 +406,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                     <p className="w-full font-mono text-[11px] text-red-500">{quickError}</p>
                 )}
             </form>
-
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-[11px] text-(--graphite-soft)">
-                <span className="inline-flex items-center gap-1.5">
-                    <LevelDot level="confident" /> confident
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                    <LevelDot level="comfortable" /> comfortable
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                    <LevelDot level="learning" /> learning
-                </span>
-                <span className="inline-flex items-center gap-1.5">★ core</span>
-            </div>
 
             <div className="mt-2">
                 {stackQuery.isPending ? (
@@ -482,7 +451,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                                         <SkillPill
                                             key={item.id}
                                             name={item.name}
-                                            level={item.level}
                                             isCore={item.is_core}
                                             onClick={() => openDrawer(item)}
                                         />
@@ -548,20 +516,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                                 {categories.map((category) => (
                                     <option key={category.value} value={category.value}>
                                         {category.value}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
-
-                        <Field label="Proficiency">
-                            <select
-                                value={drawer.fields.level}
-                                onChange={(event) => setField("level", event.target.value)}
-                                className={adminFieldInputClassName}
-                            >
-                                {levels.map((level) => (
-                                    <option key={level} value={level}>
-                                        {level}
                                     </option>
                                 ))}
                             </select>

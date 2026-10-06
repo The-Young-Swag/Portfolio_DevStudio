@@ -1,7 +1,7 @@
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { StackCategorySection } from "@/components/stack";
-import { LevelDot, SectionHeading } from "@/components/ui";
+import { SectionHeading } from "@/components/ui";
 import { useStackItems } from "@/hooks/stack/useStackItems";
 import type { StackItem, StackItemCategory } from "@/services/stack/stackItems";
 
@@ -33,11 +33,6 @@ export function StackPage() {
                 <Container>
                     <SectionHeading number="01" title="Tools" id="tools" />
 
-                    <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
-                        Grouped the way I think about them: what I write, what I
-                        build on, where it lives, and how I keep it honest.
-                    </p>
-
                     {isPending ? (
                         <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
                             Loading stack...
@@ -48,21 +43,6 @@ export function StackPage() {
                         </p>
                     ) : (
                         <>
-                            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-[11px] text-(--graphite-soft)">
-                                <span className="inline-flex items-center gap-1.5">
-                                    <LevelDot level="confident" /> confident
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                    <LevelDot level="comfortable" /> comfortable
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                    <LevelDot level="learning" /> learning
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                    ★ core
-                                </span>
-                            </div>
-
                             {CATEGORY_ORDER.map(({ category, title }) => (
                                 <StackCategorySection
                                     key={category}

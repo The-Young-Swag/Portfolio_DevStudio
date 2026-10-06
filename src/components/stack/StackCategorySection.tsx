@@ -22,7 +22,6 @@ export function StackCategorySection({ title, items }: StackCategorySectionProps
                     <SkillPill
                         key={item.id}
                         name={item.name}
-                        level={item.level}
                         isCore={item.is_core}
                     />
                 ))}
