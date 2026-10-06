@@ -229,10 +229,11 @@ function CertificationForm({
                     onUnauthorized={onUnauthorized}
                     aspect={21 / 9}
                     maxEdge={1280}
+                    crop={false}
                 />
 
                 <p className="mt-1 text-[12px] leading-relaxed text-(--graphite-soft)">
-                    Shown on the card. A PDF alone does not make a cover image.
+                    Shown on the card. Without one, the PDF below is used instead.
                 </p>
             </div>
 
@@ -247,7 +248,7 @@ function CertificationForm({
                 />
 
                 <p className="mt-1 text-[12px] leading-relaxed text-(--graphite-soft)">
-                    Offered as a download button on the detail page.
+                    Previewed on the detail page, plus a download button.
                 </p>
             </div>
 
@@ -270,6 +271,7 @@ function CertificationForm({
                 onUnauthorized={onUnauthorized}
                 aspect={1}
                 maxEdge={512}
+                crop={false}
             />
 
             <Field label="Badge link" wide>

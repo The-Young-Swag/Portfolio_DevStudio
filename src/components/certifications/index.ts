@@ -7,4 +7,5 @@ export * from "./CertificationItem";
 export * from "./CertificationRail";
 export * from "./CertificationShowcase";
 export * from "./CertificationsSection";
+export * from "./PdfEmbed";
 export * from "./VerificationBadge";

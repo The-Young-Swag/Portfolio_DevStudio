@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-import { ContentImage } from "@/components/ui";
+import { ContentImage, ImagePlaceholder } from "@/components/ui";
+import { PdfEmbed } from "./PdfEmbed";
 
 type CertificationItemProps = {
     name: string;
@@ -11,6 +12,7 @@ type CertificationItemProps = {
     badge: string;
     code: string;
     image: string;
+    pdf: string;
     badge_image: string;
     badge_link: string;
     className?: string;
@@ -25,6 +27,7 @@ export function CertificationItem({
     badge,
     code,
     image,
+    pdf,
     badge_image,
     badge_link,
     className,
@@ -38,12 +41,24 @@ export function CertificationItem({
             )}
         >
             <div className="relative h-36 overflow-hidden border-b border-(--line)">
-                <ContentImage
-                    src={image}
-                    alt={`${name} certificate`}
-                    imageClassName="absolute inset-0 h-full w-full object-cover"
-                    placeholderClassName="absolute inset-0"
-                />
+                {image !== "" ? (
+                    <ContentImage
+                        src={image}
+                        alt={`${name} certificate`}
+                        imageClassName="absolute inset-0 h-full w-full object-cover"
+                        placeholderClassName="absolute inset-0"
+                    />
+                ) : pdf !== "" ? (
+                    <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
+                        <PdfEmbed
+                            src={pdf}
+                            title=""
+                            className="pointer-events-none h-full w-full"
+                        />
+                    </span>
+                ) : (
+                    <ImagePlaceholder className="absolute inset-0" />
+                )}
 
                 {badge !== "" && (
                     <span className="absolute left-2.5 top-2.5 rounded-full border border-white/20 bg-black/30 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-white backdrop-blur-md">

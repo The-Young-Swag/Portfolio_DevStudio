@@ -1,11 +1,13 @@
 import { useState } from "react";
 
 import { ContentImage, ImageLightbox } from "@/components/ui";
+import { PdfEmbed } from "./PdfEmbed";
 
 export type GalleryShot = {
     url: string;
     caption: string;
     href?: string;
+    kind?: "image" | "pdf";
 };
 
 type CertificationGalleryProps = {
@@ -38,41 +40,49 @@ export function CertificationGallery({ title, shots }: CertificationGalleryProps
 
     return (
         <section aria-label="Certificate">
-            <button
-                type="button"
-                onClick={() => setLightbox(true)}
-                aria-label={`Enlarge image: ${caption}`}
-                className="
-                    relative
-                    block
-                    max-h-[min(60vh,32rem)]
-                    w-full
-                    overflow-hidden
-                    rounded-[1.125rem]
-                    border
-                    border-(--line)
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-(--accent-strong)
-                "
-            >
-                <ContentImage
-                    key={active.url}
+            {active.kind === "pdf" ? (
+                <PdfEmbed
                     src={active.url}
-                    alt={caption}
-                    imageClassName="aspect-[2/1] h-full w-full object-cover"
-                    placeholderClassName="aspect-[2/1] w-full"
+                    title={caption}
+                    className="h-[min(70vh,42rem)] w-full overflow-hidden rounded-[1.125rem] border border-(--line)"
                 />
-
-                <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 top-0 flex h-[1.875rem] items-center gap-1.5 bg-black/25 px-3.5"
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => setLightbox(true)}
+                    aria-label={`Enlarge image: ${caption}`}
+                    className="
+                        relative
+                        block
+                        max-h-[min(60vh,32rem)]
+                        w-full
+                        overflow-hidden
+                        rounded-[1.125rem]
+                        border
+                        border-(--line)
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-(--accent-strong)
+                    "
                 >
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                </span>
-            </button>
+                    <ContentImage
+                        key={active.url}
+                        src={active.url}
+                        alt={caption}
+                        imageClassName="aspect-[2/1] h-full w-full object-cover"
+                        placeholderClassName="aspect-[2/1] w-full"
+                    />
+
+                    <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-x-0 top-0 flex h-[1.875rem] items-center gap-1.5 bg-black/25 px-3.5"
+                    >
+                        <span className="h-2 w-2 rounded-full bg-white/35" />
+                        <span className="h-2 w-2 rounded-full bg-white/35" />
+                        <span className="h-2 w-2 rounded-full bg-white/35" />
+                    </span>
+                </button>
+            )}
 
             <p className="mt-2 font-mono text-[11px] text-(--graphite-soft)">
                 {active.href !== undefined ? (
@@ -123,19 +133,32 @@ export function CertificationGallery({ title, shots }: CertificationGalleryProps
                                     }
                                 `}
                             >
-                                <ContentImage
-                                    src={shot.url}
-                                    alt=""
-                                    imageClassName="aspect-video h-full w-full object-cover"
-                                    placeholderClassName="aspect-video w-full"
-                                />
+                                {shot.kind === "pdf" ? (
+                                    <span
+                                        aria-hidden="true"
+                                        className="pointer-events-none block aspect-video w-full overflow-hidden"
+                                    >
+                                        <PdfEmbed
+                                            src={shot.url}
+                                            title=""
+                                            className="pointer-events-none h-full w-full"
+                                        />
+                                    </span>
+                                ) : (
+                                    <ContentImage
+                                        src={shot.url}
+                                        alt=""
+                                        imageClassName="aspect-video h-full w-full object-cover"
+                                        placeholderClassName="aspect-video w-full"
+                                    />
+                                )}
                             </button>
                         );
                     })}
                 </div>
             )}
 
-            {lightbox && (
+            {lightbox && active.kind !== "pdf" && (
                 <ImageLightbox
                     src={active.url}
                     alt={caption}
