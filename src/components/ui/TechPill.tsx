@@ -21,11 +21,24 @@ type TechPillProps = {
 
 /**
  * Small technology pill. Renders as a link to the given page when an
- * href is provided (hoverable, focusable), otherwise as static text.
+ * href is provided (hoverable, focusable), otherwise as static text
+ * that highlights with its card on group hover.
  */
 export function TechPill({ name, href }: TechPillProps) {
     if (href === undefined) {
-        return <span className={techPillClassName}>{name}</span>;
+        return (
+            <span
+                className={`
+                    ${techPillClassName}
+                    transition-colors
+                    duration-500
+                    group-hover:border-(--accent-strong)
+                    group-hover:text-(--ink)
+                `}
+            >
+                {name}
+            </span>
+        );
     }
 
     return (
