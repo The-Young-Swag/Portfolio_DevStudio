@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
+import { Expand } from "lucide-react";
 
 import { ContentImage, ImagePlaceholder } from "@/components/ui";
 import { PdfEmbed } from "./PdfEmbed";
@@ -17,6 +18,7 @@ type CertificationItemProps = {
     badge_link: string;
     className?: string;
     actions?: ReactNode;
+    onPreview?: () => void;
 };
 
 export function CertificationItem({
@@ -32,6 +34,7 @@ export function CertificationItem({
     badge_link,
     className,
     actions,
+    onPreview,
 }: CertificationItemProps) {
     return (
         <article
@@ -70,6 +73,42 @@ export function CertificationItem({
                     <span className="absolute right-2.5 top-2.5 rounded-full border border-white/20 bg-black/30 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-white backdrop-blur-md">
                         {code}
                     </span>
+                )}
+
+                {image === "" && pdf !== "" && onPreview !== undefined && (
+                    <button
+                        type="button"
+                        onClick={onPreview}
+                        aria-label={`Preview ${name} PDF`}
+                        className="
+                            absolute
+                            bottom-2.5
+                            right-2.5
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-full
+                            border
+                            border-white/20
+                            bg-black/30
+                            px-2.5
+                            py-1
+                            font-mono
+                            text-[9.5px]
+                            tracking-wider
+                            text-white
+                            backdrop-blur-md
+                            transition-colors
+                            duration-150
+                            hover:bg-black/55
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-white
+                        "
+                    >
+                        <Expand size={11} strokeWidth={2} aria-hidden="true" />
+                        Preview
+                    </button>
                 )}
             </div>
 

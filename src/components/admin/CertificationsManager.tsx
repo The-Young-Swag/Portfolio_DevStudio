@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent, PropsWithChildren } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Pencil, Plus } from "lucide-react";
 
 import {
     useCreateCertification,
@@ -14,6 +14,7 @@ import {
     type CertificationInput,
 } from "@/services/certifications/certifications";
 import { isUnauthorized } from "@/services/api";
+import { ContentImage } from "@/components/ui";
 import { useAdminToast } from "./toastContext";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
@@ -604,25 +605,18 @@ export function CertificationsManager({
                                 key={course.id}
                                 className="flex items-center gap-2 px-3 py-2"
                             >
-                                <button
-                                    type="button"
-                                    onClick={() => openEditor(course.id, toFields(course))}
-                                    title={`Edit ${course.name}`}
-                                    className="
-                                        min-w-0
-                                        flex-1
-                                        truncate
-                                        text-left
-                                        text-[13.5px]
-                                        text-(--ink)
-                                        hover:text-(--accent-strong)
-                                        focus-visible:outline-none
-                                        focus-visible:ring-2
-                                        focus-visible:ring-(--accent-strong)
-                                    "
-                                >
+                                {course.badge_image !== "" && (
+                                    <ContentImage
+                                        src={course.badge_image}
+                                        alt=""
+                                        imageClassName="h-8 w-8 shrink-0 rounded-lg border border-(--line) object-cover"
+                                        placeholderClassName="h-8 w-8 shrink-0 rounded-lg border border-(--line)"
+                                    />
+                                )}
+
+                                <span className="min-w-0 flex-1 truncate text-[13.5px] text-(--ink)">
                                     {course.name}
-                                </button>
+                                </span>
 
                                 {course.link !== "" && (
                                     <a
@@ -634,6 +628,13 @@ export function CertificationsManager({
                                         Verify ↗
                                     </a>
                                 )}
+
+                                <IconButton
+                                    label={`Edit ${course.name}`}
+                                    onClick={() => openEditor(course.id, toFields(course))}
+                                >
+                                    <Pencil size={14} strokeWidth={2} aria-hidden="true" />
+                                </IconButton>
 
                                 <ConfirmDeleteButton
                                     onConfirm={() => handleDelete(course.id)}
