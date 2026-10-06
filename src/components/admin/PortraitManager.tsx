@@ -127,11 +127,11 @@ export function PortraitManager({ token, onUnauthorized, onDirtyChange }: Portra
 
     return (
         <div>
-            <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+            <h1 className="font-display text-[32px] font-medium tracking-tight text-(--ink)">
                 Portrait
             </h1>
 
-            <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
+            <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-(--graphite)">
                 One image per portrait state. Leave a state empty to keep its
                 bundled photo.
             </p>

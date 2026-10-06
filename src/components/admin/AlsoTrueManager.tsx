@@ -144,11 +144,11 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
         <div>
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h1 className="font-display text-[26px] font-medium tracking-tight text-(--ink)">
+                    <h1 className="font-display text-[32px] font-medium tracking-tight text-(--ink)">
                         Also true
                     </h1>
 
-                    <p className="mt-1.5 max-w-2xl text-[13.5px] leading-relaxed text-(--graphite)">
+                    <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-(--graphite)">
                         Fun footnotes beside the hero stats.
                     </p>
                 </div>
