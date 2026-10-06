@@ -158,6 +158,54 @@ function toInput(
     };
 }
 
+const PROJECT_TABS = ["Basics", "Links", "Case study", "Screenshots"] as const;
+
+function ProjectTabs({ tab, onChange }: { tab: number; onChange: (tab: number) => void }) {
+    return (
+        <div
+            role="tablist"
+            aria-label="Project sections"
+            className="
+                inline-flex
+                gap-1
+                rounded-2xl
+                border
+                border-(--line)
+                bg-(--glass-bg)
+                p-1
+            "
+        >
+            {PROJECT_TABS.map((label, index) => (
+                <button
+                    key={label}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === index}
+                    onClick={() => onChange(index)}
+                    className={`
+                        rounded-xl
+                        px-3.5
+                        py-1.5
+                        text-[13px]
+                        transition-colors
+                        duration-150
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-(--accent-strong)
+                        ${
+                            tab === index
+                                ? "bg-(--accent-strong) font-semibold text-white"
+                                : "text-(--graphite) hover:text-(--ink)"
+                        }
+                    `}
+                >
+                    {label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: ProjectsManagerProps) {
     const projectsQuery = useQuery({
         queryKey: ["projects"],
@@ -181,6 +229,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [search, setSearch] = useState("");
+    const [tab, setTab] = useState(0);
     const [shotIdCounter, setShotIdCounter] = useState(0);
 
     function setDirty(next: boolean) {
@@ -204,6 +253,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
         setShotIdCounter((counter) => counter + screenshots.length);
         setDrawer({ id, fields, initial: fields, screenshots, initialScreenshots: screenshots });
         setFormError(null);
+        setTab(0);
         setDirty(false);
     }
 
@@ -420,12 +470,17 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                 }
             >
                 {drawer !== null && (
-                    <form
-                        id="project-editor"
-                        onSubmit={handleSubmit}
-                        className="grid gap-3 sm:grid-cols-2"
-                    >
-                        <Field label="Title" wide>
+                    <>
+                        <ProjectTabs tab={tab} onChange={setTab} />
+
+                        <form
+                            id="project-editor"
+                            onSubmit={handleSubmit}
+                            className="grid gap-3 sm:grid-cols-2"
+                        >
+                            {tab === 0 && (
+                                <>
+                                    <Field label="Title" wide>
                             <input
                                 value={drawer.fields.title}
                                 onChange={(event) => setField("title", event.target.value)}
@@ -498,7 +553,11 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                                 className={adminFieldInputClassName}
                             />
                         </Field>
+                    </>
+                )}
 
+                {tab === 1 && (
+                    <>
                         <Field label="Repository URL" wide>
                             <input
                                 value={drawer.fields.repo_url}
@@ -552,7 +611,11 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                                 className={adminFieldInputClassName}
                             />
                         </Field>
+                    </>
+                )}
 
+                {tab === 2 && (
+                    <>
                         <div className="rounded-xl border border-(--line) p-4 sm:col-span-2">
                             <label className="flex items-center gap-2">
                                 <input
@@ -612,7 +675,11 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                                 </Field>
                             </div>
                         </div>
+                    </>
+                )}
 
+                {tab === 3 && (
+                    <>
                         <div className="sm:col-span-2">
                             <div className="flex items-baseline justify-between">
                                 <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-(--graphite-soft)">
@@ -681,6 +748,8 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                                 </div>
                             ))}
                         </div>
+                    </>
+                )}
 
                         {formError !== null && (
                             <div className="sm:col-span-2">
@@ -688,6 +757,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
                             </div>
                         )}
                     </form>
+                    </>
                 )}
             </AdminDrawer>
 

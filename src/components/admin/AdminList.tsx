@@ -1,4 +1,4 @@
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import type { PropsWithChildren, ReactNode } from "react";
 
 import { IconButton, PrimaryButton } from "./AdminButtons";
@@ -99,7 +99,11 @@ export function AdminRow({
     deleting?: boolean;
 }>) {
     return (
-        <li className="flex items-center gap-3 p-4">
+        <li className="flex items-center gap-3 p-4 transition-colors duration-150 hover:bg-(--accent-strong)/5">
+            <span aria-hidden="true" className="shrink-0 text-(--graphite-soft)">
+                <GripVertical size={15} strokeWidth={2} />
+            </span>
+
             <button
                 type="button"
                 onClick={onEdit}
