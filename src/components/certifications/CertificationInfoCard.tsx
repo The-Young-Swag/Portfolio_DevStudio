@@ -3,13 +3,14 @@ import type { Certification } from "@/services/certifications/certifications";
 type CertificationInfoCardProps = {
     certification: Pick<
         Certification,
-        "issuer" | "year" | "code"
+        "issuer" | "credential" | "year" | "code"
     >;
 };
 
 export function CertificationInfoCard({ certification }: CertificationInfoCardProps) {
     const rows = [
         { label: "Issuer", value: certification.issuer },
+        { label: "Via", value: certification.credential },
         { label: "Issued", value: certification.year },
         { label: "Credential ID", value: certification.code, mono: true },
     ].filter((row) => row.value !== "");

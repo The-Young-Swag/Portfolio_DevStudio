@@ -1,7 +1,7 @@
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import { StackCategorySection } from "@/components/stack";
-import { SectionHeading } from "@/components/ui";
+import { LevelDot, SectionHeading } from "@/components/ui";
 import { useStackItems } from "@/hooks/stack/useStackItems";
 import type { StackItem, StackItemCategory } from "@/services/stack/stackItems";
 
@@ -19,7 +19,6 @@ function byCategory(items: StackItem[], category: StackItemCategory): StackItem[
 
 export function StackPage() {
     const { stackItems, isPending } = useStackItems();
-    const coreItems = stackItems.filter((item) => item.is_core);
 
     return (
         <>
@@ -49,35 +48,20 @@ export function StackPage() {
                         </p>
                     ) : (
                         <>
-                            {coreItems.length > 0 && (
-                                <div className="mt-6">
-                                    <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--accent-strong)">
-                                        Core stack
-                                    </p>
-
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                        {coreItems.map((item) => (
-                                            <span
-                                                key={item.id}
-                                                className="
-                                                    inline-flex
-                                                    items-center
-                                                    rounded-md
-                                                    border
-                                                    border-(--accent-strong)/50
-                                                    px-2.5
-                                                    py-1
-                                                    font-mono
-                                                    text-[11px]
-                                                    text-(--graphite)
-                                                "
-                                            >
-                                                {item.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-1.5 font-mono text-[11px] text-(--graphite-soft)">
+                                <span className="inline-flex items-center gap-1.5">
+                                    <LevelDot level="confident" /> confident
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <LevelDot level="comfortable" /> comfortable
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <LevelDot level="learning" /> learning
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    ★ core
+                                </span>
+                            </div>
 
                             {CATEGORY_ORDER.map(({ category, title }) => (
                                 <StackCategorySection

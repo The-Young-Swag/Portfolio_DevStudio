@@ -1,3 +1,4 @@
+import { SkillPill } from "@/components/ui";
 import type { StackItem } from "@/services/stack/stackItems";
 
 type StackCategorySectionProps = {
@@ -11,28 +12,21 @@ export function StackCategorySection({ title, items }: StackCategorySectionProps
     }
 
     return (
-        <div className="mt-6">
+        <section aria-label={title} className="mt-8">
             <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft)">
-                {title}
+                {title} <span className="opacity-70">{items.length}</span>
             </p>
 
-            <ul className="mt-3 divide-y divide-(--line) rounded-2xl border border-(--glass-border) bg-(--glass-bg) shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)] backdrop-blur-xl backdrop-saturate-160">
+            <div className="mt-3 flex flex-wrap gap-2">
                 {items.map((item) => (
-                    <li
+                    <SkillPill
                         key={item.id}
-                        className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 p-4"
-                    >
-                        <p className="font-display text-[16px] text-(--ink)">
-                            {item.name}
-                        </p>
-
-                        <p className="font-mono text-[10.5px] text-(--graphite-soft)">
-                            {item.level}
-                            {item.since_year !== null && ` · since ${item.since_year}`}
-                        </p>
-                    </li>
+                        name={item.name}
+                        level={item.level}
+                        isCore={item.is_core}
+                    />
                 ))}
-            </ul>
-        </div>
+            </div>
+        </section>
     );
 }

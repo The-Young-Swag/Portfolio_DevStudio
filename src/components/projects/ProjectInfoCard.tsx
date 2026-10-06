@@ -1,3 +1,4 @@
+import { TechPill } from "@/components/ui";
 import type { Project } from "@/services/projects/projects";
 
 export function ProjectInfoCard({ project }: { project: Project }) {
@@ -56,12 +57,11 @@ export function ProjectInfoCard({ project }: { project: Project }) {
 
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
                             {project.stack.map((technology) => (
-                                <span
+                                <TechPill
                                     key={technology}
-                                    className="max-w-full break-words rounded-full border border-(--accent-strong)/40 px-2.5 py-1 font-mono text-[9.5px] text-(--graphite)"
-                                >
-                                    {technology}
-                                </span>
+                                    name={technology}
+                                    href="/stack"
+                                />
                             ))}
                         </div>
                     </div>

@@ -61,8 +61,9 @@ export function sourceAction(project: Project): LinkAction {
         return { kind: "link", href: project.repo_url };
     }
 
+    // A private repository is hidden entirely: no link, no label.
     if (project.source_access === "private") {
-        return { kind: "text", text: "Private" };
+        return { kind: "none" };
     }
 
     if (project.repo_url !== "") {

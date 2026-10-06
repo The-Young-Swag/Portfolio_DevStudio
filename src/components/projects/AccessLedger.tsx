@@ -1,8 +1,5 @@
 import type { Project } from "@/services/projects/projects";
-type SourceState =
-    | { kind: "public"; url: string }
-    | { kind: "private" }
-    | { kind: "hidden" };
+type SourceState = { kind: "public"; url: string } | { kind: "hidden" };
 
 type DemoState =
     | { kind: "public"; url: string }
@@ -18,10 +15,7 @@ function sourceState(project: Project): SourceState {
         return { kind: "public", url: project.repo_url };
     }
 
-    if (access === "private") {
-        return { kind: "private" };
-    }
-
+    // A private repository is hidden entirely: no link, no label.
     return { kind: "hidden" };
 }
 
@@ -84,22 +78,18 @@ export function AccessLedger({ project }: { project: Project }) {
         <div>
             {source.kind !== "hidden" && (
                 <p className="flex items-center gap-2 font-mono text-[10.5px] text-(--graphite)">
-                    <StatusDot kind={source.kind === "public" ? "open" : "restricted"} />
+                    <StatusDot kind="open" />
                     <span className="w-24 shrink-0 uppercase tracking-[0.12em] text-(--graphite-soft)">
                         Source code
                     </span>
-                    {source.kind === "public" ? (
-                        <a
-                            href={source.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-(--accent-strong) hover:underline"
-                        >
-                            View repository ↗
-                        </a>
-                    ) : (
-                        <span className="text-(--ink)">Private</span>
-                    )}
+                    <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-(--accent-strong) hover:underline"
+                    >
+                        View repository ↗
+                    </a>
                 </p>
             )}
 
