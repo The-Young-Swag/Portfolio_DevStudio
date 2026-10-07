@@ -524,7 +524,7 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                                 value={drawer.fields.since_year}
                                 onChange={(event) => setField("since_year", event.target.value)}
                                 inputMode="numeric"
-                                placeholder="2024"
+                                placeholder="e.g. 2024"
                                 className={adminFieldInputClassName}
                             />
                         </Field>

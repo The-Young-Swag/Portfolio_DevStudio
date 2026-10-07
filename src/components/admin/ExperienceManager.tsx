@@ -107,7 +107,7 @@ function ExperienceForm({
                 <input
                     value={fields.period}
                     onChange={(event) => onField("period", event.target.value)}
-                    placeholder="2026 — present"
+                    placeholder="e.g. 2026 — present"
                     className={adminFieldInputClassName}
                 />
             </Field>

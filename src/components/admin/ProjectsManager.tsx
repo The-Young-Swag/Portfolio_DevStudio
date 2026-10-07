@@ -210,7 +210,7 @@ function ProjectForm({
                     value={fields.year}
                     onChange={(event) => onField("year", event.target.value)}
                     inputMode="numeric"
-                    placeholder="2026"
+                    placeholder="e.g. 2026"
                     className={adminFieldInputClassName}
                 />
             </Field>
@@ -219,7 +219,7 @@ function ProjectForm({
                 <input
                     value={fields.category}
                     onChange={(event) => onField("category", event.target.value)}
-                    placeholder="Document archival"
+                    placeholder="e.g. Document archival"
                     className={adminFieldInputClassName}
                 />
             </Field>
@@ -237,7 +237,7 @@ function ProjectForm({
                 <input
                     value={fields.stack}
                     onChange={(event) => onField("stack", event.target.value)}
-                    placeholder="React, TypeScript, Turso"
+                    placeholder="e.g. React, TypeScript, Turso"
                     className={adminFieldInputClassName}
                 />
             </Field>
