@@ -23,6 +23,7 @@ import { AdminDrawer } from "./AdminDrawer";
 import { Field, FormError, adminFieldInputClassName, adminFieldLabelClassName } from "./AdminFields";
 import { IconButton, PrimaryButton, SecondaryButton } from "./AdminButtons";
 import { AdminSectionHead } from "./AdminList";
+import { reorderSwap } from "./reorder";
 import { SaveBar } from "./SaveBar";
 
 type StackItemsManagerProps = {
@@ -252,13 +253,10 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
     }
 
     async function move(item: StackItem, direction: -1 | 1) {
-        const group = items
-            .filter((candidate) => candidate.category === item.category)
-            .sort(bySortOrder);
-        const index = group.findIndex((candidate) => candidate.id === item.id);
-        const neighbor = group[index + direction];
+        const group = items.filter((candidate) => candidate.category === item.category);
+        const swap = reorderSwap(group, item.id, direction);
 
-        if (neighbor === undefined || moving) {
+        if (swap === null || moving) {
             return;
         }
 
@@ -266,26 +264,23 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
 
         try {
             const first: StackItemInput = {
-                ...toInputForItem(item),
-                sort_order: neighbor.sort_order,
+                ...toInputForItem(swap.item),
+                sort_order: swap.itemOrder,
             };
             const second: StackItemInput = {
-                ...toInputForItem(neighbor),
-                sort_order:
-                    neighbor.sort_order === item.sort_order
-                        ? item.sort_order - direction
-                        : item.sort_order,
+                ...toInputForItem(swap.neighbor),
+                sort_order: swap.neighborOrder,
             };
 
-            await updateStackItem(item.id, first, token);
-            await updateStackItem(neighbor.id, second, token);
+            await updateStackItem(swap.item.id, first, token);
+            await updateStackItem(swap.neighbor.id, second, token);
             await queryClient.invalidateQueries({ queryKey: ["stack-items"] });
 
             if (drawer?.id === item.id && drawer.item !== null) {
                 const fields = { ...drawer.fields };
                 setDrawer({
                     ...drawer,
-                    item: { ...drawer.item, sort_order: neighbor.sort_order },
+                    item: { ...drawer.item, sort_order: swap.itemOrder },
                     fields,
                 });
             }
