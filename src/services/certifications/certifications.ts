@@ -23,6 +23,19 @@ export async function getCertifications(): Promise<Certification[]> {
     return getJson<Certification[]>("/api/certifications", "Failed to load certifications.");
 }
 
+/**
+ * The certificates that represent themselves in lists: top-level
+ * records plus orphans whose parent is gone. Child courses belong to
+ * their parent and never appear on their own.
+ */
+export function topLevelCertifications(certifications: Certification[]): Certification[] {
+    return certifications.filter(
+        (certification) =>
+            certification.parent_id === null ||
+            !certifications.some((parent) => parent.id === certification.parent_id),
+    );
+}
+
 export type CertificationInput = {
     name: string;
     issuer: string;
