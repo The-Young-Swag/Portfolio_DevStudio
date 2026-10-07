@@ -3,6 +3,12 @@ import clsx from "clsx";
 import { ContentImage, ImagePlaceholder } from "@/components/ui";
 import { PdfEmbed } from "./PdfEmbed";
 
+export type CertBadge = {
+    src: string;
+    link: string;
+    alt: string;
+};
+
 type CertificationItemProps = {
     name: string;
     issuer: string;
@@ -12,10 +18,10 @@ type CertificationItemProps = {
     code: string;
     image: string;
     pdf: string;
-    badge_image: string;
-    badge_link: string;
+    badges: CertBadge[];
     className?: string;
     onPreview?: () => void;
+    onBadgePreview?: (badge: CertBadge) => void;
 };
 
 export function CertificationItem({
@@ -27,10 +33,10 @@ export function CertificationItem({
     code,
     image,
     pdf,
-    badge_image,
-    badge_link,
+    badges,
     className,
     onPreview,
+    onBadgePreview,
 }: CertificationItemProps) {
     const visual =
         image !== "" ? (
@@ -110,25 +116,53 @@ export function CertificationItem({
                     {issuer}
                 </p>
 
-                {badge_image !== "" && (
-                    <div className="mt-3">
-                        {badge_link !== "" ? (
-                            <a href={badge_link} target="_blank" rel="noreferrer">
-                                <ContentImage
-                                    src={badge_image}
-                                    alt={`${issuer} badge`}
-                                    imageClassName="h-8 w-auto rounded-md border border-(--line) object-contain"
-                                    placeholderClassName="h-8 w-8 rounded-md border border-(--line)"
-                                />
-                            </a>
-                        ) : (
-                            <ContentImage
-                                src={badge_image}
-                                alt={`${issuer} badge`}
-                                imageClassName="h-8 w-auto rounded-md border border-(--line) object-contain"
-                                placeholderClassName="h-8 w-8 rounded-md border border-(--line)"
-                            />
-                        )}
+                {badges.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        {badges.map((badgeItem, index) => (
+                            <span
+                                key={`${badgeItem.src}-${index}`}
+                                title={badgeItem.alt}
+                                className="inline-flex"
+                            >
+                                {badgeItem.link !== "" ? (
+                                    <a
+                                        href={badgeItem.link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label={`${badgeItem.alt} (opens in a new tab)`}
+                                        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-strong)"
+                                    >
+                                        <ContentImage
+                                            src={badgeItem.src}
+                                            alt={badgeItem.alt}
+                                            imageClassName="h-7 w-7 rounded-md border border-(--line) object-contain"
+                                            placeholderClassName="h-7 w-7 rounded-md border border-(--line)"
+                                        />
+                                    </a>
+                                ) : onBadgePreview !== undefined ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onBadgePreview(badgeItem)}
+                                        aria-label={`Preview ${badgeItem.alt}`}
+                                        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-strong)"
+                                    >
+                                        <ContentImage
+                                            src={badgeItem.src}
+                                            alt=""
+                                            imageClassName="h-7 w-7 rounded-md border border-(--line) object-contain"
+                                            placeholderClassName="h-7 w-7 rounded-md border border-(--line)"
+                                        />
+                                    </button>
+                                ) : (
+                                    <ContentImage
+                                        src={badgeItem.src}
+                                        alt={badgeItem.alt}
+                                        imageClassName="h-7 w-7 rounded-md border border-(--line) object-contain"
+                                        placeholderClassName="h-7 w-7 rounded-md border border-(--line)"
+                                    />
+                                )}
+                            </span>
+                        ))}
                     </div>
                 )}
 

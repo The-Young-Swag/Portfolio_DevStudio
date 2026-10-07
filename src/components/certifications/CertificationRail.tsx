@@ -9,12 +9,14 @@ type CertificationRailProps = {
     certifications: Certification[];
     selectedId: number | null;
     onSelect: (id: number) => void;
+    onPreview: (certification: Certification) => void;
 };
 
 export function CertificationRail({
     certifications,
     selectedId,
     onSelect,
+    onPreview,
 }: CertificationRailProps) {
     const tabRefs = useRef(new Map<number, HTMLButtonElement>());
     const railRef = useRef<HTMLDivElement>(null);
@@ -185,41 +187,20 @@ export function CertificationRail({
                     const selected = certification.id === selectedId;
 
                     return (
-                        <button
+                        <div
                             key={certification.id}
-                            ref={(element) => {
-                                if (element) {
-                                    tabRefs.current.set(certification.id, element);
-                                } else {
-                                    tabRefs.current.delete(certification.id);
-                                }
-                            }}
-                            type="button"
-                            role="tab"
-                            id={certTabId(certification.id)}
-                            aria-selected={selected}
-                            aria-controls={certPanelId(certification.id)}
-                            tabIndex={selected ? 0 : -1}
-                            onClick={() => onSelect(certification.id)}
-                            onKeyDown={(event) => handleKeyDown(event, certification.id)}
                             className={`
-                                flex
                                 min-w-0
                                 snap-start
-                                flex-col
                                 overflow-hidden
                                 rounded-[1.375rem]
                                 border
                                 bg-(--glass-bg)
-                                text-left
                                 backdrop-blur-xl
                                 backdrop-saturate-160
                                 transition-[transform,border-color]
                                 duration-200
                                 hover:-translate-y-0.5
-                                focus-visible:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-(--accent-strong)
                                 ${
                                     selected
                                         ? "border-(--accent-strong) shadow-[0_0_0_1px_var(--accent-strong)]"
@@ -227,9 +208,61 @@ export function CertificationRail({
                                 }
                             `}
                         >
-                            <CertificationCover certification={certification} />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    onSelect(certification.id);
+                                    onPreview(certification);
+                                }}
+                                aria-label={
+                                    certification.image === "" && certification.pdf !== ""
+                                        ? `Preview ${certification.name} PDF`
+                                        : `Show ${certification.name} details`
+                                }
+                                className="
+                                    block
+                                    w-full
+                                    cursor-pointer
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-inset
+                                    focus-visible:ring-(--accent-strong)
+                                "
+                            >
+                                <CertificationCover certification={certification} />
+                            </button>
 
-                            <span className="flex min-w-0 flex-col gap-1.5 p-4 pb-5">
+                            <button
+                                ref={(element) => {
+                                    if (element) {
+                                        tabRefs.current.set(certification.id, element);
+                                    } else {
+                                        tabRefs.current.delete(certification.id);
+                                    }
+                                }}
+                                type="button"
+                                role="tab"
+                                id={certTabId(certification.id)}
+                                aria-selected={selected}
+                                aria-controls={certPanelId(certification.id)}
+                                tabIndex={selected ? 0 : -1}
+                                onClick={() => onSelect(certification.id)}
+                                onKeyDown={(event) => handleKeyDown(event, certification.id)}
+                                className="
+                                    flex
+                                    w-full
+                                    min-w-0
+                                    flex-col
+                                    gap-1.5
+                                    p-4
+                                    pb-5
+                                    text-left
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-inset
+                                    focus-visible:ring-(--accent-strong)
+                                "
+                            >
                                 <span
                                     className={`
                                         line-clamp-2
@@ -266,8 +299,8 @@ export function CertificationRail({
                                         )}
                                     </span>
                                 )}
-                            </span>
-                        </button>
+                            </button>
+                        </div>
                     );
                 })}
             </div>

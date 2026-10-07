@@ -10,13 +10,40 @@ import {
     type Certification,
 } from "@/services/certifications/certifications";
 
-import { CertificationItem } from "./CertificationItem";
+import { CertificationItem, type CertBadge } from "./CertificationItem";
 import { PdfLightbox } from "./PdfLightbox";
 
 export function CertificationsSection() {
     const { certifications, isPending } = useCertifications();
     const [preview, setPreview] = useState<Certification | null>(null);
+    const [badgeZoom, setBadgeZoom] = useState<{ src: string; alt: string } | null>(null);
     const listed = topLevelCertifications(certifications);
+
+    function badgesFor(certification: Certification): CertBadge[] {
+        const own =
+            certification.badge_image !== ""
+                ? [
+                      {
+                          src: certification.badge_image,
+                          link: certification.badge_link,
+                          alt: `${certification.issuer} badge`,
+                      },
+                  ]
+                : [];
+
+        const children = certifications
+            .filter(
+                (course) =>
+                    course.parent_id === certification.id && course.badge_image !== "",
+            )
+            .map((course) => ({
+                src: course.badge_image,
+                link: course.badge_link,
+                alt: `${course.name} badge`,
+            }));
+
+        return [...own, ...children];
+    }
 
     return (
         <Section id="certification">
@@ -58,16 +85,26 @@ export function CertificationsSection() {
                             <div key={certification.id} className="carousel-card">
                                 <CertificationItem
                                     {...certification}
+                                    badges={badgesFor(certification)}
                                     onPreview={
                                         certification.image !== "" ||
                                         certification.pdf !== ""
                                             ? () => setPreview(certification)
                                             : undefined
                                     }
+                                    onBadgePreview={(badge) => setBadgeZoom(badge)}
                                 />
                             </div>
                         ))}
                     </Carousel>
+                )}
+
+                {badgeZoom !== null && (
+                    <ImageLightbox
+                        src={badgeZoom.src}
+                        alt={badgeZoom.alt}
+                        onClose={() => setBadgeZoom(null)}
+                    />
                 )}
 
                 {preview !== null && preview.image !== "" && (
