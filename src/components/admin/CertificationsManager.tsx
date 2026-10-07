@@ -168,7 +168,7 @@ function CertificationForm({
                 <input
                     value={fields.year}
                     onChange={(event) => onField("year", event.target.value)}
-                    placeholder="2026"
+                    placeholder="e.g. 2026"
                     className={adminFieldInputClassName}
                 />
             </Field>
@@ -177,7 +177,7 @@ function CertificationForm({
                 <input
                     value={fields.credential}
                     onChange={(event) => onField("credential", event.target.value)}
-                    placeholder="Coursera"
+                    placeholder="e.g. Coursera"
                     className={adminFieldInputClassName}
                 />
             </Field>
@@ -186,7 +186,7 @@ function CertificationForm({
                 <input
                     value={fields.badge}
                     onChange={(event) => onField("badge", event.target.value)}
-                    placeholder="IBM"
+                    placeholder="e.g. IBM"
                     className={adminFieldInputClassName}
                 />
             </Field>
@@ -195,7 +195,7 @@ function CertificationForm({
                 <input
                     value={fields.code}
                     onChange={(event) => onField("code", event.target.value)}
-                    placeholder="FSD"
+                    placeholder="e.g. FSD"
                     className={adminFieldInputClassName}
                 />
             </Field>

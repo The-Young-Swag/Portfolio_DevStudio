@@ -81,7 +81,7 @@ function SocialLinkForm({
                 <input
                     value={fields.label}
                     onChange={(event) => onField("label", event.target.value)}
-                    placeholder="GitHub"
+                    placeholder="e.g. GitHub"
                     className={adminFieldInputClassName}
                 />
             </Field>
