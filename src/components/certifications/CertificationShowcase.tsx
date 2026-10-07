@@ -65,11 +65,12 @@ export function CertificationShowcase({
     }, []);
 
     function select(id: number) {
-        const certification = listed.find((item) => item.id === id) ?? null;
         setSelectedId(id);
         window.history.replaceState(null, "", `#certification-${id}`);
+    }
 
-        if (certification && certification.image === "" && certification.pdf !== "") {
+    function previewPdf(certification: Certification) {
+        if (certification.image === "" && certification.pdf !== "") {
             setPdfPreview(certification);
         }
     }
@@ -84,6 +85,7 @@ export function CertificationShowcase({
                 certifications={listed}
                 selectedId={active.id}
                 onSelect={select}
+                onPreview={previewPdf}
             />
 
             <div className="mt-2 min-w-0">
