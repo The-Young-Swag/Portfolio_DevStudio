@@ -10,6 +10,7 @@ import {
 } from "@/hooks/certifications/useCertifications";
 import {
     getCertifications,
+    topLevelCertifications,
     type Certification,
     type CertificationInput,
 } from "@/services/certifications/certifications";
@@ -128,12 +129,14 @@ function FormSubhead({ children }: PropsWithChildren) {
 
 function CertificationForm({
     fields,
+    hideIssuer = false,
     formError,
     token,
     onUnauthorized,
     onField,
 }: {
     fields: CertificationFormFields;
+    hideIssuer?: boolean;
     formError: string | null;
     token: string;
     onUnauthorized: () => void;
@@ -151,13 +154,15 @@ function CertificationForm({
                 />
             </Field>
 
-            <Field label="Issuer">
-                <input
-                    value={fields.issuer}
-                    onChange={(event) => onField("issuer", event.target.value)}
-                    className={adminFieldInputClassName}
-                />
-            </Field>
+            {!hideIssuer && (
+                <Field label="Issuer">
+                    <input
+                        value={fields.issuer}
+                        onChange={(event) => onField("issuer", event.target.value)}
+                        className={adminFieldInputClassName}
+                    />
+                </Field>
+            )}
 
             <Field label="Date">
                 <input
@@ -323,11 +328,7 @@ export function CertificationsManager({
     const [courseError, setCourseError] = useState<string | null>(null);
 
     const certifications = certificationsQuery.data ?? [];
-    const listed = certifications.filter(
-        (certification) =>
-            certification.parent_id === null ||
-            !certifications.some((parent) => parent.id === certification.parent_id),
-    );
+    const listed = topLevelCertifications(certifications);
 
     function setDirty(next: boolean) {
         setTouched(next);
@@ -393,6 +394,18 @@ export function CertificationsManager({
         setFormError(null);
         const input = toInput(editor.fields);
 
+        if (editor.id !== "new") {
+            const edited = certifications.find((item) => item.id === editor.id) ?? null;
+            const parent =
+                edited !== null && edited.parent_id !== null
+                    ? (certifications.find((item) => item.id === edited.parent_id) ?? null)
+                    : null;
+
+            if (parent !== null) {
+                input.issuer = parent.issuer;
+            }
+        }
+
         if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {
@@ -446,6 +459,8 @@ export function CertificationsManager({
 
         setCourseError(null);
         const siblings = certifications.filter((item) => item.parent_id === parentId);
+        const parentIssuer =
+            certifications.find((item) => item.id === parentId)?.issuer ?? "";
         const nextSortOrder =
             siblings.length === 0
                 ? 0
@@ -454,7 +469,7 @@ export function CertificationsManager({
         createMutation.mutate(
             {
                 name: courseTitle.trim(),
-                issuer: "",
+                issuer: parentIssuer,
                 year: "",
                 credential: "",
                 badge: "",
@@ -794,6 +809,7 @@ export function CertificationsManager({
                                         >
                                             <CertificationForm
                                                 fields={editor.fields}
+                                                hideIssuer
                                                 formError={formError}
                                                 token={token}
                                                 onUnauthorized={onUnauthorized}
@@ -848,6 +864,7 @@ export function CertificationsManager({
                                                 >
                                                     <CertificationForm
                                                         fields={editor.fields}
+                                                        hideIssuer={certification.parent_id !== null}
                                                         formError={formError}
                                                         token={token}
                                                         onUnauthorized={onUnauthorized}
