@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-import type { Certification } from "@/services/certifications/certifications";
+import {
+    topLevelCertifications,
+    type Certification,
+} from "@/services/certifications/certifications";
 import { CertificationDetail } from "./CertificationDetail";
 import { CertificationRail } from "./CertificationRail";
 import { PdfLightbox } from "./PdfLightbox";
@@ -38,15 +41,7 @@ export function CertificationShowcase({
         childrenByParent.set(certification.parent_id, siblings);
     }
 
-    const topLevel = certifications.filter(
-        (certification) => certification.parent_id === null,
-    );
-    const orphans = certifications.filter(
-        (certification) =>
-            certification.parent_id !== null &&
-            !certifications.some((parent) => parent.id === certification.parent_id),
-    );
-    const listed = [...topLevel, ...orphans];
+    const listed = topLevelCertifications(certifications);
 
     const selected = listed.find((certification) => certification.id === selectedId) ?? null;
     const active = selected ?? listed[0] ?? null;

@@ -8,6 +8,8 @@ export type GalleryShot = {
     caption: string;
     href?: string;
     kind?: "image" | "pdf";
+    /** Badges display contained so logos are never cropped. */
+    fit?: "cover" | "contain";
 };
 
 type CertificationGalleryProps = {
@@ -70,7 +72,7 @@ export function CertificationGallery({ title, shots }: CertificationGalleryProps
                         key={active.url}
                         src={active.url}
                         alt={caption}
-                        imageClassName="aspect-[2/1] h-full w-full object-cover"
+                        imageClassName={`aspect-[2/1] h-full w-full ${active.fit === "contain" ? "object-contain" : "object-cover"}`}
                         placeholderClassName="aspect-[2/1] w-full"
                     />
 
@@ -149,7 +151,7 @@ export function CertificationGallery({ title, shots }: CertificationGalleryProps
                                     <ContentImage
                                         src={shot.url}
                                         alt=""
-                                        imageClassName="aspect-video h-full w-full object-cover"
+                                        imageClassName={`aspect-video h-full w-full ${shot.fit === "contain" ? "object-contain" : "object-cover"}`}
                                         placeholderClassName="aspect-video w-full"
                                     />
                                 )}

@@ -5,7 +5,10 @@ import { Carousel } from "@/components/carousel";
 import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useCertifications } from "@/hooks/certifications/useCertifications";
-import type { Certification } from "@/services/certifications/certifications";
+import {
+    topLevelCertifications,
+    type Certification,
+} from "@/services/certifications/certifications";
 
 import { CertificationItem } from "./CertificationItem";
 import { PdfLightbox } from "./PdfLightbox";
@@ -13,6 +16,7 @@ import { PdfLightbox } from "./PdfLightbox";
 export function CertificationsSection() {
     const { certifications, isPending } = useCertifications();
     const [preview, setPreview] = useState<Certification | null>(null);
+    const listed = topLevelCertifications(certifications);
 
     return (
         <Section id="certification">
@@ -25,7 +29,7 @@ export function CertificationsSection() {
                             Loading certifications...
                         </p>
                     </>
-                ) : certifications.length === 0 ? (
+                ) : listed.length === 0 ? (
                     <>
                         <SectionHeading number="05" title="Certifications" id="certification" />
 
@@ -50,7 +54,7 @@ export function CertificationsSection() {
                         nextLabel="Next certifications"
                         gap="0.75rem"
                     >
-                        {certifications.map((certification) => (
+                        {listed.map((certification) => (
                             <div key={certification.id} className="carousel-card">
                                 <CertificationItem
                                     {...certification}

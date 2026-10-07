@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Check, ShieldCheck } from "lucide-react";
 
-import { ContentImage } from "@/components/ui";
+import { Carousel } from "@/components/carousel";
+import { ContentImage, ImageLightbox } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
 import { CertificationGallery, type GalleryShot } from "./CertificationGallery";
 import { CertificationInfoCard } from "./CertificationInfoCard";
@@ -61,6 +63,14 @@ export function CertificationDetail({
 }: CertificationDetailProps) {
     const shots = buildShots(certification);
     const hasVerify = certification.link !== "";
+
+    const badges = [certification, ...courses]
+        .filter((item) => item.badge_image !== "")
+        .map((item) => ({ src: item.badge_image, alt: `${item.name} badge` }));
+
+    const [badgePreview, setBadgePreview] = useState<{ src: string; alt: string } | null>(
+        null,
+    );
 
     return (
         <article
@@ -126,6 +136,62 @@ export function CertificationDetail({
                 </div>
             )}
 
+            {badges.length > 0 && (
+                <div className="mt-8">
+                    <Carousel
+                        label="Badges"
+                        previousLabel="Previous badges"
+                        nextLabel="Next badges"
+                        gap="0.75rem"
+                        heading={
+                            <h3 className="font-display text-[18px] text-(--ink)">Badges</h3>
+                        }
+                    >
+                        {badges.map((badge, index) => (
+                            <div
+                                key={`${badge.src}-${index}`}
+                                className="w-20 shrink-0 snap-start sm:w-24"
+                            >
+                                <button
+                                    type="button"
+                                    onClick={() => setBadgePreview(badge)}
+                                    aria-label={`Preview ${badge.alt}`}
+                                    className="
+                                        block
+                                        w-full
+                                        overflow-hidden
+                                        rounded-xl
+                                        border
+                                        border-(--line)
+                                        transition-colors
+                                        duration-150
+                                        hover:border-(--accent-strong)
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
+                                    "
+                                >
+                                    <ContentImage
+                                        src={badge.src}
+                                        alt=""
+                                        imageClassName="aspect-square h-full w-full object-contain"
+                                        placeholderClassName="aspect-square w-full"
+                                    />
+                                </button>
+                            </div>
+                        ))}
+                    </Carousel>
+                </div>
+            )}
+
+            {badgePreview !== null && (
+                <ImageLightbox
+                    src={badgePreview.src}
+                    alt={badgePreview.alt}
+                    onClose={() => setBadgePreview(null)}
+                />
+            )}
+
             <div className="mt-8 grid gap-8 @aside:grid-cols-[minmax(0,1fr)_19rem] @aside:gap-12">
                 <div className="min-w-0 space-y-10">
                     {courses.length > 0 && (
@@ -148,7 +214,7 @@ export function CertificationDetail({
                                                     <ContentImage
                                                         src={course.badge_image}
                                                         alt={`${course.name} badge`}
-                                                        imageClassName="h-10 w-10 rounded-lg border border-(--line) object-cover"
+                                                        imageClassName="h-10 w-10 rounded-lg border border-(--line) object-contain"
                                                         placeholderClassName="h-10 w-10 rounded-lg border border-(--line)"
                                                     />
                                                 </a>
@@ -156,7 +222,7 @@ export function CertificationDetail({
                                                 <ContentImage
                                                     src={course.badge_image}
                                                     alt={`${course.name} badge`}
-                                                    imageClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line) object-cover"
+                                                    imageClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line) object-contain"
                                                     placeholderClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line)"
                                                 />
                                             )
@@ -175,9 +241,13 @@ export function CertificationDetail({
                                             </span>
 
                                             {(course.issuer !== "" ||
+                                                certification.issuer !== "" ||
                                                 course.year !== "") && (
                                                 <span className="mt-0.5 block truncate font-mono text-[11px] text-(--graphite-soft)">
-                                                    {[course.issuer, course.year]
+                                                    {[
+                                                        course.issuer || certification.issuer,
+                                                        course.year,
+                                                    ]
                                                         .filter((part) => part !== "")
                                                         .join(" · ")}
                                                 </span>
