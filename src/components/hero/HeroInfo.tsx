@@ -72,7 +72,6 @@ export function HeroInfo() {
                     font-semibold
                     leading-[0.98]
                     tracking-tight
-                    sm:whitespace-nowrap
                 "
             >
                 {profile.name}

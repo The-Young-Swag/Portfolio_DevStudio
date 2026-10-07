@@ -55,29 +55,6 @@ export function SecondaryButton({ children, ...rest }: ButtonProps) {
     );
 }
 
-export function LinkButton({
-    children,
-    ...rest
-}: ButtonProps & ButtonHTMLAttributes<HTMLButtonElement>) {
-    return (
-        <button
-            type="button"
-            {...rest}
-            className="
-                font-mono
-                text-[11px]
-                text-(--accent-strong)
-                hover:underline
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-(--accent-strong)
-            "
-        >
-            {children}
-        </button>
-    );
-}
-
 export function IconButton({    label,
     tone = "neutral",
     children,

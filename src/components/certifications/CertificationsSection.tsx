@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 import { Carousel } from "@/components/carousel";
 import { Container, Section } from "@/components/layout";
-import { SectionHeading } from "@/components/ui";
+import { ImageLightbox, SectionHeading } from "@/components/ui";
 import { useCertifications } from "@/hooks/certifications/useCertifications";
 import {
     topLevelCertifications,
@@ -59,7 +59,7 @@ export function CertificationsSection() {
                                 <CertificationItem
                                     {...certification}
                                     onPreview={
-                                        certification.image === "" &&
+                                        certification.image !== "" ||
                                         certification.pdf !== ""
                                             ? () => setPreview(certification)
                                             : undefined
@@ -70,7 +70,15 @@ export function CertificationsSection() {
                     </Carousel>
                 )}
 
-                {preview !== null && (
+                {preview !== null && preview.image !== "" && (
+                    <ImageLightbox
+                        src={preview.image}
+                        alt={`${preview.name} certificate`}
+                        onClose={() => setPreview(null)}
+                    />
+                )}
+
+                {preview !== null && preview.image === "" && preview.pdf !== "" && (
                     <PdfLightbox
                         src={preview.pdf}
                         title={preview.name}

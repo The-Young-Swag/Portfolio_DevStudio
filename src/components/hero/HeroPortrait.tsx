@@ -186,8 +186,8 @@ export function HeroPortrait() {
                 ring-1
                 ring-black/[0.04]
                 sm:max-w-70
-                md:mx-0
-                md:max-w-none
+                xl:mx-0
+                xl:max-w-none
                 transition-[box-shadow,border-color]
                 duration-300
                 ease-[cubic-bezier(0.22,1,0.36,1)]
