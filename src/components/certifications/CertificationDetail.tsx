@@ -25,6 +25,7 @@ function buildShots(certification: Certification): GalleryShot[] {
             url: certification.badge_image,
             caption: `${certification.issuer} badge`,
             href: certification.badge_link !== "" ? certification.badge_link : undefined,
+            fit: "contain",
         });
     }
 

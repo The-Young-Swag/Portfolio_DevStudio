@@ -25,6 +25,7 @@ export function PdfEmbed({ src, title, className, interactive = false }: PdfEmbe
             src={`${src}${params}`}
             title={title}
             scrolling={interactive ? "auto" : "no"}
+            tabIndex={interactive ? undefined : -1}
             className={className}
         />
     );
