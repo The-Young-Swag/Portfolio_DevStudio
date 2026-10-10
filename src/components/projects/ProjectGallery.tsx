@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { CaseScreenshot } from "@/services/projects/projects";
-import { ContentImage, ImageLightbox } from "@/components/ui";
+import { ContentImage, ImageLightbox, safeHttpUrl } from "@/components/ui";
 
 type ProjectGalleryProps = {
     title: string;
@@ -11,13 +11,16 @@ type ProjectGalleryProps = {
 export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
     const [activeIndex, setActiveIndex] = useState(0);
     const [lightbox, setLightbox] = useState(false);
+    const [deadUrl, setDeadUrl] = useState<string | null>(null);
 
     if (shots.length === 0) {
         return null;
     }
 
     const active = shots[Math.min(activeIndex, shots.length - 1)];
+    const activeUrl = safeHttpUrl(active.url);
     const caption = active.caption === "" ? `${title} screenshot` : active.caption;
+    const zoomable = activeUrl !== "" && deadUrl !== activeUrl;
 
     function select(index: number, element: HTMLButtonElement | null) {
         setActiveIndex(index);
@@ -31,43 +34,56 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
         });
     }
 
+    const viewer = (
+        <span className="flex items-center justify-center">
+            <ContentImage
+                key={activeUrl}
+                src={activeUrl}
+                alt={caption}
+                onUnavailable={() => setDeadUrl(activeUrl)}
+                imageClassName="h-auto max-h-[min(60vh,32rem)] w-auto max-w-full rounded-md"
+                placeholderClassName="aspect-video w-full"
+            />
+        </span>
+    );
+
     return (
         <section aria-label="Screenshots">
-            <button
-                type="button"
-                onClick={() => setLightbox(true)}
-                aria-label={`Enlarge screenshot: ${caption}`}
-                className="
-                    relative
-                    block
-                    max-h-[min(60vh,32rem)]
-                    w-full
-                    overflow-hidden
-                    rounded-[1.125rem]
-                    border
-                    border-(--line)
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-(--accent-strong)
-                "
-            >
-                <ContentImage
-                    key={active.url}
-                    src={active.url}
-                    alt={caption}
-                    imageClassName="aspect-[2/1] h-full w-full object-cover"
-                    placeholderClassName="aspect-[2/1] w-full"
-                />
-
-                <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 top-0 flex h-[1.875rem] items-center gap-1.5 bg-black/25 px-3.5"
+            {zoomable ? (
+                <button
+                    type="button"
+                    onClick={() => setLightbox(true)}
+                    aria-label={`Enlarge screenshot: ${caption}`}
+                    className="
+                        surface-stage
+                        block
+                        w-full
+                        cursor-zoom-in
+                        rounded-[1.125rem]
+                        border
+                        border-(--line)
+                        p-4
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-(--accent-strong)
+                    "
                 >
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                    <span className="h-2 w-2 rounded-full bg-white/35" />
-                </span>
-            </button>
+                    {viewer}
+                </button>
+            ) : (
+                <div
+                    className="
+                        surface-stage
+                        w-full
+                        rounded-[1.125rem]
+                        border
+                        border-(--line)
+                        p-4
+                    "
+                >
+                    {viewer}
+                </div>
+            )}
 
             {caption !== "" && (
                 <p className="mt-2 font-mono text-[11px] text-(--graphite-soft)">
@@ -82,6 +98,7 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                                 ? `Screenshot ${index + 1}`
                                 : shot.caption;
                         const current = index === Math.min(activeIndex, shots.length - 1);
+                        const shotUrl = safeHttpUrl(shot.url);
 
                         return (
                                 <button
@@ -108,21 +125,23 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                                     }
                                 `}
                             >
-                                <ContentImage
-                                    src={shot.url}
-                                    alt=""
-                                    imageClassName="aspect-video h-full w-full object-cover"
-                                    placeholderClassName="aspect-video w-full"
-                                />
+                                <span className="surface-stage flex h-20 w-full items-center justify-center p-1.5">
+                                    <ContentImage
+                                        src={shotUrl}
+                                        alt=""
+                                        imageClassName="h-auto max-h-full w-auto max-w-full"
+                                        placeholderClassName="h-full w-full"
+                                    />
+                                </span>
                             </button>
                         );
                     })}
                 </div>
             )}
 
-            {lightbox && (
+            {lightbox && zoomable && (
                 <ImageLightbox
-                    src={active.url}
+                    src={activeUrl}
                     alt={caption}
                     onClose={() => setLightbox(false)}
                 />
