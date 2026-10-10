@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-import { ContentImage, safeHttpUrl, TechPill } from "@/components/ui";
+import { ContentImage, TechPill } from "@/components/ui";
 import type { Project } from "@/services/projects/projects";
 import { AccessLedger } from "./AccessLedger";
 import { hasLedgerContent } from "./projectStatus";
@@ -10,23 +10,19 @@ type ProjectCardProps = {
 };
 
 function ProjectCover({ title, thumbnail }: { title: string; thumbnail: string }) {
-    const safeThumbnail = safeHttpUrl(thumbnail);
-
-    if (safeThumbnail === "") {
+    if (thumbnail === "") {
         return null;
     }
 
     return (
-        <div className="surface-stage flex h-44 items-center justify-center overflow-hidden border-b border-(--line) p-3">
+        <div className="relative aspect-[2/1] overflow-hidden border-b border-(--line)">
             <ContentImage
-                src={safeThumbnail}
+                src={thumbnail}
                 alt={`${title} preview`}
                 imageClassName="
-                    h-auto
-                    max-h-full
-                    w-auto
-                    max-w-full
-                    rounded-[2px]
+                    h-full
+                    w-full
+                    object-cover
                     transition-transform
                     duration-700
                     ease-[cubic-bezier(0.22,1,0.36,1)]

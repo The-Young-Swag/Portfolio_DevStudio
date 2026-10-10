@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 
 import type { Project } from "@/services/projects/projects";
-import { ContentImage, safeHttpUrl } from "@/components/ui";
+import { ContentImage } from "@/components/ui";
 import { StatusBadge } from "./StatusBadge";
 import { projectPanelId, projectTabId } from "./projectStatus";
 
@@ -187,7 +187,6 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
             >
                 {projects.map((project) => {
                     const selected = project.id === selectedId;
-                    const safeThumbnail = safeHttpUrl(project.thumbnail);
 
                     return (
                         <button
@@ -239,17 +238,15 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
                                     aspect-[16/10]
                                     items-center
                                     justify-center
-                                    overflow-hidden
                                     bg-linear-to-br
-                                    p-3
                                     ${toneFor(project.id)}
                                 `}
                             >
-                                {safeThumbnail !== "" ? (
+                                {project.thumbnail !== "" ? (
                                     <ContentImage
-                                        src={safeThumbnail}
+                                        src={project.thumbnail}
                                         alt=""
-                                        imageClassName="h-auto max-h-full w-auto max-w-full rounded-[2px]"
+                                        imageClassName="absolute inset-0 h-full w-full object-cover"
                                         placeholderClassName="absolute inset-0 h-full w-full"
                                     />
                                 ) : (
