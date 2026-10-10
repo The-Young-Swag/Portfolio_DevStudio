@@ -638,7 +638,7 @@ export function CertificationsManager({
                                     <ContentImage
                                         src={course.badge_image}
                                         alt=""
-                                        imageClassName="h-8 w-8 shrink-0 rounded-lg border border-(--line) object-cover"
+                                        imageClassName="surface-stage h-8 w-8 shrink-0 rounded-lg object-contain"
                                         placeholderClassName="h-8 w-8 shrink-0 rounded-lg border border-(--line)"
                                     />
                                 )}

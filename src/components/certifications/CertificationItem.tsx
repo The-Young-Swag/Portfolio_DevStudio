@@ -1,6 +1,7 @@
 import clsx from "clsx";
 
 import { ContentImage, ImagePlaceholder } from "@/components/ui";
+import { safeHttpUrl } from "./certificationUrls";
 import { PdfEmbed } from "./PdfEmbed";
 
 export type CertBadge = {
@@ -38,18 +39,22 @@ export function CertificationItem({
     onPreview,
     onBadgePreview,
 }: CertificationItemProps) {
+    const safeImage = safeHttpUrl(image);
+    const safePdf = safeHttpUrl(pdf);
     const visual =
-        image !== "" ? (
-            <ContentImage
-                src={image}
-                alt={`${name} certificate`}
-                imageClassName="absolute inset-0 h-full w-full object-cover"
-                placeholderClassName="absolute inset-0"
-            />
-        ) : pdf !== "" ? (
+        safeImage !== "" ? (
+            <span className="flex h-full w-full items-center justify-center p-3">
+                <ContentImage
+                    src={safeImage}
+                    alt={`${name} certificate`}
+                    imageClassName="h-auto max-h-full w-auto max-w-full rounded-[2px]"
+                    placeholderClassName="h-full w-full"
+                />
+            </span>
+        ) : safePdf !== "" ? (
             <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
                 <PdfEmbed
-                    src={pdf}
+                    src={safePdf}
                     title=""
                     className="pointer-events-none h-full w-full"
                 />
@@ -66,7 +71,7 @@ export function CertificationItem({
             )}
         >
             <div className="relative h-36 overflow-hidden border-b border-(--line)">
-                {onPreview !== undefined && (image !== "" || pdf !== "") ? (
+                {onPreview !== undefined && (safeImage !== "" || safePdf !== "") ? (
                     <button
                         type="button"
                         onClick={onPreview}

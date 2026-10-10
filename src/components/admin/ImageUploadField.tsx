@@ -213,7 +213,7 @@ export function ImageUploadField({
                     <img
                         src={value}
                         alt={`${label} preview`}
-                        className="h-16 w-16 rounded-xl border border-(--line) object-cover"
+                        className="surface-stage h-16 w-16 rounded-xl object-contain"
                     />
 
                     <button

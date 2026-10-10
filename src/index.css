@@ -8,6 +8,10 @@
 @theme {
     --container-rail: 38rem;
     --container-aside: 45rem;
+    /* Certifications detail: viewer column beside the content column.
+       Named so the two-column switch is defined once, where the
+       side-by-side layout actually still fits. */
+    --container-cert: 48rem;
 }
 
 /* GLOBAL DESIGN TOKENS */
@@ -160,6 +164,16 @@ html.dark {
 
     .hairline {
         border-color: var(--line);
+    }
+
+    /* Cardless surfaces: structure from soft tinted fills derived from
+       the theme tokens, never from borders or glass cards. */
+    .surface-stage {
+        background: color-mix(in srgb, var(--ink) 6%, transparent);
+    }
+
+    .surface-tint {
+        background: color-mix(in srgb, var(--accent-strong) 13%, transparent);
     }
 
     
@@ -322,6 +336,83 @@ section[id] {
 @media (min-width: 1024px) {
     .home-projects .carousel-card {
         flex-basis: calc((100% - 1.05 * var(--carousel-gap, 1.25rem)) / 2.05);
+    }
+}
+
+/*
+   CERTIFICATIONS — CARDLESS RAIL AND DETAIL
+
+   No cards, borders, or rings: the selected rail item is full opacity
+   with an accent title and a short accent bar, everything else dimmed.
+   Certificate images keep their natural ratio inside neutral stages
+   (see CertImage); only the stage height is fixed, never the image.
+*/
+
+.cert-rail-item {
+    opacity: 0.55;
+    transition: opacity 200ms ease;
+}
+
+.cert-rail-item:hover {
+    opacity: 0.9;
+}
+
+.cert-rail-item[data-active="true"] {
+    opacity: 1;
+}
+
+.cert-rail-item .cert-rail-title {
+    overflow-wrap: anywhere;
+    transition: color 150ms ease;
+}
+
+.cert-rail-item[data-active="true"] .cert-rail-title {
+    color: var(--accent-strong);
+}
+
+.cert-rail-item .cert-rail-stage {
+    transition: transform 200ms ease;
+}
+
+.cert-rail-item:hover .cert-rail-stage {
+    transform: translateY(-2px);
+}
+
+.cert-rail-bar {
+    height: 3px;
+    width: 0;
+    border-radius: 2px;
+    background: var(--accent-strong);
+    transition: width 250ms ease;
+}
+
+.cert-rail-item[data-active="true"] .cert-rail-bar {
+    width: 2rem;
+}
+
+.cert-tick {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.15rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-strong) 13%, transparent);
+    color: var(--accent-deep);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cert-rail-item,
+    .cert-rail-item .cert-rail-title,
+    .cert-rail-item .cert-rail-stage,
+    .cert-rail-bar {
+        transition: none;
+    }
+
+    .cert-rail-item:hover .cert-rail-stage {
+        transform: none;
     }
 }
 
