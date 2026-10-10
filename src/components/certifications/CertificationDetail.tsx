@@ -1,55 +1,11 @@
 import { useState } from "react";
 import { Check, ShieldCheck } from "lucide-react";
 
-import { Carousel } from "@/components/carousel";
 import { ContentImage, ImageLightbox } from "@/components/ui";
 import type { Certification } from "@/services/certifications/certifications";
-import { CertificationGallery, type GalleryShot } from "./CertificationGallery";
-import { CertificationInfoCard } from "./CertificationInfoCard";
 import { certPanelId } from "./certificationIds";
-import { VerificationBadge } from "./VerificationBadge";
-
-function buildShots(certification: Certification): GalleryShot[] {
-    const shots: GalleryShot[] = [];
-
-    if (certification.image !== "") {
-        shots.push({ url: certification.image, caption: "Certificate" });
-    }
-
-    if (certification.pdf !== "") {
-        shots.push({ url: certification.pdf, caption: "Certificate PDF", kind: "pdf" });
-    }
-
-    if (certification.badge_image !== "") {
-        shots.push({
-            url: certification.badge_image,
-            caption: `${certification.issuer} badge`,
-            href: certification.badge_link !== "" ? certification.badge_link : undefined,
-            fit: "contain",
-        });
-    }
-
-    return shots;
-}
-
-function CourseLinks({ course }: { course: Certification }) {
-    if (course.link === "") {
-        return null;
-    }
-
-    return (
-        <span className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
-            <a
-                href={course.link}
-                target="_blank"
-                rel="noreferrer"
-                className="font-mono text-[11px] text-(--accent-strong) hover:underline"
-            >
-                Verify ↗
-            </a>
-        </span>
-    );
-}
+import { linkHostname, safeHttpUrl, verifiableLink } from "./certificationUrls";
+import { CertificationViewer } from "./CertificationViewer";
 
 type CertificationDetailProps = {
     certification: Certification;
@@ -57,21 +13,211 @@ type CertificationDetailProps = {
     tabId: string | null;
 };
 
-export function CertificationDetail({
+function factRows(certification: Certification) {
+    return [
+        { label: "Issued by", value: certification.issuer, mono: false },
+        { label: "Via", value: certification.credential, mono: false },
+        { label: "Issued", value: certification.year, mono: false },
+        { label: "Credential ID", value: certification.code, mono: true },
+        { label: "Badge", value: certification.badge, mono: false },
+    ].filter((row) => row.value !== "");
+}
+
+function badgeItems(certification: Certification, courses: Certification[]) {
+    return [certification, ...courses]
+        .map((item) => ({
+            src: safeHttpUrl(item.badge_image),
+            link: safeHttpUrl(item.badge_link),
+            alt: `${item.name} badge`,
+        }))
+        .filter((badge) => badge.src !== "");
+}
+
+function Facts({ certification }: { certification: Certification }) {
+    const rows = factRows(certification);
+
+    if (rows.length === 0) {
+        return null;
+    }
+
+    return (
+        <dl className="grid grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] gap-x-8 gap-y-6">
+            {rows.map((row) => (
+                <div key={row.label} className="min-w-0">
+                    <dt className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft)">
+                        {row.label}
+                    </dt>
+                    <dd
+                        className={
+                            row.mono
+                                ? "mt-1.5 break-words font-mono text-[13px] text-(--ink)"
+                                : "mt-1.5 break-words text-[15px] font-medium text-(--ink)"
+                        }
+                    >
+                        {row.value}
+                    </dd>
+                </div>
+            ))}
+        </dl>
+    );
+}
+
+function Badges({
     certification,
     courses,
-    tabId,
-}: CertificationDetailProps) {
-    const shots = buildShots(certification);
-    const hasVerify = certification.link !== "";
+}: {
+    certification: Certification;
+    courses: Certification[];
+}) {
+    const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null);
 
-    const badges = [certification, ...courses]
-        .filter((item) => item.badge_image !== "")
-        .map((item) => ({ src: item.badge_image, alt: `${item.name} badge` }));
+    const badges = badgeItems(certification, courses);
 
-    const [badgePreview, setBadgePreview] = useState<{ src: string; alt: string } | null>(
-        null,
+    if (badges.length === 0) {
+        return null;
+    }
+
+    return (
+        <div>
+            <p className="mb-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--graphite-soft)">
+                Badges
+            </p>
+
+            <div className="flex flex-wrap gap-2.5">
+                {badges.map((badge, index) => {
+                    const thumb = (
+                        <ContentImage
+                            src={badge.src}
+                            alt={badge.link !== "" ? badge.alt : ""}
+                            imageClassName="h-12 w-12 rounded-lg object-contain"
+                            placeholderClassName="h-12 w-12 rounded-lg"
+                        />
+                    );
+
+                    return (
+                        <span key={`${badge.src}-${index}`} className="inline-flex">
+                            {badge.link !== "" ? (
+                                <a
+                                    href={badge.link}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label={`${badge.alt} (opens in a new tab)`}
+                                    className="
+                                        surface-stage
+                                        block
+                                        rounded-xl
+                                        p-1.5
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
+                                    "
+                                >
+                                    {thumb}
+                                </a>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => setPreview(badge)}
+                                    aria-label={`Preview ${badge.alt}`}
+                                    className="
+                                        surface-stage
+                                        block
+                                        rounded-xl
+                                        p-1.5
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
+                                    "
+                                >
+                                    {thumb}
+                                </button>
+                            )}
+                        </span>
+                    );
+                })}
+            </div>
+
+            {preview !== null && (
+                <ImageLightbox
+                    src={preview.src}
+                    alt={preview.alt}
+                    onClose={() => setPreview(null)}
+                />
+            )}
+        </div>
     );
+}
+
+function Courses({
+    certification,
+    courses,
+}: {
+    certification: Certification;
+    courses: Certification[];
+}) {
+    if (courses.length === 0) {
+        return null;
+    }
+
+    return (
+        <section aria-label="Courses">
+            <h3 className="font-display mb-4 text-[22px] text-(--ink)">Courses</h3>
+
+            <ul className="space-y-4">
+                {courses.map((course) => {
+                    const link = verifiableLink(course.link);
+                    const meta = [course.issuer || certification.issuer, course.year]
+                        .filter((part) => part !== "")
+                        .join(" · ");
+
+                    return (
+                        <li key={course.id} className="flex min-w-0 gap-3">
+                            <span aria-hidden="true" className="cert-tick">
+                                <Check size={11} strokeWidth={3} />
+                            </span>
+
+                            <span className="min-w-0">
+                                <span className="block break-words text-[15px] leading-relaxed text-(--graphite)">
+                                    {course.name}
+                                </span>
+
+                                {meta !== "" && (
+                                    <span className="mt-0.5 block truncate font-mono text-[11px] text-(--graphite-soft)">
+                                        {meta}
+                                    </span>
+                                )}
+
+                                {link !== "" && (
+                                    <span className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1">
+                                        <a
+                                            href={link}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="font-mono text-[11px] text-(--accent-strong) hover:underline"
+                                        >
+                                            Verify ↗
+                                        </a>
+                                    </span>
+                                )}
+                            </span>
+                        </li>
+                    );
+                })}
+            </ul>
+        </section>
+    );
+}
+
+/**
+ * Cardless certificate detail, certificate first. The viewer column
+ * follows the image's own ratio (capped to a share of the container);
+ * everything else is label-led typography that collapses when empty.
+ */
+export function CertificationDetail({ certification, courses, tabId }: CertificationDetailProps) {
+    const verify = verifiableLink(certification.link);
+    const domain = verify === "" ? "" : linkHostname(verify);
+    const showDetails =
+        factRows(certification).length > 0 || badgeItems(certification, courses).length > 0;
 
     return (
         <article
@@ -82,189 +228,76 @@ export function CertificationDetail({
             tabIndex={tabId === null ? undefined : 0}
             className="@container min-w-0"
         >
-            <header className="flex flex-wrap items-end justify-between gap-5">
-                <div className="min-w-0 flex-1 basis-96">
-                    <div className="mb-3 flex flex-wrap items-center gap-2.5">
-                        <VerificationBadge certification={certification} />
+            <div className="grid gap-9 @cert:grid-cols-[minmax(0,min(26rem,45cqi))_minmax(0,1fr)] @cert:gap-x-16 @cert:gap-y-10">
+                <header className="min-w-0 @cert:col-start-2">
+                    {verify !== "" && (
+                        <p className="mb-3 font-mono text-[11.5px] font-medium text-(--accent-strong)">
+                            <span aria-hidden="true">✓ </span>Verifiable credential
+                        </p>
+                    )}
 
-                        {certification.credential !== "" && (
-                            <span className="whitespace-nowrap rounded-full border border-(--glass-border) bg-(--glass-bg) px-2.5 py-1 font-mono text-[11px] text-(--graphite)">
-                                {certification.credential}
-                            </span>
-                        )}
-                    </div>
-
-                    <h2 className="mb-3 break-words font-display text-[clamp(1.875rem,4.5cqi,2.875rem)] font-semibold leading-[1.1] tracking-tight text-(--ink)">
+                    <h2 className="font-display mb-3 break-words text-[clamp(1.875rem,4.5cqi,2.875rem)] font-semibold leading-[1.1] tracking-tight text-(--ink)">
                         {certification.name}
                     </h2>
-                </div>
 
-                {hasVerify && (
-                    <div className="flex flex-wrap gap-2.5">
-                        <a
-                            href={certification.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="
-                                inline-flex
-                                items-center
-                                gap-2
-                                rounded-[0.875rem]
-                                bg-(--accent-strong)
-                                px-4
-                                py-2.5
-                                text-[13.5px]
-                                font-medium
-                                text-white
-                                transition-colors
-                                duration-150
-                                hover:bg-(--accent-deep)
-                                focus-visible:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-(--accent-strong)
-                            "
-                        >
-                            <ShieldCheck size={16} strokeWidth={2} aria-hidden="true" />
-                            Verify credential
-                        </a>
-                    </div>
-                )}
-            </header>
-
-            {shots.length > 0 && (
-                <div className="mt-8">
-                    <CertificationGallery title={certification.name} shots={shots} />
-                </div>
-            )}
-
-            {badges.length > 0 && (
-                <div className="mt-8">
-                    <Carousel
-                        label="Badges"
-                        previousLabel="Previous badges"
-                        nextLabel="Next badges"
-                        gap="0.75rem"
-                        heading={
-                            <h3 className="font-display text-[18px] text-(--ink)">Badges</h3>
-                        }
-                    >
-                        {badges.map((badge, index) => (
-                            <div
-                                key={`${badge.src}-${index}`}
-                                className="w-20 shrink-0 snap-start sm:w-24"
+                    {verify !== "" && (
+                        <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+                            <a
+                                href={verify}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="
+                                    inline-flex
+                                    min-h-11
+                                    items-center
+                                    gap-2
+                                    rounded-full
+                                    bg-(--accent-strong)
+                                    px-5
+                                    py-2.5
+                                    text-[13.5px]
+                                    font-medium
+                                    text-white
+                                    transition-[filter]
+                                    duration-150
+                                    hover:brightness-110
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-(--accent-strong)
+                                    focus-visible:ring-offset-2
+                                "
                             >
-                                <button
-                                    type="button"
-                                    onClick={() => setBadgePreview(badge)}
-                                    aria-label={`Preview ${badge.alt}`}
-                                    className="
-                                        block
-                                        w-full
-                                        overflow-hidden
-                                        rounded-xl
-                                        border
-                                        border-(--line)
-                                        transition-colors
-                                        duration-150
-                                        hover:border-(--accent-strong)
-                                        focus-visible:outline-none
-                                        focus-visible:ring-2
-                                        focus-visible:ring-(--accent-strong)
-                                    "
-                                >
-                                    <ContentImage
-                                        src={badge.src}
-                                        alt=""
-                                        imageClassName="aspect-square h-full w-full object-contain"
-                                        placeholderClassName="aspect-square w-full"
-                                    />
-                                </button>
-                            </div>
-                        ))}
-                    </Carousel>
-                </div>
-            )}
+                                <ShieldCheck size={16} strokeWidth={2} aria-hidden="true" />
+                                Verify credential ↗
+                            </a>
 
-            {badgePreview !== null && (
-                <ImageLightbox
-                    src={badgePreview.src}
-                    alt={badgePreview.alt}
-                    onClose={() => setBadgePreview(null)}
-                />
-            )}
-
-            <div className="mt-8 grid gap-8 @aside:grid-cols-[minmax(0,1fr)_19rem] @aside:gap-12">
-                <div className="min-w-0 space-y-10">
-                    {courses.length > 0 && (
-                        <section aria-label="Courses">
-                            <h3 className="mb-3 font-display text-[22px] text-(--ink)">
-                                Courses
-                            </h3>
-
-                            <ul className="space-y-4">
-                                {courses.map((course) => (
-                                    <li key={course.id} className="flex min-w-0 gap-3">
-                                        {course.badge_image !== "" ? (
-                                            course.badge_link !== "" ? (
-                                                <a
-                                                    href={course.badge_link}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="mt-0.5 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--accent-strong)"
-                                                >
-                                                    <ContentImage
-                                                        src={course.badge_image}
-                                                        alt={`${course.name} badge`}
-                                                        imageClassName="h-10 w-10 rounded-lg border border-(--line) object-contain"
-                                                        placeholderClassName="h-10 w-10 rounded-lg border border-(--line)"
-                                                    />
-                                                </a>
-                                            ) : (
-                                                <ContentImage
-                                                    src={course.badge_image}
-                                                    alt={`${course.name} badge`}
-                                                    imageClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line) object-contain"
-                                                    placeholderClassName="mt-0.5 h-10 w-10 shrink-0 rounded-lg border border-(--line)"
-                                                />
-                                            )
-                                        ) : (
-                                            <Check
-                                                size={20}
-                                                strokeWidth={2}
-                                                aria-hidden="true"
-                                                className="mt-0.5 shrink-0 text-(--accent-strong)"
-                                            />
-                                        )}
-
-                                        <span className="min-w-0">
-                                            <span className="block break-words text-[15px] leading-relaxed text-(--graphite)">
-                                                {course.name}
-                                            </span>
-
-                                            {(course.issuer !== "" ||
-                                                certification.issuer !== "" ||
-                                                course.year !== "") && (
-                                                <span className="mt-0.5 block truncate font-mono text-[11px] text-(--graphite-soft)">
-                                                    {[
-                                                        course.issuer || certification.issuer,
-                                                        course.year,
-                                                    ]
-                                                        .filter((part) => part !== "")
-                                                        .join(" · ")}
-                                                </span>
-                                            )}
-
-                                            <CourseLinks course={course} />
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
+                            {domain !== "" && (
+                                <span className="font-mono text-[11px] text-(--graphite-soft)">
+                                    opens {domain}
+                                </span>
+                            )}
+                        </div>
                     )}
+                </header>
+
+                <div className="min-w-0 @cert:col-start-1 @cert:row-span-3 @cert:row-start-1 @cert:self-start">
+                    <div className="@cert:sticky @cert:top-6 [--cert-max-h:min(70vh,32rem)]">
+                        <CertificationViewer certification={certification} />
+                    </div>
                 </div>
 
-                <div className="order-first min-w-0 @aside:order-none">
-                    <CertificationInfoCard certification={certification} />
+                {showDetails && (
+                    <section
+                        aria-label="Details"
+                        className="min-w-0 space-y-8 @cert:col-start-2"
+                    >
+                        <Facts certification={certification} />
+                        <Badges certification={certification} courses={courses} />
+                    </section>
+                )}
+
+                <div className="min-w-0 @cert:col-start-2">
+                    <Courses certification={certification} courses={courses} />
                 </div>
             </div>
         </article>

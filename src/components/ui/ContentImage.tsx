@@ -24,6 +24,10 @@ type ContentImageProps = {
     alt: string;
     imageClassName?: string;
     placeholderClassName?: string;
+    /** "eager" for above-the-fold certificate viewers. Defaults to lazy. */
+    loading?: "lazy" | "eager";
+    /** Fires when the source fails, so callers can fall back further. */
+    onUnavailable?: () => void;
 };
 
 export function ContentImage({
@@ -31,6 +35,8 @@ export function ContentImage({
     alt,
     imageClassName,
     placeholderClassName,
+    loading = "lazy",
+    onUnavailable,
 }: ContentImageProps) {
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
@@ -42,9 +48,12 @@ export function ContentImage({
         <img
             src={src}
             alt={alt}
-            loading="lazy"
+            loading={loading}
             decoding="async"
-            onError={() => setFailedSrc(src)}
+            onError={() => {
+                setFailedSrc(src);
+                onUnavailable?.();
+            }}
             className={imageClassName}
         />
     );

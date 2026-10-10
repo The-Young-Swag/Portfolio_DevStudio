@@ -2,22 +2,26 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Certification } from "@/services/certifications/certifications";
-import { CertificationCover } from "./CertificationCover";
+import { CertImage } from "./CertImage";
+import { safeHttpUrl } from "./certificationUrls";
 import { certPanelId, certTabId } from "./certificationIds";
 
 type CertificationRailProps = {
     certifications: Certification[];
     selectedId: number | null;
     onSelect: (id: number) => void;
-    onPreview: (certification: Certification) => void;
 };
 
-export function CertificationRail({
-    certifications,
-    selectedId,
-    onSelect,
-    onPreview,
-}: CertificationRailProps) {
+function prefersReducedMotion(): boolean {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+}
+
+/**
+ * Cardless certificate index. The rail renders once per certificate
+ * list; selecting an item only flips state and attributes so the
+ * scroller never loses its position.
+ */
+export function CertificationRail({ certifications, selectedId, onSelect }: CertificationRailProps) {
     const tabRefs = useRef(new Map<number, HTMLButtonElement>());
     const railRef = useRef<HTMLDivElement>(null);
     const [canScroll, setCanScroll] = useState(false);
@@ -41,8 +45,35 @@ export function CertificationRail({
         };
     }, [certifications.length]);
 
+    useEffect(() => {
+        for (const [id, tab] of tabRefs.current) {
+            const selected = id === selectedId;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+            tab.dataset.active = String(selected);
+        }
+    }, [selectedId]);
+
     function focusTab(id: number) {
         tabRefs.current.get(id)?.focus();
+    }
+
+    function reveal(id: number) {
+        tabRefs.current.get(id)?.scrollIntoView({
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
+            inline: "nearest",
+            block: "nearest",
+        });
+    }
+
+    function select(id: number, focus: boolean) {
+        onSelect(id);
+
+        if (focus) {
+            focusTab(id);
+        }
+
+        reveal(id);
     }
 
     function selectNeighbor(currentId: number, direction: 1 | -1) {
@@ -55,11 +86,8 @@ export function CertificationRail({
         }
 
         const next =
-            certifications[
-                (index + direction + certifications.length) % certifications.length
-            ];
-        onSelect(next.id);
-        focusTab(next.id);
+            certifications[(index + direction + certifications.length) % certifications.length];
+        select(next.id, true);
     }
 
     function handleKeyDown(event: React.KeyboardEvent, currentId: number) {
@@ -71,12 +99,10 @@ export function CertificationRail({
             selectNeighbor(currentId, -1);
         } else if (event.key === "Home") {
             event.preventDefault();
-            onSelect(certifications[0].id);
-            focusTab(certifications[0].id);
+            select(certifications[0].id, true);
         } else if (event.key === "End") {
             event.preventDefault();
-            onSelect(certifications[certifications.length - 1].id);
-            focusTab(certifications[certifications.length - 1].id);
+            select(certifications[certifications.length - 1].id, true);
         }
     }
 
@@ -89,10 +115,7 @@ export function CertificationRail({
 
         rail.scrollBy({
             left: direction * rail.clientWidth * 0.8,
-            behavior:
-                window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-                    ? "auto"
-                    : "smooth",
+            behavior: prefersReducedMotion() ? "auto" : "smooth",
         });
     }
 
@@ -111,20 +134,17 @@ export function CertificationRail({
                             onClick={() => scrollRail(-1)}
                             aria-label="Previous certifications"
                             className="
+                                surface-tint
                                 inline-flex
-                                h-9
-                                w-9
+                                h-11
+                                w-11
                                 items-center
                                 justify-center
-                                rounded-xl
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                text-(--graphite)
-                                transition-colors
+                                rounded-full
+                                text-(--accent-deep)
+                                transition-[filter]
                                 duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--ink)
+                                hover:brightness-95
                                 focus-visible:outline-none
                                 focus-visible:ring-2
                                 focus-visible:ring-(--accent-strong)
@@ -138,20 +158,17 @@ export function CertificationRail({
                             onClick={() => scrollRail(1)}
                             aria-label="Next certifications"
                             className="
+                                surface-tint
                                 inline-flex
-                                h-9
-                                w-9
+                                h-11
+                                w-11
                                 items-center
                                 justify-center
-                                rounded-xl
-                                border
-                                border-(--glass-border)
-                                bg-(--glass-bg)
-                                text-(--graphite)
-                                transition-colors
+                                rounded-full
+                                text-(--accent-deep)
+                                transition-[filter]
                                 duration-150
-                                hover:border-(--accent-strong)
-                                hover:text-(--ink)
+                                hover:brightness-95
                                 focus-visible:outline-none
                                 focus-visible:ring-2
                                 focus-visible:ring-(--accent-strong)
@@ -168,141 +185,76 @@ export function CertificationRail({
                 role="tablist"
                 aria-label="Certifications"
                 className="
+                    cert-rail
+                    -m-2
                     grid
                     snap-x
                     snap-proximity
                     grid-flow-col
-                    auto-cols-[minmax(15rem,1fr)]
-                    gap-4
-                    -mx-2
-                    -mb-6
-                    -mt-3
+                    auto-cols-[minmax(13rem,1fr)]
+                    gap-7
                     overflow-x-auto
-                    px-2
-                    pb-6
-                    pt-3
+                    p-2
+                    pb-4
                 "
             >
-                {certifications.map((certification) => {
-                    const selected = certification.id === selectedId;
+                {certifications.map((certification) => (
+                    <button
+                        key={certification.id}
+                        ref={(element) => {
+                            if (element) {
+                                tabRefs.current.set(certification.id, element);
+                            } else {
+                                tabRefs.current.delete(certification.id);
+                            }
+                        }}
+                        type="button"
+                        role="tab"
+                        id={certTabId(certification.id)}
+                        aria-selected={certification.id === selectedId}
+                        aria-controls={certPanelId(certification.id)}
+                        tabIndex={certification.id === selectedId ? 0 : -1}
+                        data-active={certification.id === selectedId}
+                        onClick={() => select(certification.id, false)}
+                        onKeyDown={(event) => handleKeyDown(event, certification.id)}
+                        className="
+                            cert-rail-item
+                            flex
+                            min-w-0
+                            snap-start
+                            flex-col
+                            gap-3.5
+                            text-left
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-(--accent-strong)
+                        "
+                    >
+                        <span className="surface-stage cert-rail-stage flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 [--cert-max-h:8rem]">
+                            <CertImage
+                                src={safeHttpUrl(certification.image)}
+                                alt={`${certification.name} certificate`}
+                                imageClassName="rounded-[3px]"
+                            />
+                        </span>
 
-                    return (
-                        <div
-                            key={certification.id}
-                            className={`
-                                min-w-0
-                                snap-start
-                                overflow-hidden
-                                rounded-[1.375rem]
-                                border
-                                bg-(--glass-bg)
-                                backdrop-blur-xl
-                                backdrop-saturate-160
-                                transition-[transform,border-color]
-                                duration-200
-                                hover:-translate-y-0.5
-                                ${
-                                    selected
-                                        ? "border-(--accent-strong) shadow-[0_0_0_1px_var(--accent-strong)]"
-                                        : "border-(--glass-border)"
-                                }
-                            `}
-                        >
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    onSelect(certification.id);
-                                    onPreview(certification);
-                                }}
-                                aria-label={
-                                    certification.image === "" && certification.pdf !== ""
-                                        ? `Preview ${certification.name} PDF`
-                                        : `Show ${certification.name} details`
-                                }
-                                className="
-                                    block
-                                    w-full
-                                    cursor-pointer
-                                    focus-visible:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-inset
-                                    focus-visible:ring-(--accent-strong)
-                                "
-                            >
-                                <CertificationCover certification={certification} />
-                            </button>
+                        <span className="min-w-0">
+                            <span className="cert-rail-title line-clamp-2 block break-words font-display text-[18px] font-medium leading-[1.3]">
+                                {certification.name}
+                            </span>
 
-                            <button
-                                ref={(element) => {
-                                    if (element) {
-                                        tabRefs.current.set(certification.id, element);
-                                    } else {
-                                        tabRefs.current.delete(certification.id);
-                                    }
-                                }}
-                                type="button"
-                                role="tab"
-                                id={certTabId(certification.id)}
-                                aria-selected={selected}
-                                aria-controls={certPanelId(certification.id)}
-                                tabIndex={selected ? 0 : -1}
-                                onClick={() => onSelect(certification.id)}
-                                onKeyDown={(event) => handleKeyDown(event, certification.id)}
-                                className="
-                                    flex
-                                    w-full
-                                    min-w-0
-                                    flex-col
-                                    gap-1.5
-                                    p-4
-                                    pb-5
-                                    text-left
-                                    focus-visible:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-inset
-                                    focus-visible:ring-(--accent-strong)
-                                "
-                            >
-                                <span
-                                    className={`
-                                        line-clamp-2
-                                        break-words
-                                        font-display
-                                        text-[19px]
-                                        font-medium
-                                        leading-[1.25]
-                                        ${selected ? "text-(--accent-strong)" : "text-(--ink)"}
-                                    `}
-                                >
-                                    {certification.name}
+                            {(certification.issuer !== "" || certification.year !== "") && (
+                                <span className="mt-1 block truncate text-[12.5px] text-(--graphite)">
+                                    {[certification.issuer, certification.year]
+                                        .filter((part) => part !== "")
+                                        .join(" · ")}
                                 </span>
+                            )}
+                        </span>
 
-                                {certification.issuer !== "" && (
-                                    <span className="truncate text-[12.5px] text-(--graphite)">
-                                        {certification.issuer}
-                                    </span>
-                                )}
-
-                                {(certification.credential !== "" ||
-                                    certification.year !== "") && (
-                                    <span className="mt-0.5 flex flex-wrap gap-1.5">
-                                        {certification.credential !== "" && (
-                                            <span className="whitespace-nowrap rounded-full border border-(--glass-border) bg-(--glass-bg) px-2.5 py-1 font-mono text-[11px] text-(--graphite)">
-                                                {certification.credential}
-                                            </span>
-                                        )}
-
-                                        {certification.year !== "" && (
-                                            <span className="whitespace-nowrap rounded-full border border-(--glass-border) bg-(--glass-bg) px-2.5 py-1 font-mono text-[11px] text-(--graphite)">
-                                                {certification.year}
-                                            </span>
-                                        )}
-                                    </span>
-                                )}
-                            </button>
-                        </div>
-                    );
-                })}
+                        <span aria-hidden="true" className="cert-rail-bar" />
+                    </button>
+                ))}
             </div>
         </div>
     );
