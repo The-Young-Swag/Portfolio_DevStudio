@@ -1,6 +1,10 @@
 import type { Project } from "@/services/projects/projects";
 import { getProjectStatus, PROJECT_STATUS_LABELS } from "./projectStatus";
 
+/**
+ * Borderless status marker: dot plus label, no chip outline. The rail
+ * and detail headers carry structure through type, not boxes.
+ */
 export function StatusBadge({ project }: { project: Project }) {
     const status = getProjectStatus(project);
     const open = status === "live";
@@ -8,22 +12,15 @@ export function StatusBadge({ project }: { project: Project }) {
 
     return (
         <span
-            className={`
+            className="
                 inline-flex
                 items-center
                 gap-1.5
-                rounded-full
-                border
-                px-2.5
-                py-1
+                whitespace-nowrap
                 font-mono
                 text-[10.5px]
-                ${
-                    open
-                        ? "border-(--accent-strong)/50 text-(--accent-strong)"
-                        : "border-(--line) text-(--graphite)"
-                }
-            `}
+                text-(--graphite)
+            "
         >
             <span
                 aria-hidden="true"

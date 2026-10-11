@@ -1,4 +1,4 @@
-import { ExternalLink, Lock } from "lucide-react";
+import { Check, ExternalLink, Lock } from "lucide-react";
 
 import type { Project } from "@/services/projects/projects";
 import { StatusBadge } from "./StatusBadge";
@@ -169,24 +169,19 @@ export function ProjectDetail({
                                 Key features
                             </h3>
 
-                            <ul className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))]">
+                            <ul className="space-y-4">
                                 {features.map((feature, index) => (
                                     <li
                                         key={`${feature}-${index}`}
-                                        className="
-                                            break-words
-                                            rounded-2xl
-                                            border
-                                            border-(--glass-border)
-                                            bg-(--glass-bg)
-                                            p-5
-                                            text-[13.5px]
-                                            leading-relaxed
-                                            text-(--graphite)
-                                            shadow-[inset_0_1px_0_var(--glass-highlight)]
-                                        "
+                                        className="flex min-w-0 gap-3"
                                     >
-                                        {feature}
+                                        <span aria-hidden="true" className="soft-tick">
+                                            <Check size={11} strokeWidth={3} />
+                                        </span>
+
+                                        <span className="min-w-0 break-words text-[15px] leading-relaxed text-(--graphite)">
+                                            {feature}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

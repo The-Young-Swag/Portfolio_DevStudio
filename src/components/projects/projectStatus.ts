@@ -51,6 +51,19 @@ export function projectPanelId(id: number) {
     return `project-${id}`;
 }
 
+// Cover tones cycle deterministically by project id so every tile gets a
+// distinct stage without storing presentation in the data.
+const COVER_TONES = [
+    "from-[#1c3a2c] to-[#4d7a52]",
+    "from-[#1b2b44] to-[#3f6aa3]",
+    "from-[#2a2438] to-[#6a54a0]",
+    "from-[#33291c] to-[#8a6c3a]",
+];
+
+export function coverToneFor(id: number) {
+    return COVER_TONES[((id % COVER_TONES.length) + COVER_TONES.length) % COVER_TONES.length];
+}
+
 export type LinkAction =
     | { kind: "link"; href: string }
     | { kind: "text"; text: string }

@@ -15,12 +15,12 @@ export function CaseStudy({ project }: { project: Project }) {
     }
 
     return (
-        <div className="mt-6 rounded-xl border border-(--line) p-4 sm:p-5">
+        <div className="min-w-0">
             <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-(--accent-strong)">
                 Case study
             </p>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid gap-6 sm:grid-cols-3 sm:gap-4">
                 {columns.map((block) => (
                     <div key={block.label} className="min-w-0">
                         <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-(--graphite-soft)">

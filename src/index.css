@@ -340,45 +340,45 @@ section[id] {
 }
 
 /*
-   CERTIFICATIONS — CARDLESS RAIL AND DETAIL
+   CARDLESS RAILS (certifications, projects)
 
    No cards, borders, or rings: the selected rail item is full opacity
    with an accent title and a short accent bar, everything else dimmed.
-   Certificate images keep their natural ratio inside neutral stages
-   (see CertImage); only the stage height is fixed, never the image.
+   Images keep their natural ratio inside neutral stages (see CertImage
+   and the gallery); only the stage height is fixed, never the image.
 */
 
-.cert-rail-item {
+.rail-item {
     opacity: 0.55;
     transition: opacity 200ms ease;
 }
 
-.cert-rail-item:hover {
+.rail-item:hover {
     opacity: 0.9;
 }
 
-.cert-rail-item[data-active="true"] {
+.rail-item[data-active="true"] {
     opacity: 1;
 }
 
-.cert-rail-item .cert-rail-title {
+.rail-item .rail-title {
     overflow-wrap: anywhere;
     transition: color 150ms ease;
 }
 
-.cert-rail-item[data-active="true"] .cert-rail-title {
+.rail-item[data-active="true"] .rail-title {
     color: var(--accent-strong);
 }
 
-.cert-rail-item .cert-rail-stage {
+.rail-item .rail-stage {
     transition: transform 200ms ease;
 }
 
-.cert-rail-item:hover .cert-rail-stage {
+.rail-item:hover .rail-stage {
     transform: translateY(-2px);
 }
 
-.cert-rail-bar {
+.rail-bar {
     height: 3px;
     width: 0;
     border-radius: 2px;
@@ -386,11 +386,11 @@ section[id] {
     transition: width 250ms ease;
 }
 
-.cert-rail-item[data-active="true"] .cert-rail-bar {
+.rail-item[data-active="true"] .rail-bar {
     width: 2rem;
 }
 
-.cert-tick {
+.soft-tick {
     flex: none;
     display: inline-flex;
     align-items: center;
@@ -404,14 +404,14 @@ section[id] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .cert-rail-item,
-    .cert-rail-item .cert-rail-title,
-    .cert-rail-item .cert-rail-stage,
-    .cert-rail-bar {
+    .rail-item,
+    .rail-item .rail-title,
+    .rail-item .rail-stage,
+    .rail-bar {
         transition: none;
     }
 
-    .cert-rail-item:hover .cert-rail-stage {
+    .rail-item:hover .rail-stage {
         transform: none;
     }
 }

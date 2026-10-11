@@ -60,8 +60,6 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                         w-full
                         cursor-zoom-in
                         rounded-[1.125rem]
-                        border
-                        border-(--line)
                         p-4
                         focus-visible:outline-none
                         focus-visible:ring-2
@@ -76,8 +74,6 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                         surface-stage
                         w-full
                         rounded-[1.125rem]
-                        border
-                        border-(--line)
                         p-4
                     "
                 >
