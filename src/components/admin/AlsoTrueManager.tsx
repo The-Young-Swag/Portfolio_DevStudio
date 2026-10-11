@@ -42,15 +42,15 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
     const [initialRows, setInitialRows] = useState<AlsoTrueRow[] | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
-    const [rowIdCounter, setRowIdCounter] = useState(0);
     const [touched, setTouched] = useState(false);
 
-    if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
+    // Resync from the server only while the draft is untouched, so a
+    // background refetch can never clobber text being typed.
+    if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
         const items = profileQuery.data.also_true ?? staticProfile.also_true;
         setSyncedProfile(profileQuery.data);
-        setRows(toRows(items, rowIdCounter + 1));
-        setInitialRows(toRows(items, rowIdCounter + 1));
-        setRowIdCounter(rowIdCounter + items.length);
+        setRows(toRows(items, 1));
+        setInitialRows(toRows(items, 1));
         onDirtyChange(false);
     }
 
@@ -96,8 +96,10 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
 
     function addRow() {
         markTouched();
-        setRowIdCounter((counter) => counter + 1);
-        setRows((current) => [...(current ?? []), { id: rowIdCounter + 1, text: "", icon: "star" }]);
+        setRows((current) => {
+            const nextId = (current ?? []).reduce((max, row) => Math.max(max, row.id), 0) + 1;
+            return [...(current ?? []), { id: nextId, text: "", icon: "star" }];
+        });
     }
 
     function discard() {

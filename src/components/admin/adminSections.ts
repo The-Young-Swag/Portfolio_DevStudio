@@ -69,6 +69,10 @@ export const ADMIN_GROUPS: { label: string; sections: AdminSection[] }[] = [
     },
 ];
 
+export const ADMIN_SECTION_IDS: AdminSectionId[] = ADMIN_GROUPS.flatMap((group) =>
+    group.sections.map((section) => section.id),
+);
+
 // Collection sizes for the sidebar badges. Same query keys as the managers,
 // so the cache is shared and nothing fetches twice.
 export function useAdminCounts(): Record<string, number | undefined> {

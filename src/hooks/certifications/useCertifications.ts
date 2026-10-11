@@ -9,6 +9,7 @@ import {
     type Certification,
     type CertificationInput,
 } from "@/services/certifications/certifications";
+import { insertListed, replaceListed } from "../listCache";
 
 const fallbackCertifications: Certification[] = staticCertifications.map(
     (certification, index) => ({
@@ -43,8 +44,8 @@ export function useCreateCertification(token: string) {
     return useMutation({
         mutationFn: (input: CertificationInput) =>
             createCertification(input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["certifications"] });
+        onSuccess: (certification) => {
+            insertListed(queryClient, ["certifications"], certification);
         },
     });
 }
@@ -55,8 +56,8 @@ export function useUpdateCertification(token: string) {
     return useMutation({
         mutationFn: ({ id, input }: { id: number; input: CertificationInput }) =>
             updateCertification(id, input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["certifications"] });
+        onSuccess: (certification) => {
+            replaceListed(queryClient, ["certifications"], certification);
         },
     });
 }
@@ -66,8 +67,21 @@ export function useDeleteCertification(token: string) {
 
     return useMutation({
         mutationFn: (id: number) => deleteCertification(id, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["certifications"] });
+        onSuccess: (_data, id) => {
+            // Deleting a parent cascades to its courses server-side, so
+            // drop the whole subtree from the cache, not just the parent.
+            void queryClient.cancelQueries({ queryKey: ["certifications"] });
+            queryClient.setQueryData<Certification[]>(["certifications"], (current) => {
+                const doomed = new Set([id]);
+
+                for (const item of current ?? []) {
+                    if (item.parent_id !== null && doomed.has(item.parent_id)) {
+                        doomed.add(item.id);
+                    }
+                }
+
+                return (current ?? []).filter((item) => !doomed.has(item.id));
+            });
         },
     });
 }

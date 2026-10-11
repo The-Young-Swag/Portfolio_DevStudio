@@ -255,7 +255,13 @@ export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: Expe
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
+                    return;
                 }
+
+                notify(
+                    error instanceof Error ? error.message : "Delete failed.",
+                    "error",
+                );
             },
         });
     }

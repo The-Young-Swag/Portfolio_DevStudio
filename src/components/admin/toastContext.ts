@@ -1,6 +1,10 @@
 import { createContext, useContext } from "react";
 
-export const AdminToastContext = createContext<(message: string) => void>(() => {});
+export type AdminToastKind = "success" | "error";
+
+export const AdminToastContext = createContext<
+    (message: string, kind?: AdminToastKind) => void
+>(() => {});
 
 export function useAdminToast() {
     return useContext(AdminToastContext);

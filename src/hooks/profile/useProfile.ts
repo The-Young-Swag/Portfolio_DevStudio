@@ -24,8 +24,9 @@ export function useUpdateProfile(token: string) {
 
     return useMutation({
         mutationFn: (input: ProfileInput) => updateProfile(input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["profile"] });
+        onSuccess: (profile) => {
+            void queryClient.cancelQueries({ queryKey: ["profile"] });
+            queryClient.setQueryData(["profile"], profile);
         },
     });
 }

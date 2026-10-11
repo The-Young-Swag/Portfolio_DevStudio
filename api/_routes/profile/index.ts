@@ -32,7 +32,7 @@ export async function GET() {
 
         return Response.json(toProfile(row), {
             headers: {
-                "Cache-Control": "s-maxage=60, stale-while-revalidate",
+                "Cache-Control": "no-store",
             },
         });
     } catch (error) {
@@ -127,11 +127,15 @@ export async function PUT(request: Request) {
         });
 
         for (const url of removedImages) {
-            await deleteStoredImage(db, url);
+            await deleteStoredImage(db, url).catch((error) => {
+                console.error("Profile PUT portrait cleanup error:", error);
+            });
         }
 
         if (previousResume !== input.resume) {
-            await deleteStoredFile(db, previousResume);
+            await deleteStoredFile(db, previousResume).catch((error) => {
+                console.error("Profile PUT resume cleanup error:", error);
+            });
         }
 
         const selected = await db.execute({

@@ -9,6 +9,7 @@ import {
     type Project,
     type ProjectInput,
 } from "@/services/projects/projects";
+import { insertListed, removeListed, replaceListed } from "../listCache";
 
 const fallbackProjects: Project[] = staticProjects.map((project, index) => ({
     ...project,
@@ -45,8 +46,8 @@ export function useCreateProject(token: string) {
 
     return useMutation({
         mutationFn: (input: ProjectInput) => createProject(input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        onSuccess: (project) => {
+            insertListed(queryClient, ["projects"], project);
         },
     });
 }
@@ -57,8 +58,8 @@ export function useUpdateProject(token: string) {
     return useMutation({
         mutationFn: ({ id, input }: { id: number; input: ProjectInput }) =>
             updateProject(id, input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        onSuccess: (project) => {
+            replaceListed(queryClient, ["projects"], project);
         },
     });
 }
@@ -68,8 +69,8 @@ export function useDeleteProject(token: string) {
 
     return useMutation({
         mutationFn: (id: number) => deleteProject(id, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        onSuccess: (_data, id) => {
+            removeListed(queryClient, ["projects"], id);
         },
     });
 }

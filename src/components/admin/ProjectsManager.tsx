@@ -486,7 +486,6 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     const [touched, setTouched] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
     const [moving, setMoving] = useState(false);
-    const [shotIdCounter, setShotIdCounter] = useState(0);
 
     const projects = projectsQuery.data ?? [];
 
@@ -513,8 +512,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
 
         const fields = project === undefined ? emptyFields : toFields(project);
         const screenshots =
-            project === undefined ? [] : toScreenshots(project, shotIdCounter + 1);
-        setShotIdCounter((counter) => counter + screenshots.length);
+            project === undefined ? [] : toScreenshots(project, 1);
         setEditor({ id, fields, initial: fields, screenshots, initialScreenshots: screenshots });
         setFormError(null);
         setDirty(false);
@@ -585,7 +583,13 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
+                    return;
                 }
+
+                notify(
+                    error instanceof Error ? error.message : "Delete failed.",
+                    "error",
+                );
             },
         });
     }
@@ -670,9 +674,11 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     }
 
     function addScreenshot() {
-        setShotIdCounter((counter) => counter + 1);
-        const id = shotIdCounter + 1;
-        updateScreenshots((current) => [...current, { id, url: "", caption: "" }]);
+        updateScreenshots((current) => {
+            const nextId =
+                current.reduce((max, shot) => Math.max(max, shot.id), 0) + 1;
+            return [...current, { id: nextId, url: "", caption: "" }];
+        });
     }
 
     const isSaving = createMutation.isPending || updateMutation.isPending;
