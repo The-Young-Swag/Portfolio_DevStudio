@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import type { CaseScreenshot } from "@/services/projects/projects";
-import { ContentImage, ImageLightbox, safeHttpUrl } from "@/components/ui";
+import { ContentImage, ImageLightbox, MediaFrame, safeHttpUrl } from "@/components/ui";
 
 type ProjectGalleryProps = {
     title: string;
@@ -121,14 +121,14 @@ export function ProjectGallery({ title, shots }: ProjectGalleryProps) {
                                     }
                                 `}
                             >
-                                <span className="surface-stage flex h-20 w-full items-center justify-center p-1.5">
-                                    <ContentImage
-                                        src={shotUrl}
-                                        alt=""
-                                        imageClassName="h-auto max-h-full w-auto max-w-full"
-                                        placeholderClassName="h-full w-full"
-                                    />
-                                </span>
+                                <MediaFrame
+                                    src={shotUrl}
+                                    alt=""
+                                    ratio="16/10"
+                                    fit="cover-top"
+                                    name={label}
+                                    label=""
+                                />
                             </button>
                         );
                     })}

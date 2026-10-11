@@ -1,6 +1,4 @@
-import clsx from "clsx";
-
-import { ContentImage, ImagePlaceholder } from "@/components/ui";
+import { ContentImage, MediaFrame } from "@/components/ui";
 import { safeHttpUrl } from "./certificationUrls";
 import { PdfEmbed } from "./PdfEmbed";
 
@@ -23,9 +21,8 @@ type CertificationItemProps = {
 };
 
 /**
- * Cardless home tile mirroring the certificate page rail: the image
- * whole on a soft stage, title and issuer below, badges kept. No card
- * chrome, no overlay pills.
+ * Cardless home tile mirroring the certificate page rail: one unified
+ * frame, title and issuer below, badges kept. No card chrome.
  */
 export function CertificationItem({
     name,
@@ -48,43 +45,52 @@ export function CertificationItem({
             link: safeHttpUrl(badgeItem.link),
         }))
         .filter((badgeItem) => badgeItem.src !== "");
+    const previewable = onPreview !== undefined && (safeImage !== "" || safePdf !== "");
 
-    const visual =
-        safeImage !== "" ? (
-            <span className="flex h-full w-full items-center justify-center">
-                <ContentImage
-                    src={safeImage}
-                    alt={`${name} certificate`}
-                    imageClassName="h-auto max-h-full w-auto max-w-full rounded-[2px]"
-                    placeholderClassName="h-full w-full"
-                />
-            </span>
-        ) : safePdf !== "" ? (
-            <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
-                <PdfEmbed
-                    src={safePdf}
-                    title=""
-                    className="pointer-events-none h-full w-full"
-                />
-            </span>
-        ) : (
-            <ImagePlaceholder className="absolute inset-0" />
-        );
-
-    const stage = (
-        <span className="surface-stage relative flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4">
-            {visual}
-        </span>
+    const frame = (
+        <MediaFrame
+            src={safeImage}
+            alt={`${name} certificate`}
+            ratio="4/3"
+            fit="blur-contain"
+            name={name}
+            label={issuer}
+            pdf={
+                safePdf !== "" ? (
+                    <span
+                        aria-hidden="true"
+                        className="pointer-events-none absolute inset-0 overflow-hidden"
+                    >
+                        <PdfEmbed
+                            src={safePdf}
+                            title=""
+                            className="pointer-events-none h-full w-full"
+                        />
+                    </span>
+                ) : undefined
+            }
+        />
     );
 
     return (
-        <article className={clsx("group min-w-0", className)}>
-            {onPreview !== undefined && (safeImage !== "" || safePdf !== "") ? (
+        <article
+            className={`
+                group
+                tile-lift
+                flex
+                h-full
+                min-w-0
+                flex-col
+                ${className ?? ""}
+            `}
+        >
+            {previewable ? (
                 <button
                     type="button"
                     onClick={onPreview}
                     aria-label={`Preview ${name}`}
                     className="
+                        relative
                         block
                         w-full
                         cursor-zoom-in
@@ -93,22 +99,23 @@ export function CertificationItem({
                         focus-visible:ring-(--accent-strong)
                     "
                 >
-                    {stage}
+                    {frame}
+
+                    <span
+                        aria-hidden="true"
+                        className="tile-expand absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2 py-0.5 font-mono text-[10px] text-white"
+                    >
+                        ⤢
+                    </span>
                 </button>
             ) : (
-                stage
+                frame
             )}
 
-            <div className="min-w-0 px-1 pt-3.5">
-                <h3 className="line-clamp-2 break-words font-display text-[18px] font-medium leading-[1.3] text-(--ink)">
+            <div className="flex min-w-0 flex-1 flex-col px-1 pt-3.5">
+                <h3 className="tile-title block break-words font-display text-[18px] font-medium leading-[1.3] text-(--ink)">
                     {name}
                 </h3>
-
-                {meta !== "" && (
-                    <p className="mt-1 truncate text-[12.5px] text-(--graphite)">
-                        {meta}
-                    </p>
-                )}
 
                 {safeBadges.length > 0 && (
                     <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -158,6 +165,12 @@ export function CertificationItem({
                             </span>
                         ))}
                     </div>
+                )}
+
+                {meta !== "" && (
+                    <p className="mb-1 mt-auto truncate pt-2 text-[12.5px] text-(--graphite)">
+                        {meta}
+                    </p>
                 )}
             </div>
         </article>

@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Certification } from "@/services/certifications/certifications";
-import { CertImage } from "./CertImage";
+import { MediaFrame } from "@/components/ui";
 import { safeHttpUrl } from "./certificationUrls";
 import { certPanelId, certTabId } from "./certificationIds";
+import { PdfEmbed } from "./PdfEmbed";
 
 type CertificationRailProps = {
     certifications: Certification[];
     selectedId: number | null;
     onSelect: (id: number) => void;
+    onExpand: (certification: Certification) => void;
 };
 
 function prefersReducedMotion(): boolean {
@@ -21,7 +23,12 @@ function prefersReducedMotion(): boolean {
  * list; selecting an item only flips state and attributes so the
  * scroller never loses its position.
  */
-export function CertificationRail({ certifications, selectedId, onSelect }: CertificationRailProps) {
+export function CertificationRail({
+    certifications,
+    selectedId,
+    onSelect,
+    onExpand,
+}: CertificationRailProps) {
     const tabRefs = useRef(new Map<number, HTMLButtonElement>());
     const railRef = useRef<HTMLDivElement>(null);
     const [canScroll, setCanScroll] = useState(false);
@@ -198,63 +205,126 @@ export function CertificationRail({ certifications, selectedId, onSelect }: Cert
                     pb-4
                 "
             >
-                {certifications.map((certification) => (
-                    <button
-                        key={certification.id}
-                        ref={(element) => {
-                            if (element) {
-                                tabRefs.current.set(certification.id, element);
-                            } else {
-                                tabRefs.current.delete(certification.id);
-                            }
-                        }}
-                        type="button"
-                        role="tab"
-                        id={certTabId(certification.id)}
-                        aria-selected={certification.id === selectedId}
-                        aria-controls={certPanelId(certification.id)}
-                        tabIndex={certification.id === selectedId ? 0 : -1}
-                        data-active={certification.id === selectedId}
-                        onClick={() => select(certification.id, false)}
-                        onKeyDown={(event) => handleKeyDown(event, certification.id)}
-                        className="
-                            rail-item
-                            flex
-                            min-w-0
-                            snap-start
-                            flex-col
-                            gap-3.5
-                            text-left
-                            focus-visible:outline-none
-                            focus-visible:ring-2
-                            focus-visible:ring-(--accent-strong)
-                        "
-                    >
-                        <span className="surface-stage rail-stage flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 [--cert-max-h:8rem]">
-                            <CertImage
-                                src={safeHttpUrl(certification.image)}
-                                alt={`${certification.name} certificate`}
-                                imageClassName="rounded-[3px]"
-                            />
-                        </span>
+                {certifications.map((certification) => {
+                    const image = safeHttpUrl(certification.image);
+                    const pdf = safeHttpUrl(certification.pdf);
+                    const expandable = image !== "" || pdf !== "";
+                    const meta = [certification.issuer, certification.year]
+                        .filter((part) => part !== "")
+                        .join(" · ");
 
-                        <span className="min-w-0">
-                            <span className="rail-title line-clamp-2 block break-words font-display text-[18px] font-medium leading-[1.3]">
-                                {certification.name}
-                            </span>
+                    return (
+                        <div
+                            key={certification.id}
+                            data-active={certification.id === selectedId}
+                            className="
+                                rail-item
+                                group
+                                flex
+                                min-w-0
+                                snap-start
+                                flex-col
+                                gap-3.5
+                            "
+                        >
+                            {expandable ? (
+                                <button
+                                    type="button"
+                                    onClick={() => onExpand(certification)}
+                                    aria-label={`Open ${certification.name} full document`}
+                                    className="
+                                        relative
+                                        block
+                                        w-full
+                                        cursor-zoom-in
+                                        focus-visible:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-(--accent-strong)
+                                    "
+                                >
+                                    <MediaFrame
+                                        src={image}
+                                        alt={`${certification.name} certificate`}
+                                        ratio="4/3"
+                                        fit="blur-contain"
+                                        name={certification.name}
+                                        label={certification.issuer}
+                                        pdf={
+                                            pdf !== "" ? (
+                                                <span
+                                                    aria-hidden="true"
+                                                    className="pointer-events-none absolute inset-0 overflow-hidden"
+                                                >
+                                                    <PdfEmbed
+                                                        src={pdf}
+                                                        title=""
+                                                        className="pointer-events-none h-full w-full"
+                                                    />
+                                                </span>
+                                            ) : undefined
+                                        }
+                                    />
 
-                            {(certification.issuer !== "" || certification.year !== "") && (
-                                <span className="mt-1 block truncate text-[12.5px] text-(--graphite)">
-                                    {[certification.issuer, certification.year]
-                                        .filter((part) => part !== "")
-                                        .join(" · ")}
-                                </span>
+                                    <span
+                                        aria-hidden="true"
+                                        className="tile-expand absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2 py-0.5 font-mono text-[10px] text-white"
+                                    >
+                                        ⤢
+                                    </span>
+                                </button>
+                            ) : (
+                                <MediaFrame
+                                    src=""
+                                    alt=""
+                                    ratio="4/3"
+                                    fit="blur-contain"
+                                    name={certification.name}
+                                    label={certification.issuer}
+                                />
                             )}
-                        </span>
 
-                        <span aria-hidden="true" className="rail-bar" />
-                    </button>
-                ))}
+                            <button
+                                ref={(element) => {
+                                    if (element) {
+                                        tabRefs.current.set(certification.id, element);
+                                    } else {
+                                        tabRefs.current.delete(certification.id);
+                                    }
+                                }}
+                                type="button"
+                                role="tab"
+                                id={certTabId(certification.id)}
+                                aria-selected={certification.id === selectedId}
+                                aria-controls={certPanelId(certification.id)}
+                                tabIndex={certification.id === selectedId ? 0 : -1}
+                                data-active={certification.id === selectedId}
+                                onClick={() => select(certification.id, false)}
+                                onKeyDown={(event) => handleKeyDown(event, certification.id)}
+                                className="
+                                    flex
+                                    min-w-0
+                                    flex-col
+                                    text-left
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-(--accent-strong)
+                                "
+                            >
+                                <span className="rail-title tile-title block break-words font-display text-[18px] font-medium leading-[1.3]">
+                                    {certification.name}
+                                </span>
+
+                                {meta !== "" && (
+                                    <span className="mt-1 block truncate text-[12.5px] text-(--graphite)">
+                                        {meta}
+                                    </span>
+                                )}
+                            </button>
+
+                            <span aria-hidden="true" className="rail-bar" />
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
