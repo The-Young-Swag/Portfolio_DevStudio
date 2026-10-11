@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
-import profileDefault from "@/assets/images/profile-default.webp";
 import { useTheme } from "@/context/theme";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { ADMIN_GROUPS, type AdminSectionId } from "./adminSections";
@@ -33,7 +32,7 @@ export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSideba
     const dark = theme === "dark";
 
     const displayName = profile.name.trim() === "" ? "Content admin" : profile.name;
-    const defaultPortrait = profile.portrait["profile-default"]?.image || profileDefault;
+    const defaultPortrait = profile.portrait["profile-default"]?.image || "";
     const siteHost = typeof window === "undefined" ? "" : window.location.host;
 
     return (
@@ -64,7 +63,7 @@ export function AdminSidebar({ current, counts, dirty, onNavigate }: AdminSideba
             "
         >
             <div className="mr-2 hidden shrink-0 items-center gap-2.5 min-[820px]:mb-3 min-[820px]:flex">
-                {portraitFailed ? (
+                {portraitFailed || defaultPortrait === "" ? (
                     <span
                         aria-hidden="true"
                         className="

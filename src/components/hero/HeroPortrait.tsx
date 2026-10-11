@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import profileDefault from "@/assets/images/profile-default.webp";
-import profileGoodMorning from "@/assets/images/profile-GoodMorning.png";
-import profileSleep from "@/assets/images/profile-Sleep.png";
-import profileAwake from "@/assets/images/profile-WokeUp.png";
-
+import { ImagePlaceholder } from "@/components/ui";
 import { useTheme } from "@/context/theme";
 import { useProfile } from "@/hooks/profile/useProfile";
 
@@ -36,16 +32,21 @@ export function HeroPortrait() {
     const { theme } = useTheme();
     const { profile } = useProfile();
 
+    /*
+     * Portrait URLs come from the profile CRUD record. A state without an
+     * uploaded portrait falls back to the shared neutral placeholder —
+     * the same one shown for missing certificate and project images.
+     */
     const images = useMemo<Record<PortraitState, string>>(
         () => ({
             "profile-default":
-                profile.portrait["profile-default"]?.image || profileDefault,
+                profile.portrait["profile-default"]?.image || "",
             "profile-good-morning":
-                profile.portrait["profile-good-morning"]?.image || profileGoodMorning,
+                profile.portrait["profile-good-morning"]?.image || "",
             "profile-sleep":
-                profile.portrait["profile-sleep"]?.image || profileSleep,
+                profile.portrait["profile-sleep"]?.image || "",
             "profile-awake":
-                profile.portrait["profile-awake"]?.image || profileAwake,
+                profile.portrait["profile-awake"]?.image || "",
         }),
         [profile.portrait],
     );
@@ -88,6 +89,10 @@ export function HeroPortrait() {
     /* Preload the portraits so the first click is instant. */
     useEffect(() => {
         Object.values(images).forEach((src) => {
+            if (src === "") {
+                return;
+            }
+
             const image = new Image();
             image.src = src;
         });
@@ -103,6 +108,12 @@ export function HeroPortrait() {
         const overlay = overlayImgRef.current;
 
         if (!base || !overlay) {
+            return;
+        }
+
+        if (target === "") {
+            base.removeAttribute("src");
+            overlay.removeAttribute("src");
             return;
         }
 
@@ -158,6 +169,8 @@ export function HeroPortrait() {
         setState(advanceState(state));
     };
 
+    const currentSrc = images[state];
+
     return (
         <button
             type="button"
@@ -203,22 +216,28 @@ export function HeroPortrait() {
             "
         >
             <div className="relative h-full w-full">
-                <img
-                    ref={baseImgRef}
-                    src={images["profile-default"]}
-                    alt={alts[state]}
-                    fetchPriority="high"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover"
-                />
+                {currentSrc !== "" ? (
+                    <>
+                        <img
+                            ref={baseImgRef}
+                            src={currentSrc}
+                            alt={alts[state]}
+                            fetchPriority="high"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
 
-                <img
-                    ref={overlayImgRef}
-                    alt=""
-                    aria-hidden="true"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover opacity-0"
-                />
+                        <img
+                            ref={overlayImgRef}
+                            alt=""
+                            aria-hidden="true"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover opacity-0"
+                        />
+                    </>
+                ) : (
+                    <ImagePlaceholder className="absolute inset-0 h-full w-full" />
+                )}
             </div>
 
             <span
