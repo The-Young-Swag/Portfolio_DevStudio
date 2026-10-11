@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { Project } from "@/services/projects/projects";
-import { ContentImage, ImagePlaceholder, safeHttpUrl } from "@/components/ui";
-import { coverToneFor, projectPanelId, projectTabId } from "./projectStatus";
+import { MediaFrame } from "@/components/ui";
+import { projectPanelId, projectTabId } from "./projectStatus";
 
 type ProjectIndexProps = {
     projects: Project[];
@@ -193,7 +193,6 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
                 "
             >
                 {projects.map((project) => {
-                    const safeThumbnail = safeHttpUrl(project.thumbnail);
                     const meta = [project.category, project.year !== 0 ? String(project.year) : ""]
                         .filter((part) => part !== "")
                         .join(" · ");
@@ -219,7 +218,9 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
                             onKeyDown={(event) => handleKeyDown(event, project.id)}
                             className="
                                 rail-item
+                                group
                                 flex
+                                h-full
                                 min-w-0
                                 snap-start
                                 flex-col
@@ -230,40 +231,22 @@ export function ProjectIndex({ projects, selectedId, onSelect }: ProjectIndexPro
                                 focus-visible:ring-(--accent-strong)
                             "
                         >
-                            <span
-                                className={`
-                                    rail-stage
-                                    flex
-                                    h-40
-                                    w-full
-                                    items-center
-                                    justify-center
-                                    overflow-hidden
-                                    rounded-2xl
-                                    bg-linear-to-br
-                                    p-4
-                                    ${coverToneFor(project.id)}
-                                `}
-                            >
-                                {safeThumbnail !== "" ? (
-                                    <ContentImage
-                                        src={safeThumbnail}
-                                        alt={`${project.title} preview`}
-                                        imageClassName="h-auto max-h-full w-auto max-w-full rounded-[2px]"
-                                        placeholderClassName="h-full w-full"
-                                    />
-                                ) : (
-                                    <ImagePlaceholder className="h-full w-full rounded-2xl" />
-                                )}
-                            </span>
+                            <MediaFrame
+                                src={project.thumbnail}
+                                alt={`${project.title} preview`}
+                                ratio="16/10"
+                                fit="cover-top"
+                                name={project.title}
+                                label={project.category}
+                            />
 
-                            <span className="min-w-0">
-                                <span className="rail-title line-clamp-2 block break-words font-display text-[18px] font-medium leading-[1.3]">
+                            <span className="flex min-w-0 flex-1 flex-col px-1">
+                                <span className="rail-title tile-title block break-words font-display text-[18px] font-medium leading-[1.3]">
                                     {project.title}
                                 </span>
 
                                 {meta !== "" && (
-                                    <span className="mt-1 block truncate text-[12.5px] text-(--graphite)">
+                                    <span className="mb-1 mt-auto block truncate pt-2 text-[12.5px] text-(--graphite)">
                                         {meta}
                                     </span>
                                 )}

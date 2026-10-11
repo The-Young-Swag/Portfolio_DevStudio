@@ -342,24 +342,11 @@ section[id] {
 /*
    CARDLESS RAILS (certifications, projects)
 
-   No cards, borders, or rings: the selected rail item is full opacity
-   with an accent title and a short accent bar, everything else dimmed.
-   Images keep their natural ratio inside neutral stages (see CertImage
-   and the gallery); only the stage height is fixed, never the image.
+   No cards, borders, rings, or dimming: every item renders at full
+   opacity and the selected one adds an accent title plus a short
+   accent bar. Thumbnails share the unified MediaFrame; only the frame
+   height is fixed, never the image.
 */
-
-.rail-item {
-    opacity: 0.55;
-    transition: opacity 200ms ease;
-}
-
-.rail-item:hover {
-    opacity: 0.9;
-}
-
-.rail-item[data-active="true"] {
-    opacity: 1;
-}
 
 .rail-item .rail-title {
     overflow-wrap: anywhere;
@@ -403,15 +390,101 @@ section[id] {
     color: var(--accent-deep);
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .rail-item,
-    .rail-item .rail-title,
-    .rail-item .rail-stage,
-    .rail-bar {
-        transition: none;
+/*
+   UNIFIED MEDIA FRAME + TILE TYPE
+
+   One frame for project and certificate thumbnails: fixed aspect
+   ratio, subtle border, no glow. The sharp image zooms slightly when
+   its frame is hovered; tiles lift as a whole. Titles reserve two
+   lines so meta text aligns across every card in a row.
+*/
+
+.media-frame {
+    transition: border-color 150ms ease;
+}
+
+.media-frame:hover {
+    border-color: var(--accent-strong);
+}
+
+.media-frame .sharp {
+    transition: transform 300ms ease;
+}
+
+.media-frame:hover .sharp {
+    transform: scale(1.04);
+}
+
+.media-shimmer {
+    background: linear-gradient(
+        100deg,
+        color-mix(in srgb, var(--ink) 4%, transparent) 30%,
+        color-mix(in srgb, var(--ink) 10%, transparent) 50%,
+        color-mix(in srgb, var(--ink) 4%, transparent) 70%
+    );
+    background-size: 200% 100%;
+    animation: media-shimmer 1.4s linear infinite;
+}
+
+@keyframes media-shimmer {
+    from {
+        background-position: 180% 0;
     }
 
-    .rail-item:hover .rail-stage {
+    to {
+        background-position: -80% 0;
+    }
+}
+
+.tile-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
+    overflow-wrap: anywhere;
+}
+
+.tile-lift {
+    transition: transform 200ms ease;
+}
+
+.tile-lift:hover {
+    transform: translateY(-2px);
+}
+
+.tile-expand {
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.group:hover .tile-expand,
+.tile-expand:focus-visible {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .tile-expand {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rail-item .rail-title,
+    .rail-item .rail-stage,
+    .rail-bar,
+    .media-frame,
+    .media-frame .sharp,
+    .tile-lift,
+    .tile-expand,
+    .media-shimmer {
+        transition: none;
+        animation: none;
+    }
+
+    .rail-item:hover .rail-stage,
+    .media-frame:hover .sharp,
+    .tile-lift:hover {
         transform: none;
     }
 }

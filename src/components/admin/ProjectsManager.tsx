@@ -260,15 +260,15 @@ function ProjectForm({
                 />
             </Field>
 
-            <ImageUploadField
-                label="Thumbnail"
-                value={fields.thumbnail}
-                onChange={(url) => onField("thumbnail", url)}
-                token={token}
-                onUnauthorized={onUnauthorized}
-                aspect={16 / 9}
-                maxEdge={1280}
-            />
+                <ImageUploadField
+                    label="Thumbnail"
+                    value={fields.thumbnail}
+                    onChange={(url) => onField("thumbnail", url)}
+                    token={token}
+                    onUnauthorized={onUnauthorized}
+                    aspect={16 / 10}
+                    maxEdge={1280}
+                />
 
             <Field label="Source access">
                 <select

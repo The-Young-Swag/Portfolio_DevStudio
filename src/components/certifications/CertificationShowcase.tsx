@@ -6,7 +6,10 @@ import {
 } from "@/services/certifications/certifications";
 import { CertificationDetail } from "./CertificationDetail";
 import { CertificationRail } from "./CertificationRail";
+import { ImageLightbox } from "@/components/ui";
+import { PdfLightbox } from "./PdfLightbox";
 import { certTabId } from "./certificationIds";
+import { safeHttpUrl } from "./certificationUrls";
 
 function idFromHash(): number | null {
     const match = window.location.hash.match(/^#certification-(\d+)$/);
@@ -26,6 +29,7 @@ export function CertificationShowcase({
     certifications: Certification[];
 }) {
     const [selectedId, setSelectedId] = useState<number | null>(() => idFromHash());
+    const [expanded, setExpanded] = useState<Certification | null>(null);
 
     const childrenByParent = new Map<number, Certification[]>();
 
@@ -43,6 +47,8 @@ export function CertificationShowcase({
 
     const selected = listed.find((certification) => certification.id === selectedId) ?? null;
     const active = selected ?? listed[0] ?? null;
+    const expandedImage = expanded ? safeHttpUrl(expanded.image) : "";
+    const expandedPdf = expanded ? safeHttpUrl(expanded.pdf) : "";
 
     useEffect(() => {
         function handleHashChange() {
@@ -77,6 +83,7 @@ export function CertificationShowcase({
                 certifications={listed}
                 selectedId={active.id}
                 onSelect={select}
+                onExpand={setExpanded}
             />
 
             <div className="mt-2 min-w-0">
@@ -87,6 +94,22 @@ export function CertificationShowcase({
                     tabId={certifications.length === 1 ? null : certTabId(active.id)}
                 />
             </div>
+
+            {expanded !== null && expandedImage !== "" && (
+                <ImageLightbox
+                    src={expandedImage}
+                    alt={`${expanded.name} certificate`}
+                    onClose={() => setExpanded(null)}
+                />
+            )}
+
+            {expanded !== null && expandedImage === "" && expandedPdf !== "" && (
+                <PdfLightbox
+                    src={expandedPdf}
+                    title={`${expanded.name} certificate`}
+                    onClose={() => setExpanded(null)}
+                />
+            )}
         </div>
     );
 }
