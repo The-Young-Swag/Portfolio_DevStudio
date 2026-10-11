@@ -47,15 +47,15 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
     const [initialRows, setInitialRows] = useState<StatRow[] | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
-    const [rowIdCounter, setRowIdCounter] = useState(0);
     const [touched, setTouched] = useState(false);
 
-    if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
+    // Resync from the server only while the draft is untouched, so a
+    // background refetch can never clobber text being typed.
+    if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
         const stats = profileQuery.data.hero_stats ?? staticProfile.hero_stats;
         setSyncedProfile(profileQuery.data);
-        setRows(toRows(stats, rowIdCounter + 1));
-        setInitialRows(toRows(stats, rowIdCounter + 1));
-        setRowIdCounter(rowIdCounter + stats.length);
+        setRows(toRows(stats, 1));
+        setInitialRows(toRows(stats, 1));
         onDirtyChange(false);
     }
 
@@ -101,16 +101,19 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
 
     function addRow() {
         markTouched();
-        setRowIdCounter((counter) => counter + 1);
-        setRows((current) => [
-            ...(current ?? []),
-            { id: rowIdCounter + 1, label: "", value: "", suffix: "", icon: "star", live: null },
-        ]);
+        setRows((current) => {
+            const nextId = (current ?? []).reduce((max, row) => Math.max(max, row.id), 0) + 1;
+            return [
+                ...(current ?? []),
+                { id: nextId, label: "", value: "", suffix: "", icon: "star", live: null },
+            ];
+        });
     }
 
     function discard() {
         setRows(initialRows === null ? null : [...initialRows]);
         setFormError(null);
+        setTouched(false);
         onDirtyChange(false);
     }
 
@@ -134,6 +137,7 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
             {
                 onSuccess: (profile) => {
                     setInitialRows(toRows(profile.hero_stats ?? [], 0));
+                    setTouched(false);
                     onDirtyChange(false);
                     notify("Saved and live on your site");
                 },

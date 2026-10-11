@@ -106,11 +106,15 @@ export async function PUT(request: Request) {
         }
 
         if (previousRow.thumbnail !== input.thumbnail) {
-            await deleteStoredImage(db, previousRow.thumbnail);
+            await deleteStoredImage(db, previousRow.thumbnail).catch((error) => {
+                console.error("Projects PUT thumbnail cleanup error:", error);
+            });
         }
 
         for (const url of removedScreenshotUrls(previousRow.case_screenshots, input.case_screenshots)) {
-            await deleteStoredImage(db, url);
+            await deleteStoredImage(db, url).catch((error) => {
+                console.error("Projects PUT screenshot cleanup error:", error);
+            });
         }
 
         const selected = await db.execute({
@@ -181,10 +185,14 @@ export async function DELETE(request: Request) {
             );
         }
 
-        await deleteStoredImage(db, previousRow.thumbnail);
+        await deleteStoredImage(db, previousRow.thumbnail).catch((error) => {
+            console.error("Projects DELETE thumbnail cleanup error:", error);
+        });
 
         for (const url of screenshotUrls(previousRow.case_screenshots)) {
-            await deleteStoredImage(db, url);
+            await deleteStoredImage(db, url).catch((error) => {
+                console.error("Projects DELETE screenshot cleanup error:", error);
+            });
         }
 
         return new Response(null, { status: 204 });

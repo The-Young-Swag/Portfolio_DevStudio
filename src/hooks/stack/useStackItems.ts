@@ -9,6 +9,7 @@ import {
     type StackItem,
     type StackItemInput,
 } from "@/services/stack/stackItems";
+import { insertListed, removeListed, replaceListed } from "../listCache";
 
 const fallbackStackItems: StackItem[] = staticStackItems.map((item, index) => ({
     ...item,
@@ -34,8 +35,8 @@ export function useCreateStackItem(token: string) {
 
     return useMutation({
         mutationFn: (input: StackItemInput) => createStackItem(input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["stack-items"] });
+        onSuccess: (item) => {
+            insertListed(queryClient, ["stack-items"], item);
         },
     });
 }
@@ -46,8 +47,8 @@ export function useUpdateStackItem(token: string) {
     return useMutation({
         mutationFn: ({ id, input }: { id: number; input: StackItemInput }) =>
             updateStackItem(id, input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["stack-items"] });
+        onSuccess: (item) => {
+            replaceListed(queryClient, ["stack-items"], item);
         },
     });
 }
@@ -57,8 +58,8 @@ export function useDeleteStackItem(token: string) {
 
     return useMutation({
         mutationFn: (id: number) => deleteStackItem(id, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["stack-items"] });
+        onSuccess: (_data, id) => {
+            removeListed(queryClient, ["stack-items"], id);
         },
     });
 }

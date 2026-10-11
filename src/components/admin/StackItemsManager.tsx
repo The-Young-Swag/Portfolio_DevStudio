@@ -18,6 +18,7 @@ import {
     type StackItemInput,
     type StackItemLevel,
 } from "@/services/stack/stackItems";
+import { replaceListed } from "@/hooks/listCache";
 import { useAdminToast } from "./toastContext";
 import { AdminDrawer } from "./AdminDrawer";
 import { Field, FormError, adminFieldInputClassName, adminFieldLabelClassName } from "./AdminFields";
@@ -247,7 +248,13 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
+                    return;
                 }
+
+                notify(
+                    error instanceof Error ? error.message : "Delete failed.",
+                    "error",
+                );
             },
         });
     }
@@ -272,9 +279,10 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
                 sort_order: swap.neighborOrder,
             };
 
-            await updateStackItem(swap.item.id, first, token);
-            await updateStackItem(swap.neighbor.id, second, token);
-            await queryClient.invalidateQueries({ queryKey: ["stack-items"] });
+            const firstSaved = await updateStackItem(swap.item.id, first, token);
+            const secondSaved = await updateStackItem(swap.neighbor.id, second, token);
+            replaceListed(queryClient, ["stack-items"], firstSaved);
+            replaceListed(queryClient, ["stack-items"], secondSaved);
 
             if (drawer?.id === item.id && drawer.item !== null) {
                 const fields = { ...drawer.fields };

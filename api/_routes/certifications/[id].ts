@@ -106,15 +106,21 @@ export async function PUT(request: Request) {
         }
 
         if (previousRow.image !== input.image) {
-            await deleteStoredImage(db, previousRow.image);
+            await deleteStoredImage(db, previousRow.image).catch((error) => {
+                console.error("Certifications PUT image cleanup error:", error);
+            });
         }
 
         if (previousRow.pdf !== input.pdf) {
-            await deleteStoredFile(db, previousRow.pdf);
+            await deleteStoredFile(db, previousRow.pdf).catch((error) => {
+                console.error("Certifications PUT file cleanup error:", error);
+            });
         }
 
         if (previousRow.badge_image !== input.badge_image) {
-            await deleteStoredImage(db, previousRow.badge_image);
+            await deleteStoredImage(db, previousRow.badge_image).catch((error) => {
+                console.error("Certifications PUT badge cleanup error:", error);
+            });
         }
 
         const selected = await db.execute({
@@ -181,33 +187,37 @@ export async function DELETE(request: Request) {
             args: [id],
         });
 
-        for (const child of children.rows) {
-            const childRow = child as unknown as Record<string, unknown>;
-            await deleteStoredImage(db, childRow.image);
-            await deleteStoredFile(db, childRow.pdf);
-            await deleteStoredImage(db, childRow.badge_image);
-        }
+        const blobOwners = [
+            ...children.rows.map((child) => child as unknown as Record<string, unknown>),
+            previousRow,
+        ];
 
-        await db.execute({
-            sql: "DELETE FROM certifications WHERE parent_id = ?",
-            args: [id],
-        });
+        // Delete the rows atomically first: either the whole subtree is
+        // gone or nothing is, so a failure can never lose data while
+        // leaving orphans behind.
+        const deleted = await db.batch([
+            { sql: "DELETE FROM certifications WHERE parent_id = ?", args: [id] },
+            { sql: "DELETE FROM certifications WHERE id = ?", args: [id] },
+        ]);
 
-        const deleted = await db.execute({
-            sql: "DELETE FROM certifications WHERE id = ?",
-            args: [id],
-        });
-
-        if (deleted.rowsAffected === 0) {
+        if (deleted[1].rowsAffected === 0) {
             return Response.json(
                 { error: "Certification not found." },
                 { status: 404 },
             );
         }
 
-        await deleteStoredImage(db, previousRow.image);
-        await deleteStoredFile(db, previousRow.pdf);
-        await deleteStoredImage(db, previousRow.badge_image);
+        // Blob cleanup is best-effort: a failure leaks a blob row but must
+        // never fail a delete that already succeeded.
+        for (const owner of blobOwners) {
+            try {
+                await deleteStoredImage(db, owner.image);
+                await deleteStoredFile(db, owner.pdf);
+                await deleteStoredImage(db, owner.badge_image);
+            } catch (error) {
+                console.error("Certifications DELETE cleanup error:", error);
+            }
+        }
 
         return new Response(null, { status: 204 });
     } catch (error) {

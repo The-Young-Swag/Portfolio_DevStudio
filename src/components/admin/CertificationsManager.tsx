@@ -311,6 +311,7 @@ export function CertificationsManager({
     });
 
     const createMutation = useCreateCertification(token);
+    const courseMutation = useCreateCertification(token);
     const updateMutation = useUpdateCertification(token);
     const deleteMutation = useDeleteCertification(token);
     const notify = useAdminToast();
@@ -446,7 +447,13 @@ export function CertificationsManager({
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
+                    return;
                 }
+
+                notify(
+                    error instanceof Error ? error.message : "Delete failed.",
+                    "error",
+                );
             },
         });
     }
@@ -466,7 +473,7 @@ export function CertificationsManager({
                 ? 0
                 : Math.max(...siblings.map((item) => item.sort_order)) + 1;
 
-        createMutation.mutate(
+        courseMutation.mutate(
             {
                 name: courseTitle.trim(),
                 issuer: parentIssuer,
@@ -695,7 +702,7 @@ export function CertificationsManager({
                     <button
                         type="button"
                         onClick={() => addCourse(parentId)}
-                        disabled={createMutation.isPending}
+                        disabled={courseMutation.isPending}
                         className="
                             inline-flex
                             items-center
@@ -720,7 +727,7 @@ export function CertificationsManager({
                         "
                     >
                         <Plus size={14} strokeWidth={2} aria-hidden="true" />
-                        {createMutation.isPending ? "Adding…" : "Add"}
+                        {courseMutation.isPending ? "Adding…" : "Add"}
                     </button>
                 </div>
 

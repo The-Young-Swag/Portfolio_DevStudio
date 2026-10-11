@@ -15,7 +15,7 @@ export async function GET() {
 
         return Response.json(links, {
             headers: {
-                "Cache-Control": "s-maxage=60, stale-while-revalidate",
+                "Cache-Control": "no-store",
             },
         });
     } catch (error) {

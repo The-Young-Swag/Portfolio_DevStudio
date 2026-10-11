@@ -243,7 +243,13 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
             onError: (error: unknown) => {
                 if (isUnauthorized(error)) {
                     onUnauthorized();
+                    return;
                 }
+
+                notify(
+                    error instanceof Error ? error.message : "Delete failed.",
+                    "error",
+                );
             },
         });
     }

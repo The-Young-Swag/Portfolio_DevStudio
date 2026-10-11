@@ -18,11 +18,13 @@ import {
     StackItemsManager,
     TokenGate,
     useAdminCounts,
+    ADMIN_SECTION_IDS,
     type AdminSectionId,
 } from "@/components/admin";
 import { checkAdminSession } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
+const SECTION_KEY = "admin-section";
 
 export function AdminPage() {
     const [token, setToken] = useState<string | null>(null);
@@ -30,7 +32,12 @@ export function AdminPage() {
         () => sessionStorage.getItem(TOKEN_KEY) !== null,
     );
     const [rejectedNotice, setRejectedNotice] = useState(false);
-    const [section, setSection] = useState<AdminSectionId>("profile");
+    const [section, setSection] = useState<AdminSectionId>(() => {
+        const stored = sessionStorage.getItem(SECTION_KEY);
+        return stored !== null && (ADMIN_SECTION_IDS as string[]).includes(stored)
+            ? (stored as AdminSectionId)
+            : "profile";
+    });
     const [dirtySections, setDirtySections] = useState<
         Partial<Record<AdminSectionId, boolean>>
     >({});
@@ -115,6 +122,7 @@ export function AdminPage() {
         }
 
         setSection(id);
+        sessionStorage.setItem(SECTION_KEY, id);
         window.scrollTo(0, 0);
     }
 

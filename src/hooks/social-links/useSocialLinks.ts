@@ -9,6 +9,7 @@ import {
     type SocialLink,
     type SocialLinkInput,
 } from "@/services/social-links/socialLinks";
+import { insertListed, removeListed, replaceListed } from "../listCache";
 
 const fallbackSocialLinks: SocialLink[] = staticSocialLinks.map((link, index) => ({
     ...link,
@@ -34,8 +35,8 @@ export function useCreateSocialLink(token: string) {
 
     return useMutation({
         mutationFn: (input: SocialLinkInput) => createSocialLink(input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["social-links"] });
+        onSuccess: (link) => {
+            insertListed(queryClient, ["social-links"], link);
         },
     });
 }
@@ -46,8 +47,8 @@ export function useUpdateSocialLink(token: string) {
     return useMutation({
         mutationFn: ({ id, input }: { id: number; input: SocialLinkInput }) =>
             updateSocialLink(id, input, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["social-links"] });
+        onSuccess: (link) => {
+            replaceListed(queryClient, ["social-links"], link);
         },
     });
 }
@@ -57,8 +58,8 @@ export function useDeleteSocialLink(token: string) {
 
     return useMutation({
         mutationFn: (id: number) => deleteSocialLink(id, token),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["social-links"] });
+        onSuccess: (_data, id) => {
+            removeListed(queryClient, ["social-links"], id);
         },
     });
 }

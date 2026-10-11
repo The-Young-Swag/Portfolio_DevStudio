@@ -5,6 +5,7 @@ import { useUpdateProfile } from "@/hooks/profile/useProfile";
 import { isUnauthorized } from "@/services/api";
 import {
     getProfile,
+    type Profile,
 } from "@/services/profile/profile";
 import { useAdminToast } from "./toastContext";
 import { FormError } from "./AdminFields";
@@ -30,11 +31,13 @@ export function ResumeManager({ token, onUnauthorized, onDirtyChange }: ResumeMa
 
     const [resume, setResume] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
-    const [loaded, setLoaded] = useState(false);
+    const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
     const [touched, setTouched] = useState(false);
 
-    if (profileQuery.data !== undefined && !loaded) {
-        setLoaded(true);
+    // Resync from the server only while the draft is untouched, so a
+    // background refetch can never clobber a pending upload.
+    if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
+        setSyncedProfile(profileQuery.data);
         setResume(profileQuery.data.resume ?? "");
     }
 
@@ -56,7 +59,7 @@ export function ResumeManager({ token, onUnauthorized, onDirtyChange }: ResumeMa
     }
 
     function commit() {
-        if (!loaded || profileQuery.data === undefined) {
+        if (profileQuery.data === undefined) {
             return;
         }
 
@@ -98,7 +101,7 @@ export function ResumeManager({ token, onUnauthorized, onDirtyChange }: ResumeMa
                     <p className="font-mono text-[10.5px] text-(--graphite)">
                         Loading resume...
                     </p>
-                ) : profileQuery.isError || !loaded ? (
+                ) : profileQuery.isError || syncedProfile === null ? (
                     <div className="flex items-center gap-3">
                         <p className="font-mono text-[10.5px] text-(--graphite)">
                             Unable to load resume.

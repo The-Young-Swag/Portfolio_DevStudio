@@ -59,10 +59,9 @@ export function PortraitManager({ token, onUnauthorized, onDirtyChange }: Portra
     const [syncedProfile, setSyncedProfile] = useState<Profile | null>(null);
     const [touched, setTouched] = useState(false);
 
-    if (profileQuery.data !== undefined && syncedProfile !== profileQuery.data) {
+    if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
         setSyncedProfile(profileQuery.data);
         setForm(toForm(profileQuery.data.portrait));
-        setTouched(false);
         onDirtyChange(false);
     }
 
