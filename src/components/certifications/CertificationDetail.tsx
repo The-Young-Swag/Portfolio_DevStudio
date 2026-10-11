@@ -172,7 +172,7 @@ function Courses({
 
                     return (
                         <li key={course.id} className="flex min-w-0 gap-3">
-                            <span aria-hidden="true" className="cert-tick">
+                            <span aria-hidden="true" className="soft-tick">
                                 <Check size={11} strokeWidth={3} />
                             </span>
 

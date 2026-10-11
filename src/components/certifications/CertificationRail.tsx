@@ -218,7 +218,7 @@ export function CertificationRail({ certifications, selectedId, onSelect }: Cert
                         onClick={() => select(certification.id, false)}
                         onKeyDown={(event) => handleKeyDown(event, certification.id)}
                         className="
-                            cert-rail-item
+                            rail-item
                             flex
                             min-w-0
                             snap-start
@@ -230,7 +230,7 @@ export function CertificationRail({ certifications, selectedId, onSelect }: Cert
                             focus-visible:ring-(--accent-strong)
                         "
                     >
-                        <span className="surface-stage cert-rail-stage flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 [--cert-max-h:8rem]">
+                        <span className="surface-stage rail-stage flex h-40 w-full items-center justify-center overflow-hidden rounded-2xl p-4 [--cert-max-h:8rem]">
                             <CertImage
                                 src={safeHttpUrl(certification.image)}
                                 alt={`${certification.name} certificate`}
@@ -239,7 +239,7 @@ export function CertificationRail({ certifications, selectedId, onSelect }: Cert
                         </span>
 
                         <span className="min-w-0">
-                            <span className="cert-rail-title line-clamp-2 block break-words font-display text-[18px] font-medium leading-[1.3]">
+                            <span className="rail-title line-clamp-2 block break-words font-display text-[18px] font-medium leading-[1.3]">
                                 {certification.name}
                             </span>
 
@@ -252,7 +252,7 @@ export function CertificationRail({ certifications, selectedId, onSelect }: Cert
                             )}
                         </span>
 
-                        <span aria-hidden="true" className="cert-rail-bar" />
+                        <span aria-hidden="true" className="rail-bar" />
                     </button>
                 ))}
             </div>

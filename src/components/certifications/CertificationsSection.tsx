@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 import { Carousel } from "@/components/carousel";
 import { Container, Section } from "@/components/layout";
-import { ImageLightbox, SectionHeading } from "@/components/ui";
+import { ImageLightbox, safeHttpUrl, SectionHeading } from "@/components/ui";
 import { useCertifications } from "@/hooks/certifications/useCertifications";
 import {
     topLevelCertifications,
@@ -87,8 +87,8 @@ export function CertificationsSection() {
                                     {...certification}
                                     badges={badgesFor(certification)}
                                     onPreview={
-                                        certification.image !== "" ||
-                                        certification.pdf !== ""
+                                        safeHttpUrl(certification.image) !== "" ||
+                                        safeHttpUrl(certification.pdf) !== ""
                                             ? () => setPreview(certification)
                                             : undefined
                                     }
@@ -107,21 +107,23 @@ export function CertificationsSection() {
                     />
                 )}
 
-                {preview !== null && preview.image !== "" && (
+                {preview !== null && safeHttpUrl(preview.image) !== "" && (
                     <ImageLightbox
-                        src={preview.image}
+                        src={safeHttpUrl(preview.image)}
                         alt={`${preview.name} certificate`}
                         onClose={() => setPreview(null)}
                     />
                 )}
 
-                {preview !== null && preview.image === "" && preview.pdf !== "" && (
-                    <PdfLightbox
-                        src={preview.pdf}
-                        title={preview.name}
-                        onClose={() => setPreview(null)}
-                    />
-                )}
+                {preview !== null &&
+                    safeHttpUrl(preview.image) === "" &&
+                    safeHttpUrl(preview.pdf) !== "" && (
+                        <PdfLightbox
+                            src={safeHttpUrl(preview.pdf)}
+                            title={preview.name}
+                            onClose={() => setPreview(null)}
+                        />
+                    )}
 
                 <Link
                     to="/certifications"
