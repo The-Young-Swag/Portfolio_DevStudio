@@ -21,7 +21,7 @@ import {
     ADMIN_SECTION_IDS,
     type AdminSectionId,
 } from "@/components/admin";
-import { checkAdminSession } from "@/services/api";
+import { checkAdminSession, isUnauthorized } from "@/services/api";
 
 const TOKEN_KEY = "admin-token";
 const SECTION_KEY = "admin-section";
@@ -32,6 +32,8 @@ export function AdminPage() {
         () => sessionStorage.getItem(TOKEN_KEY) !== null,
     );
     const [rejectedNotice, setRejectedNotice] = useState(false);
+    const [sessionError, setSessionError] = useState<string | null>(null);
+    const [sessionCheckAttempt, setSessionCheckAttempt] = useState(0);
     const [section, setSection] = useState<AdminSectionId>(() => {
         const stored = sessionStorage.getItem(SECTION_KEY);
         return stored !== null && (ADMIN_SECTION_IDS as string[]).includes(stored)
@@ -61,32 +63,44 @@ export function AdminPage() {
             return;
         }
 
-        let cancelled = false;
+        const controller = new AbortController();
 
-        checkAdminSession(stored).then(
+        checkAdminSession(stored, controller.signal).then(
             () => {
-                if (cancelled) {
+                if (controller.signal.aborted) {
                     return;
                 }
 
                 setToken(stored);
+                setSessionError(null);
                 setCheckingStoredToken(false);
             },
-            () => {
-                if (cancelled) {
+            (error: unknown) => {
+                if (controller.signal.aborted) {
                     return;
                 }
 
-                sessionStorage.removeItem(TOKEN_KEY);
-                setRejectedNotice(true);
+                if (isUnauthorized(error)) {
+                    sessionStorage.removeItem(TOKEN_KEY);
+                    setRejectedNotice(true);
+                } else {
+                    setSessionError(
+                        error instanceof Error ? error.message : "Unable to verify the token.",
+                    );
+                }
+
                 setCheckingStoredToken(false);
             },
         );
 
-        return () => {
-            cancelled = true;
-        };
-    }, []);
+        return () => controller.abort();
+    }, [sessionCheckAttempt]);
+
+    function handleRetrySession() {
+        setSessionError(null);
+        setCheckingStoredToken(true);
+        setSessionCheckAttempt((attempt) => attempt + 1);
+    }
 
     function handleUnlock(nextToken: string) {
         sessionStorage.setItem(TOKEN_KEY, nextToken);
@@ -136,6 +150,32 @@ export function AdminPage() {
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
                             Checking session…
                         </p>
+                    </Container>
+                </Section>
+
+                <Footer />
+            </>
+        );
+    }
+
+    if (sessionError !== null) {
+        return (
+            <>
+                <Section id="admin">
+                    <Container>
+                        <SectionHeading number="00" title="Admin" />
+
+                        <p role="alert" className="mt-6 font-mono text-[11px] text-red-500">
+                            {sessionError}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={handleRetrySession}
+                            className="mt-4 rounded-lg border border-(--accent-strong) bg-(--accent-strong) px-4 py-2 text-[13px] font-medium text-white transition-colors duration-150 hover:bg-(--accent-deep)"
+                        >
+                            Retry
+                        </button>
                     </Container>
                 </Section>
 
