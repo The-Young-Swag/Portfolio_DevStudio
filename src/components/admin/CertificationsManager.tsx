@@ -395,6 +395,11 @@ export function CertificationsManager({
         setFormError(null);
         const input = toInput(editor.fields);
 
+        if (input.name === "") {
+            setFormError("Give the certification a name.");
+            return;
+        }
+
         if (editor.id !== "new") {
             const edited = certifications.find((item) => item.id === editor.id) ?? null;
             const parent =

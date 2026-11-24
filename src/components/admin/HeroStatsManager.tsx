@@ -129,6 +129,11 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
 
         setFormError(null);
 
+        if (rows.some((row) => row.label.trim() === "")) {
+            setFormError("Every stat needs a label.");
+            return;
+        }
+
         const hero_stats: HeroStat[] = rows.map(({ label, value, suffix, icon, live }) => ({
             label: label.trim(),
             value: value.trim(),

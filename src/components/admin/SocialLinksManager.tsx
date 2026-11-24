@@ -207,6 +207,16 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
         setFormError(null);
         const input = toInput(editor.fields);
 
+        if (input.label === "") {
+            setFormError("Give the link a label.");
+            return;
+        }
+
+        if (!Number.isInteger(input.sort_order)) {
+            setFormError("Sort order must be a whole number.");
+            return;
+        }
+
         if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {

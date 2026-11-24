@@ -129,7 +129,14 @@ export function ProfileManager({ token, onUnauthorized, onDirtyChange }: Profile
 
         setFormError(null);
 
-        updateMutation.mutate(toInput(fields, profileQuery.data), {
+        const input = toInput(fields, profileQuery.data);
+
+        if (input.name === "") {
+            setFormError("Your name is required.");
+            return;
+        }
+
+        updateMutation.mutate(input, {
             onSuccess: () => {
                 setDirty(false);
                 notify("Saved and live on your site");

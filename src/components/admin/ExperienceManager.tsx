@@ -219,6 +219,16 @@ export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: Expe
         setFormError(null);
         const input = toInput(editor.fields);
 
+        if (input.role === "") {
+            setFormError("Give the role a title.");
+            return;
+        }
+
+        if (!Number.isInteger(input.sort_order)) {
+            setFormError("Sort order must be a whole number.");
+            return;
+        }
+
         if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {

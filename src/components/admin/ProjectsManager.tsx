@@ -547,6 +547,21 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
         setFormError(null);
         const input = toInput(editor.fields, editor.screenshots);
 
+        if (input.title === "") {
+            setFormError("Give the project a title.");
+            return;
+        }
+
+        if (!Number.isInteger(input.year) || input.year < 1900 || input.year > 2100) {
+            setFormError("Enter a year between 1900 and 2100.");
+            return;
+        }
+
+        if (!Number.isInteger(input.sort_order)) {
+            setFormError("Sort order must be a whole number.");
+            return;
+        }
+
         if (editor.id === "new") {
             createMutation.mutate(input, {
                 onSuccess: () => {

@@ -121,6 +121,11 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
 
         setFormError(null);
 
+        if (rows.some((row) => row.text.trim() === "")) {
+            setFormError("Every item needs text.");
+            return;
+        }
+
         const also_true: AlsoTrueItem[] = rows.map(({ text, icon }) => ({
             text: text.trim(),
             icon,

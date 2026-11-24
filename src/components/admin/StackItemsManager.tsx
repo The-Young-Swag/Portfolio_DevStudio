@@ -172,6 +172,19 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
         setFormError(null);
         const input = toInput(drawer.fields, drawer.item.sort_order);
 
+        if (input.name === "") {
+            setFormError("Give the skill a name.");
+            return;
+        }
+
+        if (
+            input.since_year !== null &&
+            (!Number.isInteger(input.since_year) || input.since_year < 1990 || input.since_year > 2100)
+        ) {
+            setFormError("Enter a year between 1990 and 2100.");
+            return;
+        }
+
         updateMutation.mutate(
             { id: drawer.item.id, input },
             {
