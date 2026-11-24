@@ -69,7 +69,7 @@ const PDF_BYTES = Buffer.from("%PDF-1.4\n1 0 obj\n", "utf8");
 
 async function uploadImage(bytes: Buffer, type: string, name: string): Promise<{ id: number; url: string }> {
     const response = await router.POST(
-        uploadRequest("/api/images", new File([bytes], name, { type }), true),
+        uploadRequest("/api/images", new File([new Uint8Array(bytes)], name, { type }), true),
     );
     assert.equal(response.status, 201);
     return (await response.json()) as { id: number; url: string };
@@ -77,7 +77,7 @@ async function uploadImage(bytes: Buffer, type: string, name: string): Promise<{
 
 async function uploadPdf(name: string, bytes: Buffer = PDF_BYTES): Promise<{ id: number; url: string; filename: string }> {
     const response = await router.POST(
-        uploadRequest("/api/files", new File([bytes], name, { type: "application/pdf" }), true, {
+        uploadRequest("/api/files", new File([new Uint8Array(bytes)], name, { type: "application/pdf" }), true, {
             fallbackName: "certificate.pdf",
         }),
     );
