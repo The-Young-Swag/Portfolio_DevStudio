@@ -5,6 +5,7 @@ import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
 import type { HeroStat } from "@/services/profile/profile";
 
+import { HeroStatsSkeleton } from "./HeroSkeleton";
 import { StatItem } from "./StatItem";
 import { AlsoTrue } from "./AlsoTrue";
 import { resolveStatIcon } from "./statIcons";
@@ -31,9 +32,7 @@ export function HeroStats() {
     return (
         <div className="mt-10 border-t hairline">
             {isPending ? (
-                <p className="px-1 font-mono text-[10.5px] text-(--graphite)">
-                    Loading stats...
-                </p>
+                <HeroStatsSkeleton />
             ) : (
                 stats.length > 0 && (
                     <div

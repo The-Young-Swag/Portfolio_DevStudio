@@ -1,13 +1,18 @@
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
 import type { AlsoTrueItem } from "@/services/profile/profile";
+import { AlsoTrueSkeleton } from "./HeroSkeleton";
 import { resolveStatIcon } from "./statIcons";
 
 export function AlsoTrue() {
     const { profile, isPending } = useProfile();
     const items: AlsoTrueItem[] = profile.also_true ?? staticProfile.also_true;
 
-    if (isPending || items.length === 0) {
+    if (isPending) {
+        return <AlsoTrueSkeleton />;
+    }
+
+    if (items.length === 0) {
         return null;
     }
 

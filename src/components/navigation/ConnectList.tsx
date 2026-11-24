@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui";
 import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 import { useProfile } from "@/hooks/profile/useProfile";
@@ -24,9 +25,19 @@ export function ConnectList() {
 
             <div className="space-y-0.5">
                 {isProfilePending || areLinksPending ? (
-                    <p className="px-3 py-2.5 font-mono text-[11px] text-(--graphite-soft)">
-                        Loading...
-                    </p>
+                    <div role="status">
+                        <span className="sr-only">Loading links...</span>
+
+                        {[0, 1, 2].map((link) => (
+                            <div
+                                key={link}
+                                className="flex items-center gap-3 rounded-[14px] px-3 py-2.5"
+                            >
+                                <Skeleton className="h-[14px] w-[14px] rounded-sm" />
+                                <Skeleton className="h-4 w-20" />
+                            </div>
+                        ))}
+                    </div>
                 ) : (
                     socialLinks.map((item) => {
                         const Icon = resolveSocialIcon(item.icon);

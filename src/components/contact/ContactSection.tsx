@@ -1,26 +1,71 @@
 import { ArrowUpRight, Mail } from "lucide-react";
 
 import { Container, Section } from "@/components/layout";
-import { SectionHeading } from "@/components/ui";
+import { SectionHeading, Skeleton } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
 import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
+
+function ContactSkeleton() {
+    return (
+        <Section id="contact">
+            <Container>
+                <SectionHeading number="07" title="Contact" id="contact" />
+
+                <div
+                    className="
+                        mt-5
+                        flex
+                        flex-col
+                        gap-8
+                        rounded-2xl
+                        border
+                        border-(--glass-border)
+                        bg-(--glass-bg)
+                        p-6
+                        shadow-[inset_0_1px_0_var(--glass-highlight),0_10px_30px_-20px_rgba(31,38,135,0.12)]
+                        backdrop-blur-xl
+                        backdrop-saturate-160
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                        sm:p-8
+                    "
+                    role="status"
+                >
+                    <span className="sr-only">Loading contact...</span>
+
+                    <div className="max-w-2xl">
+                        <Skeleton className="h-[25px] w-56" />
+
+                        <div className="mt-2 space-y-2">
+                            {[0, 1, 2].map((line) => (
+                                <Skeleton key={line} className="h-7 w-full" />
+                            ))}
+                        </div>
+                    </div>
+
+                    <Skeleton className="h-11 w-36 rounded-lg" />
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-6" role="status">
+                    <span className="sr-only">Loading links...</span>
+
+                    <Skeleton className="h-11 w-24" />
+                    <Skeleton className="h-11 w-24" />
+                </div>
+            </Container>
+        </Section>
+    );
+}
 
 export function ContactSection() {
     const { profile, isPending: isProfilePending } = useProfile();
     const { socialLinks, isPending: areLinksPending } = useSocialLinks();
 
     if (isProfilePending || areLinksPending) {
-        return (
-            <Section id="contact">
-                <Container>
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        Loading contact...
-                    </p>
-                </Container>
-            </Section>
-        );
+        return <ContactSkeleton />;
     }
 
     const heading = profile.contact_heading ?? staticProfile.contact_heading;

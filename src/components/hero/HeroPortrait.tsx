@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { ImagePlaceholder } from "@/components/ui";
+import { ImagePlaceholder, Skeleton } from "@/components/ui";
 import { useTheme } from "@/context/theme";
 import { useProfile } from "@/hooks/profile/useProfile";
 
@@ -30,7 +30,7 @@ function sourceMatches(img: HTMLImageElement, src: string) {
 
 export function HeroPortrait() {
     const { theme } = useTheme();
-    const { profile } = useProfile();
+    const { profile, isPending } = useProfile();
 
     /*
      * Portrait URLs come from the profile CRUD record. A state without an
@@ -247,6 +247,8 @@ export function HeroPortrait() {
                             className="absolute inset-0 h-full w-full object-cover opacity-0"
                         />
                     </>
+                ) : isPending ? (
+                    <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
                 ) : (
                     <ImagePlaceholder className="absolute inset-0 h-full w-full" />
                 )}

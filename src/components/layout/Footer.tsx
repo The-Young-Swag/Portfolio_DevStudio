@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { KeyRound } from "lucide-react";
 
+import { Skeleton } from "@/components/ui";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
 import { Container } from "./Container";
@@ -102,57 +103,66 @@ export function Footer() {
                                 <KeyRound size={11} strokeWidth={2} />
                             </span>
 
-                            {!isPending && (
+                            {isPending ? (
+                                <Skeleton className="h-4 w-40" />
+                            ) : (
                                 <>
                                     {profile.name} — {note}
                                 </>
                             )}
                         </p>
 
-                    {!isPending && (
-                        <div
-                            className="
-                            flex
-                            items-center
-                            gap-4
-                            font-mono
-                            text-[10.5px]
-                            text-(--graphite-soft)
-                        "
+                    <div
+                        className="
+                        flex
+                        items-center
+                        gap-4
+                        font-mono
+                        text-[10.5px]
+                        text-(--graphite-soft)
+                    "
                     >
-                        <a
-                            href={profile.github}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="
-                                inline-flex
-                                min-h-[44px]
-                                items-center
-                                transition-colors
-                                duration-150
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            GitHub
-                        </a>
+                        {isPending ? (
+                            <>
+                                <Skeleton className="h-4 w-16" />
+                                <Skeleton className="h-4 w-20" />
+                            </>
+                        ) : (
+                            <>
+                                <a
+                                    href={profile.github}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="
+                                        inline-flex
+                                        min-h-[44px]
+                                        items-center
+                                        transition-colors
+                                        duration-150
+                                        hover:text-(--accent-strong)
+                                    "
+                                >
+                                    GitHub
+                                </a>
 
-                        <a
-                            href={profile.linkedin}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="
-                                inline-flex
-                                min-h-[44px]
-                                items-center
-                                transition-colors
-                                duration-150
-                                hover:text-(--accent-strong)
-                            "
-                        >
-                            LinkedIn
-                        </a>
-                        </div>
-                    )}
+                                <a
+                                    href={profile.linkedin}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="
+                                        inline-flex
+                                        min-h-[44px]
+                                        items-center
+                                        transition-colors
+                                        duration-150
+                                        hover:text-(--accent-strong)
+                                    "
+                                >
+                                    LinkedIn
+                                </a>
+                            </>
+                        )}
+                    </div>
                 </div>
             </Container>
         </footer>
