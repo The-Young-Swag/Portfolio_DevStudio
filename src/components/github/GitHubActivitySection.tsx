@@ -7,6 +7,7 @@ import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 
 import { ContributionHeatmap } from "./ContributionHeatmap";
+import { GitHubActivitySkeleton } from "./GitHubActivitySkeleton";
 import { YearSelector } from "./YearSelector";
 
 import type { ContributionPeriodId } from "./types";
@@ -22,9 +23,7 @@ export function GitHubActivitySection() {
             <Section id="build-log">
                 <Container>
                     <SectionHeading number="01" title="Build log" id="build-log" />
-                    <p className="mt-8 font-mono text-[10.5px] text-(--graphite)">
-                        Loading GitHub activity...
-                    </p>
+                    <GitHubActivitySkeleton />
                 </Container>
             </Section>
         );

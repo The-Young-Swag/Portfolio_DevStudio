@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
 
 import { ExperienceList } from "./ExperienceList";
+import { ExperienceListSkeleton } from "./ExperienceSkeleton";
 
 export function ExperienceSection() {
     const { experience, isPending } = useExperience();
@@ -22,9 +23,7 @@ export function ExperienceSection() {
 
                 <div className="mt-6">
                     {isPending ? (
-                        <p className="font-mono text-[10.5px] text-(--graphite)">
-                            Loading experience...
-                        </p>
+                        <ExperienceListSkeleton />
                     ) : experience.length === 0 ? (
                         <p className="font-mono text-[10.5px] text-(--graphite)">
                             No experience yet.

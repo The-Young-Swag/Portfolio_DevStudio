@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui";
 import { useStackItems } from "@/hooks/stack/useStackItems";
 
 import { StackItem } from "./StackItem";
+import { StackPillsSkeleton } from "./StackSkeleton";
 
 export function StackSection() {
     const { stackItems, isPending } = useStackItems();
@@ -33,18 +34,18 @@ export function StackSection() {
                         the Stack page.
                     </p>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-4">
                         {isPending ? (
-                            <p className="font-mono text-[11.5px] text-(--graphite)">
-                                Loading stack...
-                            </p>
+                            <StackPillsSkeleton />
                         ) : (
-                            teaserItems.map((item) => (
-                                <StackItem
-                                    key={item.id}
-                                    name={item.name}
-                                />
-                            ))
+                            <div className="flex flex-wrap gap-2">
+                                {teaserItems.map((item) => (
+                                    <StackItem
+                                        key={item.id}
+                                        name={item.name}
+                                    />
+                                ))}
+                            </div>
                         )}
                     </div>
 

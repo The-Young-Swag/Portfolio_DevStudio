@@ -2,6 +2,7 @@ import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
 import {
     CertificationShowcase,
+    CertificationShowcaseSkeleton,
 } from "@/components/certifications";
 import { useCertifications } from "@/hooks/certifications/useCertifications";
 
@@ -21,9 +22,9 @@ export function CertificationsPage() {
             <Section id="credentials">
                 <Container>
                     {isPending ? (
-                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
-                            Loading certifications...
-                        </p>
+                        <div className="mt-6">
+                            <CertificationShowcaseSkeleton />
+                        </div>
                     ) : certifications.length === 0 ? (
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
                             No certifications yet.

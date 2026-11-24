@@ -2,8 +2,8 @@ import { Download } from "lucide-react";
 
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
-import { ExperienceList } from "@/components/experience";
-import { SectionHeading } from "@/components/ui";
+import { ExperienceList, ExperienceListSkeleton } from "@/components/experience";
+import { SectionHeading, Skeleton } from "@/components/ui";
 import { useExperience } from "@/hooks/experience/useExperience";
 import { useProfile } from "@/hooks/profile/useProfile";
 import { profile as staticProfile } from "@/constants/profile";
@@ -28,9 +28,7 @@ export function ExperiencePage() {
 
                     <div className="mt-6">
                         {isPending ? (
-                            <p className="font-mono text-[10.5px] text-(--graphite)">
-                                Loading experience...
-                            </p>
+                            <ExperienceListSkeleton />
                         ) : experience.length === 0 ? (
                             <p className="font-mono text-[10.5px] text-(--graphite)">
                                 No experience yet.
@@ -40,7 +38,9 @@ export function ExperiencePage() {
                         )}
                     </div>
 
-                    {!isProfilePending && resume !== "" && (
+                    {isProfilePending ? (
+                        <Skeleton className="mt-6 h-10 w-40 rounded-lg" />
+                    ) : resume !== "" && (
                         <div className="mt-6">
                             <a
                                 href={resume}

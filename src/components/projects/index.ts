@@ -7,5 +7,6 @@ export * from "./ProjectIndex";
 export * from "./ProjectInfoCard";
 export * from "./ProjectShowcase";
 export * from "./ProjectsSection";
+export * from "./ProjectSkeleton";
 export * from "./StatusBadge";
 export * from "./projectStatus";

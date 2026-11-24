@@ -1,6 +1,6 @@
 import { Footer, PageHeader, Section } from "@/components/layout";
 import { Container } from "@/components/layout";
-import { ProjectShowcase } from "@/components/projects";
+import { ProjectShowcase, ProjectShowcaseSkeleton } from "@/components/projects";
 import { useProjects } from "@/hooks/projects/useProjects";
 
 export function ProjectsPage() {
@@ -19,9 +19,9 @@ export function ProjectsPage() {
             <Section id="projects">
                 <Container>
                     {isPending ? (
-                        <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
-                            Loading projects...
-                        </p>
+                        <div className="mt-6">
+                            <ProjectShowcaseSkeleton />
+                        </div>
                     ) : projects.length === 0 ? (
                         <p className="mt-6 font-mono text-[10.5px] text-(--graphite)">
                             No projects yet.

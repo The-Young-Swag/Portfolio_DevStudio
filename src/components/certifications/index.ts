@@ -5,6 +5,7 @@ export * from "./CertificationItem";
 export * from "./CertificationRail";
 export * from "./CertificationShowcase";
 export * from "./CertificationsSection";
+export * from "./CertificationSkeleton";
 export * from "./CertImage";
 export * from "./CertificationViewer";
 export * from "./PdfEmbed";

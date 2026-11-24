@@ -11,6 +11,7 @@ import {
 } from "@/services/certifications/certifications";
 
 import { CertificationItem, type CertBadge } from "./CertificationItem";
+import { CertificationCardSkeleton } from "./CertificationSkeleton";
 import { PdfLightbox } from "./PdfLightbox";
 
 export function CertificationsSection() {
@@ -52,9 +53,18 @@ export function CertificationsSection() {
                     <>
                         <SectionHeading number="05" title="Certifications" id="certification" />
 
-                        <p className="mt-4 font-mono text-[10.5px] text-(--graphite)">
-                            Loading certifications...
+                        <p className="mt-3 max-w-lg font-mono text-[12px] leading-relaxed text-(--graphite)">
+                            Credentials earned along the way — proof that I finish
+                            what I start.
                         </p>
+
+                        <div className="mt-5 flex gap-3 overflow-hidden">
+                            {[0, 1, 2].map((course) => (
+                                <div key={course} className="carousel-card">
+                                    <CertificationCardSkeleton />
+                                </div>
+                            ))}
+                        </div>
                     </>
                 ) : listed.length === 0 ? (
                     <>

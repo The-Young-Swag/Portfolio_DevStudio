@@ -5,6 +5,7 @@ import { Container, Section } from "@/components/layout";
 import { SectionHeading } from "@/components/ui";
 import { useProjects } from "@/hooks/projects/useProjects";
 import { ProjectCard } from "./ProjectCard";
+import { ProjectCardSkeleton } from "./ProjectSkeleton";
 
 
 export function ProjectsSection() {
@@ -14,17 +15,21 @@ export function ProjectsSection() {
         <Section id="projects">
             <Container>
                 {isPending ? (
-                    <>
+                    <div className="home-projects">
                         <SectionHeading
                             number="02"
                             title="Projects"
                             id="projects"
                         />
 
-                        <p className="mt-5 font-mono text-[10.5px] text-(--graphite)">
-                            Loading projects...
-                        </p>
-                    </>
+                        <div className="carousel-track mt-5">
+                            {[0, 1, 2, 3].map((project) => (
+                                <div key={project} className="carousel-card">
+                                    <ProjectCardSkeleton />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ) : projects.length === 0 ? (
                     <>
                         <SectionHeading
