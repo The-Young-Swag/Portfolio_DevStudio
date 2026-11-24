@@ -82,10 +82,10 @@ function useActiveSection(sections: readonly { id: string; label: string }[]) {
 
         const updateActiveSection = () => {
             frameId = null;
-            setActiveSection((currentSection) => {
-                const nextSection = getActiveSection(sections);
-                return currentSection === nextSection ? currentSection : nextSection;
-            });
+            const nextSection = getActiveSection(sections);
+            setActiveSection((currentSection) =>
+                currentSection === nextSection ? currentSection : nextSection,
+            );
         };
 
         const handleScroll = () => {

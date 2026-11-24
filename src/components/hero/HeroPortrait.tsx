@@ -86,16 +86,28 @@ export function HeroPortrait() {
     const overlayImgRef = useRef<HTMLImageElement>(null);
     const promoteTimerRef = useRef<number | null>(null);
 
-    /* Preload the portraits so the first click is instant. */
+    /* Preload the portraits so the first click is instant, but keep the
+     * other states off the critical path so they don't compete with the
+     * visible portrait during first paint. */
     useEffect(() => {
-        Object.values(images).forEach((src) => {
-            if (src === "") {
-                return;
-            }
+        const preload = () => {
+            Object.values(images).forEach((src) => {
+                if (src === "") {
+                    return;
+                }
 
-            const image = new Image();
-            image.src = src;
-        });
+                const image = new Image();
+                image.src = src;
+            });
+        };
+
+        if (typeof window.requestIdleCallback === "function") {
+            const handle = window.requestIdleCallback(preload);
+            return () => window.cancelIdleCallback(handle);
+        }
+
+        const timer = window.setTimeout(preload, 0);
+        return () => window.clearTimeout(timer);
     }, [images]);
 
     /* Crossfade the portrait whenever the state changes. This touches the

@@ -236,6 +236,8 @@ export function ImageUploadField({
                     <img
                         src={value}
                         alt={`${label} preview`}
+                        loading="lazy"
+                        decoding="async"
                         className="surface-stage h-16 w-16 rounded-xl object-contain"
                     />
 
