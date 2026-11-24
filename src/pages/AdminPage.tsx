@@ -41,7 +41,7 @@ export function AdminPage() {
     const [dirtySections, setDirtySections] = useState<
         Partial<Record<AdminSectionId, boolean>>
     >({});
-    const counts = useAdminCounts();
+    const counts = useAdminCounts(token !== null);
 
     useEffect(() => {
         const meta = document.createElement("meta");

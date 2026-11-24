@@ -75,34 +75,39 @@ export const ADMIN_SECTION_IDS: AdminSectionId[] = ADMIN_GROUPS.flatMap((group) 
 
 // Collection sizes for the sidebar badges. Same query keys as the managers,
 // so the cache is shared and nothing fetches twice.
-export function useAdminCounts(): Record<string, number | undefined> {
+export function useAdminCounts(enabled: boolean): Record<string, number | undefined> {
     const projectsQuery = useQuery({
         queryKey: ["projects"],
-        queryFn: getProjects,
+        queryFn: ({ signal }) => getProjects(signal),
+        enabled,
         retry: 1,
         refetchOnWindowFocus: false,
     });
     const experienceQuery = useQuery({
         queryKey: ["experience"],
-        queryFn: getExperience,
+        queryFn: ({ signal }) => getExperience(signal),
+        enabled,
         retry: 1,
         refetchOnWindowFocus: false,
     });
     const stackQuery = useQuery({
         queryKey: ["stack-items"],
-        queryFn: getStackItems,
+        queryFn: ({ signal }) => getStackItems(signal),
+        enabled,
         retry: 1,
         refetchOnWindowFocus: false,
     });
     const certificationsQuery = useQuery({
         queryKey: ["certifications"],
-        queryFn: getCertifications,
+        queryFn: ({ signal }) => getCertifications(signal),
+        enabled,
         retry: 1,
         refetchOnWindowFocus: false,
     });
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
-        queryFn: getSocialLinks,
+        queryFn: ({ signal }) => getSocialLinks(signal),
+        enabled,
         retry: 1,
         refetchOnWindowFocus: false,
     });
