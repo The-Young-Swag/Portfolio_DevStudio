@@ -8,7 +8,7 @@ import {
 } from "@/services/profile/profile";
 
 export function useProfile() {
-    const { data } = useQuery({
+    const { data, isPending } = useQuery({
         queryKey: ["profile"],
         queryFn: ({ signal }) => getProfile(signal),
         staleTime: 1000 * 60,
@@ -16,7 +16,7 @@ export function useProfile() {
         refetchOnWindowFocus: true,
     });
 
-    return { profile: data ?? staticProfile };
+    return { profile: data ?? staticProfile, isPending };
 }
 
 export function useUpdateProfile(token: string) {

@@ -7,7 +7,7 @@ import { useStackItems } from "@/hooks/stack/useStackItems";
 import { StackItem } from "./StackItem";
 
 export function StackSection() {
-    const { stackItems } = useStackItems();
+    const { stackItems, isPending } = useStackItems();
     const teaserItems = stackItems.filter((item) => item.is_core).slice(0, 7);
     return (
         <Section id="stack">
@@ -34,12 +34,18 @@ export function StackSection() {
                     </p>
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                        {teaserItems.map((item) => (
-                            <StackItem
-                                key={item.id}
-                                name={item.name}
-                            />
-                        ))}
+                        {isPending ? (
+                            <p className="font-mono text-[11.5px] text-(--graphite)">
+                                Loading stack...
+                            </p>
+                        ) : (
+                            teaserItems.map((item) => (
+                                <StackItem
+                                    key={item.id}
+                                    name={item.name}
+                                />
+                            ))
+                        )}
                     </div>
 
                     <Link

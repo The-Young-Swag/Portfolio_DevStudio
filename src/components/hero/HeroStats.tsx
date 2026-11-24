@@ -19,7 +19,7 @@ function resolveStatValue(stat: HeroStat, contributions: string): string {
 
 export function HeroStats() {
     const { data } = useAllGitHubContributions();
-    const { profile } = useProfile();
+    const { profile, isPending } = useProfile();
 
     const contributions =
         data?.calendarsByPeriod["last-12-months"]?.totalContributions;
@@ -30,25 +30,31 @@ export function HeroStats() {
 
     return (
         <div className="mt-10 border-t hairline">
-            {stats.length > 0 && (
-                <div
-                    className="grid"
-                    style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}
-                >
-                    {stats.map((stat, index) => (
-                        <div
-                            key={`${stat.label}-${index}`}
-                            className={index < stats.length - 1 ? "border-r hairline" : undefined}
-                        >
-                            <StatItem
-                                label={stat.label}
-                                value={resolveStatValue(stat, contributionsValue)}
-                                suffix={stat.suffix === "" ? undefined : stat.suffix}
-                                icon={resolveStatIcon(stat.icon)}
-                            />
-                        </div>
-                    ))}
-                </div>
+            {isPending ? (
+                <p className="px-1 font-mono text-[10.5px] text-(--graphite)">
+                    Loading stats...
+                </p>
+            ) : (
+                stats.length > 0 && (
+                    <div
+                        className="grid"
+                        style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}
+                    >
+                        {stats.map((stat, index) => (
+                            <div
+                                key={`${stat.label}-${index}`}
+                                className={index < stats.length - 1 ? "border-r hairline" : undefined}
+                            >
+                                <StatItem
+                                    label={stat.label}
+                                    value={resolveStatValue(stat, contributionsValue)}
+                                    suffix={stat.suffix === "" ? undefined : stat.suffix}
+                                    icon={resolveStatIcon(stat.icon)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )
             )}
 
             <AlsoTrue />

@@ -19,7 +19,7 @@ const fallbackSocialLinks: SocialLink[] = staticSocialLinks.map((link, index) =>
 }));
 
 export function useSocialLinks() {
-    const { data } = useQuery({
+    const { data, isPending } = useQuery({
         queryKey: ["social-links"],
         queryFn: ({ signal }) => getSocialLinks(signal),
         staleTime: 1000 * 60,
@@ -27,7 +27,7 @@ export function useSocialLinks() {
         refetchOnWindowFocus: true,
     });
 
-    return { socialLinks: data ?? fallbackSocialLinks };
+    return { socialLinks: data ?? fallbackSocialLinks, isPending };
 }
 
 export function useCreateSocialLink(token: string) {

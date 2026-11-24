@@ -10,7 +10,7 @@ import { profile as staticProfile } from "@/constants/profile";
 
 export function ExperiencePage() {
     const { experience, isPending } = useExperience();
-    const { profile } = useProfile();
+    const { profile, isPending: isProfilePending } = useProfile();
     const resume = profile.resume ?? staticProfile.resume;
 
     return (
@@ -40,7 +40,7 @@ export function ExperiencePage() {
                         )}
                     </div>
 
-                    {resume !== "" && (
+                    {!isProfilePending && resume !== "" && (
                         <div className="mt-6">
                             <a
                                 href={resume}

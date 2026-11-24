@@ -35,8 +35,18 @@ function HeroLink({
 }
 
 export function HeroInfo() {
-    const { profile } = useProfile();
+    const { profile, isPending } = useProfile();
     const resume = profile.resume ?? staticProfile.resume;
+
+    if (isPending) {
+        return (
+            <div className="min-w-0 pt-1">
+                <p className="font-mono text-[10.5px] text-(--graphite)">
+                    Loading profile...
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-w-0 pt-1">

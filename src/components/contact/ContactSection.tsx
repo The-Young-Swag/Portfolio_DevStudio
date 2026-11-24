@@ -8,8 +8,20 @@ import { resolveSocialIcon } from "@/constants/socialIcons";
 import { useSocialLinks } from "@/hooks/social-links/useSocialLinks";
 
 export function ContactSection() {
-    const { profile } = useProfile();
-    const { socialLinks } = useSocialLinks();
+    const { profile, isPending: isProfilePending } = useProfile();
+    const { socialLinks, isPending: areLinksPending } = useSocialLinks();
+
+    if (isProfilePending || areLinksPending) {
+        return (
+            <Section id="contact">
+                <Container>
+                    <p className="font-mono text-[10.5px] text-(--graphite)">
+                        Loading contact...
+                    </p>
+                </Container>
+            </Section>
+        );
+    }
 
     const heading = profile.contact_heading ?? staticProfile.contact_heading;
     const title = profile.contact_title ?? staticProfile.contact_title;

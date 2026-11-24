@@ -4,10 +4,10 @@ import type { AlsoTrueItem } from "@/services/profile/profile";
 import { resolveStatIcon } from "./statIcons";
 
 export function AlsoTrue() {
-    const { profile } = useProfile();
+    const { profile, isPending } = useProfile();
     const items: AlsoTrueItem[] = profile.also_true ?? staticProfile.also_true;
 
-    if (items.length === 0) {
+    if (isPending || items.length === 0) {
         return null;
     }
 

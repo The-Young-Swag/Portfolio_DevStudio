@@ -11,7 +11,7 @@ const REQUIRED_TAPS = 5;
 const UNLOCK_ANIMATION_MS = 700;
 
 export function Footer() {
-    const { profile } = useProfile();
+    const { profile, isPending } = useProfile();
     const navigate = useNavigate();
     const tapsRef = useRef<number[]>([]);
     const navigateTimerRef = useRef<number | null>(null);
@@ -102,11 +102,16 @@ export function Footer() {
                                 <KeyRound size={11} strokeWidth={2} />
                             </span>
 
-                            {profile.name} — {note}
+                            {!isPending && (
+                                <>
+                                    {profile.name} — {note}
+                                </>
+                            )}
                         </p>
 
-                    <div
-                        className="
+                    {!isPending && (
+                        <div
+                            className="
                             flex
                             items-center
                             gap-4
@@ -146,7 +151,8 @@ export function Footer() {
                         >
                             LinkedIn
                         </a>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </Container>
         </footer>
