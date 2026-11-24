@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 
 import { PortfolioLayout } from "@/components/layout";
+import { Skeleton } from "@/components/ui";
 import { HomePage } from "@/pages";
 
 const ProjectsPage = lazy(() =>
@@ -51,10 +52,23 @@ function ScrollToTop() {
 
 function PageFallback() {
     return (
-        <div className="flex min-h-[60vh] items-center justify-center">
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-(--graphite-soft)">
-                Loading…
-            </p>
+        <div className="pt-8 md:pt-10" role="status">
+            <span className="sr-only">Loading page...</span>
+
+            <div className="mx-auto w-full max-w-270 px-4 min-[400px]:px-5 lg:px-8">
+                <Skeleton className="h-4 w-48" />
+
+                <div className="mt-6 max-w-3xl">
+                    <Skeleton className="h-[18px] w-56" />
+                    <Skeleton className="mt-5 h-12 w-2/3" />
+
+                    <div className="mt-5 max-w-2xl space-y-3">
+                        {[0, 1, 2].map((line) => (
+                            <Skeleton key={line} className="h-7 w-full" />
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
