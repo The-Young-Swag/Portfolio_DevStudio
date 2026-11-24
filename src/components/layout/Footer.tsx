@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { KeyRound } from "lucide-react";
 
@@ -14,7 +14,16 @@ export function Footer() {
     const { profile } = useProfile();
     const navigate = useNavigate();
     const tapsRef = useRef<number[]>([]);
+    const navigateTimerRef = useRef<number | null>(null);
     const [unlocked, setUnlocked] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (navigateTimerRef.current !== null) {
+                window.clearTimeout(navigateTimerRef.current);
+            }
+        };
+    }, []);
 
     const year = new Date().getFullYear();
     const note = profile.footer_note ?? staticProfile.footer_note;
@@ -40,7 +49,7 @@ export function Footer() {
         }
 
         setUnlocked(true);
-        window.setTimeout(() => navigate("/admin"), UNLOCK_ANIMATION_MS);
+        navigateTimerRef.current = window.setTimeout(() => navigate("/admin"), UNLOCK_ANIMATION_MS);
     }
 
     return (

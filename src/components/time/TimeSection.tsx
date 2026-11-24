@@ -285,11 +285,6 @@ export function TimeSection() {
             ufo.classList.remove("time-ufo-flying");
             void ufo.getBoundingClientRect();
             ufo.classList.add("time-ufo-flying");
-            ufo.addEventListener(
-                "animationend",
-                () => ufo.classList.remove("time-ufo-flying"),
-                { once: true },
-            );
         }
 
         function writeSkyVars(
@@ -731,7 +726,13 @@ export function TimeSection() {
                             ref={ufoBaseRef}
                             transform="translate(0, 90)"
                         >
-                            <g ref={ufoRef} className="time-ufo">
+                            <g
+                                ref={ufoRef}
+                                className="time-ufo"
+                                onAnimationEnd={() =>
+                                    ufoRef.current?.classList.remove("time-ufo-flying")
+                                }
+                            >
                                 <use href="#timeUfoCraft" />
                             </g>
                         </g>

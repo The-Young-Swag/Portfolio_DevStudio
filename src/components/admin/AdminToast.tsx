@@ -10,10 +10,8 @@ export function AdminToastProvider({ children }: PropsWithChildren) {
     const timer = useRef(0);
 
     useEffect(() => {
-        const pending = timer.current;
-
         return () => {
-            window.clearTimeout(pending);
+            window.clearTimeout(timer.current);
         };
     }, []);
 
