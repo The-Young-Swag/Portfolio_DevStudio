@@ -40,8 +40,8 @@ export type Profile = {
 
 export type ProfileInput = Profile;
 
-export async function getProfile(): Promise<Profile> {
-    return getJson<Profile>("/api/profile", "Failed to load profile.");
+export async function getProfile(signal?: AbortSignal): Promise<Profile> {
+    return getJson<Profile>("/api/profile", "Failed to load profile.", signal);
 }
 
 export function updateProfile(input: ProfileInput, token: string): Promise<Profile> {

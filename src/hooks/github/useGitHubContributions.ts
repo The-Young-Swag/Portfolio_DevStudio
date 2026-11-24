@@ -12,7 +12,7 @@ export function useAllGitHubContributions() {
         ],
 
         queryFn:
-            getGitHubContributions,
+            ({ signal }) => getGitHubContributions(signal),
 
         /*
          * GitHub activity is not second-to-second

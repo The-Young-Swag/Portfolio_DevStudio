@@ -32,7 +32,7 @@ const fallbackProjects: Project[] = staticProjects.map((project, index) => ({
 export function useProjects() {
     const { data, isPending } = useQuery({
         queryKey: ["projects"],
-        queryFn: getProjects,
+        queryFn: ({ signal }) => getProjects(signal),
         staleTime: 1000 * 60,
         retry: 1,
         refetchOnWindowFocus: true,

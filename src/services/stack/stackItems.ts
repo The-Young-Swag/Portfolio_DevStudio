@@ -29,8 +29,8 @@ export type StackItemInput = {
     sort_order: number;
 };
 
-export async function getStackItems(): Promise<StackItem[]> {
-    return getJson<StackItem[]>("/api/stack-items", "Failed to load stack.");
+export async function getStackItems(signal?: AbortSignal): Promise<StackItem[]> {
+    return getJson<StackItem[]>("/api/stack-items", "Failed to load stack.", signal);
 }
 
 export function createStackItem(

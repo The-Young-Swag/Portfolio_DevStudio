@@ -18,8 +18,8 @@ export type ExperienceInput = {
     sort_order: number;
 };
 
-export async function getExperience(): Promise<ExperienceEntry[]> {
-    return getJson<ExperienceEntry[]>("/api/experience", "Failed to load experience.");
+export async function getExperience(signal?: AbortSignal): Promise<ExperienceEntry[]> {
+    return getJson<ExperienceEntry[]>("/api/experience", "Failed to load experience.", signal);
 }
 
 export function createExperienceEntry(

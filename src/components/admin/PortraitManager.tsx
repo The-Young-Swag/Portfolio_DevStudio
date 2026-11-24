@@ -46,7 +46,7 @@ function toForm(portrait: Record<string, PortraitContent>): PortraitForm {
 export function PortraitManager({ token, onUnauthorized, onDirtyChange }: PortraitManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

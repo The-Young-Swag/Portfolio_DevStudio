@@ -35,7 +35,7 @@ function toRows(stats: HeroStat[], firstId: number): StatRow[] {
 export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroStatsManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

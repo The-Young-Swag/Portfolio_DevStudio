@@ -29,8 +29,8 @@ export type Project = {
     created_at: string;
 };
 
-export async function getProjects(): Promise<Project[]> {
-    return getJson<Project[]>("/api/projects", "Failed to load projects.");
+export async function getProjects(signal?: AbortSignal): Promise<Project[]> {
+    return getJson<Project[]>("/api/projects", "Failed to load projects.", signal);
 }
 
 export type ProjectInput = {

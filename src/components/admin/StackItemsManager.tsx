@@ -96,7 +96,7 @@ function bySortOrder(a: StackItem, b: StackItem): number {
 export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: StackItemsManagerProps) {
     const stackQuery = useQuery({
         queryKey: ["stack-items"],
-        queryFn: getStackItems,
+        queryFn: ({ signal }) => getStackItems(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

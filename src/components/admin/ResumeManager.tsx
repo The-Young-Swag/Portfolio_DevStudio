@@ -21,7 +21,7 @@ type ResumeManagerProps = {
 export function ResumeManager({ token, onUnauthorized, onDirtyChange }: ResumeManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

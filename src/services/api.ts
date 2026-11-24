@@ -22,12 +22,17 @@ async function readErrorMessage(
     return body?.error ?? fallback;
 }
 
-export async function getJson<T>(path: string, fallbackMessage: string): Promise<T> {
+export async function getJson<T>(
+    path: string,
+    fallbackMessage: string,
+    signal?: AbortSignal,
+): Promise<T> {
     const response = await fetch(path, {
         method: "GET",
         headers: {
             Accept: "application/json",
         },
+        signal,
     });
 
     if (!response.ok) {
@@ -153,7 +158,10 @@ export async function uploadImage(blob: Blob, token: string): Promise<UploadedIm
     return response.json() as Promise<UploadedImage>;
 }
 
-export async function checkAdminSession(token: string): Promise<void> {
+export async function checkAdminSession(
+    token: string,
+    signal?: AbortSignal,
+): Promise<void> {
     let response: Response;
 
     try {
@@ -163,6 +171,7 @@ export async function checkAdminSession(token: string): Promise<void> {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
             },
+            signal,
         });
     } catch {
         throw new ApiError(0, "Unable to reach the server. Check your connection.");

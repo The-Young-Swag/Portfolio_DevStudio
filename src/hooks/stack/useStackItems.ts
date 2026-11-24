@@ -21,7 +21,7 @@ const fallbackStackItems: StackItem[] = staticStackItems.map((item, index) => ({
 export function useStackItems() {
     const { data, isPending } = useQuery({
         queryKey: ["stack-items"],
-        queryFn: getStackItems,
+        queryFn: ({ signal }) => getStackItems(signal),
         staleTime: 1000 * 60,
         retry: 1,
         refetchOnWindowFocus: true,

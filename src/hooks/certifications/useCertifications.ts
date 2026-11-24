@@ -29,7 +29,7 @@ const fallbackCertifications: Certification[] = staticCertifications.map(
 export function useCertifications() {
     const { data, isPending } = useQuery({
         queryKey: ["certifications"],
-        queryFn: getCertifications,
+        queryFn: ({ signal }) => getCertifications(signal),
         staleTime: 1000 * 60,
         retry: 1,
         refetchOnWindowFocus: true,

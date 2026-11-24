@@ -16,8 +16,8 @@ export type SocialLinkInput = {
     sort_order: number;
 };
 
-export async function getSocialLinks(): Promise<SocialLink[]> {
-    return getJson<SocialLink[]>("/api/social-links", "Failed to load social links.");
+export async function getSocialLinks(signal?: AbortSignal): Promise<SocialLink[]> {
+    return getJson<SocialLink[]>("/api/social-links", "Failed to load social links.", signal);
 }
 
 export function createSocialLink(

@@ -30,7 +30,7 @@ function toRows(items: AlsoTrueItem[], firstId: number): AlsoTrueRow[] {
 export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTrueManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

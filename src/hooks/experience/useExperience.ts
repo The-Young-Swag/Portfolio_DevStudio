@@ -23,7 +23,7 @@ const fallbackExperience: ExperienceEntry[] = staticExperience.map(
 export function useExperience() {
     const { data, isPending } = useQuery({
         queryKey: ["experience"],
-        queryFn: getExperience,
+        queryFn: ({ signal }) => getExperience(signal),
         staleTime: 1000 * 60,
         retry: 1,
         refetchOnWindowFocus: true,

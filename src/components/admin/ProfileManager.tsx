@@ -78,7 +78,7 @@ function toInput(fields: ProfileFormFields, current: Profile): ProfileInput {
 export function ProfileManager({ token, onUnauthorized, onDirtyChange }: ProfileManagerProps) {
     const profileQuery = useQuery({
         queryKey: ["profile"],
-        queryFn: getProfile,
+        queryFn: ({ signal }) => getProfile(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

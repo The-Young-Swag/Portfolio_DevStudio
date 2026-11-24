@@ -131,7 +131,7 @@ function SocialLinkForm({
 export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: SocialLinksManagerProps) {
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
-        queryFn: getSocialLinks,
+        queryFn: ({ signal }) => getSocialLinks(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

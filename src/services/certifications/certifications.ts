@@ -19,8 +19,8 @@ export type Certification = {
     created_at: string;
 };
 
-export async function getCertifications(): Promise<Certification[]> {
-    return getJson<Certification[]>("/api/certifications", "Failed to load certifications.");
+export async function getCertifications(signal?: AbortSignal): Promise<Certification[]> {
+    return getJson<Certification[]>("/api/certifications", "Failed to load certifications.", signal);
 }
 
 /**

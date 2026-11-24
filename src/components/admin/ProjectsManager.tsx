@@ -466,7 +466,7 @@ function ProjectForm({
 export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: ProjectsManagerProps) {
     const projectsQuery = useQuery({
         queryKey: ["projects"],
-        queryFn: getProjects,
+        queryFn: ({ signal }) => getProjects(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

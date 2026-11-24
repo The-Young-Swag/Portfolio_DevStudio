@@ -143,7 +143,7 @@ function ExperienceForm({
 export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: ExperienceManagerProps) {
     const experienceQuery = useQuery({
         queryKey: ["experience"],
-        queryFn: getExperience,
+        queryFn: ({ signal }) => getExperience(signal),
         retry: 1,
         refetchOnWindowFocus: false,
     });

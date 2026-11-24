@@ -2,7 +2,7 @@ import type {
     GitHubContributionsResponse,
 } from "@/components/github/types";
 
-export async function getGitHubContributions(): Promise<GitHubContributionsResponse> {
+export async function getGitHubContributions(signal?: AbortSignal): Promise<GitHubContributionsResponse> {
     const response = await fetch(
         "/api/github/contributions",
         {
@@ -11,6 +11,7 @@ export async function getGitHubContributions(): Promise<GitHubContributionsRespo
                 Accept:
                     "application/json",
             },
+            signal,
         },
     );
 
