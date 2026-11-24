@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import type { PortraitState } from "@/components/hero/HeroPortrait";
@@ -62,8 +62,13 @@ export function PortraitManager({ token, onUnauthorized, onDirtyChange }: Portra
     if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
         setSyncedProfile(profileQuery.data);
         setForm(toForm(profileQuery.data.portrait));
-        onDirtyChange(false);
     }
+
+    useEffect(() => {
+        if (profileQuery.data !== undefined && !touched) {
+            onDirtyChange(false);
+        }
+    }, [profileQuery.data, touched, onDirtyChange]);
 
     function setDirty(next: boolean) {
         setTouched(next);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { STAT_ICON_KEYS } from "@/components/hero/statIcons";
@@ -51,8 +51,13 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
         setSyncedProfile(profileQuery.data);
         setRows(toRows(items, 1));
         setInitialRows(toRows(items, 1));
-        onDirtyChange(false);
     }
+
+    useEffect(() => {
+        if (profileQuery.data !== undefined && !touched) {
+            onDirtyChange(false);
+        }
+    }, [profileQuery.data, touched, onDirtyChange]);
 
     function markTouched() {
         setTouched(true);

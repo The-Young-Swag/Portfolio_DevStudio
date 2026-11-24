@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateProfile } from "@/hooks/profile/useProfile";
@@ -94,8 +94,13 @@ export function ProfileManager({ token, onUnauthorized, onDirtyChange }: Profile
     if (profileQuery.data !== undefined && !touched && syncedProfile !== profileQuery.data) {
         setSyncedProfile(profileQuery.data);
         setFields(toFields(profileQuery.data));
-        onDirtyChange(false);
     }
+
+    useEffect(() => {
+        if (profileQuery.data !== undefined && !touched) {
+            onDirtyChange(false);
+        }
+    }, [profileQuery.data, touched, onDirtyChange]);
 
     function setDirty(next: boolean) {
         setTouched(next);

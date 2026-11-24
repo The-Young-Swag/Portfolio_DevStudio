@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { STAT_ICON_KEYS } from "@/components/hero/statIcons";
@@ -56,8 +56,13 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
         setSyncedProfile(profileQuery.data);
         setRows(toRows(stats, 1));
         setInitialRows(toRows(stats, 1));
-        onDirtyChange(false);
     }
+
+    useEffect(() => {
+        if (profileQuery.data !== undefined && !touched) {
+            onDirtyChange(false);
+        }
+    }, [profileQuery.data, touched, onDirtyChange]);
 
     function markTouched() {
         setTouched(true);
