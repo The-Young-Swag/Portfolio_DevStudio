@@ -4,4 +4,5 @@ export * from "./ImageLightbox";
 export * from "./MediaFrame";
 export * from "./safeUrl";
 export * from "./SectionHeading";
+export * from "./Skeleton";
 export * from "./SkillPill";
