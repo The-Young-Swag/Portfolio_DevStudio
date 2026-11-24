@@ -3,6 +3,7 @@ export * from "./AdminCard";
 export * from "./AdminDrawer";
 export * from "./AdminFields";
 export * from "./AdminList";
+export * from "./AdminListSkeleton";
 export * from "./AdminSidebar";
 export * from "./AdminToast";
 export * from "./AdminTopBar";

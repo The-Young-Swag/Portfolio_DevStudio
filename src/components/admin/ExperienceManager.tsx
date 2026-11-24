@@ -18,6 +18,7 @@ import { useAdminToast } from "./toastContext";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
 import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
+import { AdminListSkeleton } from "./AdminListSkeleton";
 import { reorderSwap } from "./reorder";
 
 type ExperienceManagerProps = {
@@ -373,9 +374,7 @@ export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: Expe
 
             <div className="mt-6">
                 {experienceQuery.isPending ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        Loading experience...
-                    </p>
+                    <AdminListSkeleton count={3} label="experience" />
                 ) : experienceQuery.isError ? (
                     <div className="flex items-center gap-3">
                         <p className="font-mono text-[10.5px] text-(--graphite)">

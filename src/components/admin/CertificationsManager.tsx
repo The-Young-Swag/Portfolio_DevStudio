@@ -20,6 +20,7 @@ import { useAdminToast } from "./toastContext";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
 import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
+import { AdminListSkeleton } from "./AdminListSkeleton";
 import { ImageUploadField } from "./ImageUploadField";
 import { PdfUploadField } from "./PdfUploadField";
 import { reorderSwap } from "./reorder";
@@ -751,9 +752,7 @@ export function CertificationsManager({
 
             <div className="mt-6">
                 {certificationsQuery.isPending ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        Loading certifications...
-                    </p>
+                    <AdminListSkeleton count={3} label="certifications" />
                 ) : certificationsQuery.isError ? (
                     <div className="flex items-center gap-3">
                         <p className="font-mono text-[10.5px] text-(--graphite)">

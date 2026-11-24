@@ -18,6 +18,7 @@ import { useAdminToast } from "./toastContext";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
 import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
+import { AdminListSkeleton } from "./AdminListSkeleton";
 import { reorderSwap } from "./reorder";
 
 type SocialLinksManagerProps = {
@@ -366,9 +367,7 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
 
             <div className="mt-6">
                 {socialLinksQuery.isPending ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        Loading social links...
-                    </p>
+                    <AdminListSkeleton count={3} label="social links" />
                 ) : socialLinksQuery.isError ? (
                     <div className="flex items-center gap-3">
                         <p className="font-mono text-[10.5px] text-(--graphite)">

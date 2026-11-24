@@ -18,6 +18,7 @@ import { useAdminToast } from "./toastContext";
 import { Field, FormError, adminFieldInputClassName } from "./AdminFields";
 import { ConfirmDeleteButton, IconButton, PrimaryButton } from "./AdminButtons";
 import { AccordionItem, AddRowButton, AdminSectionHead } from "./AdminList";
+import { AdminListSkeleton } from "./AdminListSkeleton";
 import { ImageUploadField } from "./ImageUploadField";
 import { reorderSwap } from "./reorder";
 
@@ -751,9 +752,7 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
 
             <div className="mt-6">
                 {projectsQuery.isPending ? (
-                    <p className="font-mono text-[10.5px] text-(--graphite)">
-                        Loading projects...
-                    </p>
+                    <AdminListSkeleton count={4} label="projects" />
                 ) : projectsQuery.isError ? (
                     <div className="flex items-center gap-3">
                         <p className="font-mono text-[10.5px] text-(--graphite)">
