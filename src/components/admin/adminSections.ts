@@ -80,35 +80,30 @@ export function useAdminCounts(enabled: boolean): Record<string, number | undefi
         queryKey: ["projects"],
         queryFn: ({ signal }) => getProjects(signal),
         enabled,
-        retry: 1,
         refetchOnWindowFocus: false,
     });
     const experienceQuery = useQuery({
         queryKey: ["experience"],
         queryFn: ({ signal }) => getExperience(signal),
         enabled,
-        retry: 1,
         refetchOnWindowFocus: false,
     });
     const stackQuery = useQuery({
         queryKey: ["stack-items"],
         queryFn: ({ signal }) => getStackItems(signal),
         enabled,
-        retry: 1,
         refetchOnWindowFocus: false,
     });
     const certificationsQuery = useQuery({
         queryKey: ["certifications"],
         queryFn: ({ signal }) => getCertifications(signal),
         enabled,
-        retry: 1,
         refetchOnWindowFocus: false,
     });
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
         queryFn: ({ signal }) => getSocialLinks(signal),
         enabled,
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

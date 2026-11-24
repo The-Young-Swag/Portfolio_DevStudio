@@ -25,7 +25,6 @@ export function useExperience() {
         queryKey: ["experience"],
         queryFn: ({ signal }) => getExperience(signal),
         staleTime: 1000 * 60,
-        retry: 1,
         refetchOnWindowFocus: true,
     });
 

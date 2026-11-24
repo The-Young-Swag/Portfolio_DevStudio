@@ -23,7 +23,6 @@ export function useSocialLinks() {
         queryKey: ["social-links"],
         queryFn: ({ signal }) => getSocialLinks(signal),
         staleTime: 1000 * 60,
-        retry: 1,
         refetchOnWindowFocus: true,
     });
 

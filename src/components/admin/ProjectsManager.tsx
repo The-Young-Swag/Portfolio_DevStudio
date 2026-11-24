@@ -467,7 +467,6 @@ export function ProjectsManager({ token, onUnauthorized, onDirtyChange }: Projec
     const projectsQuery = useQuery({
         queryKey: ["projects"],
         queryFn: ({ signal }) => getProjects(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

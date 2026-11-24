@@ -23,7 +23,6 @@ export function useStackItems() {
         queryKey: ["stack-items"],
         queryFn: ({ signal }) => getStackItems(signal),
         staleTime: 1000 * 60,
-        retry: 1,
         refetchOnWindowFocus: true,
     });
 

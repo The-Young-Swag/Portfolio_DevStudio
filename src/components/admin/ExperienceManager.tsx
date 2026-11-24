@@ -144,7 +144,6 @@ export function ExperienceManager({ token, onUnauthorized, onDirtyChange }: Expe
     const experienceQuery = useQuery({
         queryKey: ["experience"],
         queryFn: ({ signal }) => getExperience(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

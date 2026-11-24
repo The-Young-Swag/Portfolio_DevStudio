@@ -97,7 +97,6 @@ export function StackItemsManager({ token, onUnauthorized, onDirtyChange }: Stac
     const stackQuery = useQuery({
         queryKey: ["stack-items"],
         queryFn: ({ signal }) => getStackItems(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

@@ -47,7 +47,6 @@ export function PortraitManager({ token, onUnauthorized, onDirtyChange }: Portra
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: ({ signal }) => getProfile(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

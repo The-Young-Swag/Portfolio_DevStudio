@@ -306,7 +306,6 @@ export function CertificationsManager({
     const certificationsQuery = useQuery({
         queryKey: ["certifications"],
         queryFn: ({ signal }) => getCertifications(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

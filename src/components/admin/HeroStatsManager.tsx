@@ -36,7 +36,6 @@ export function HeroStatsManager({ token, onUnauthorized, onDirtyChange }: HeroS
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: ({ signal }) => getProfile(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

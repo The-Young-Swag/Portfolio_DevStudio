@@ -132,7 +132,6 @@ export function SocialLinksManager({ token, onUnauthorized, onDirtyChange }: Soc
     const socialLinksQuery = useQuery({
         queryKey: ["social-links"],
         queryFn: ({ signal }) => getSocialLinks(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

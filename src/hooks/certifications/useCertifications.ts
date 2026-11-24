@@ -31,7 +31,6 @@ export function useCertifications() {
         queryKey: ["certifications"],
         queryFn: ({ signal }) => getCertifications(signal),
         staleTime: 1000 * 60,
-        retry: 1,
         refetchOnWindowFocus: true,
     });
 

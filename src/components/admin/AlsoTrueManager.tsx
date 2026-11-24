@@ -31,7 +31,6 @@ export function AlsoTrueManager({ token, onUnauthorized, onDirtyChange }: AlsoTr
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: ({ signal }) => getProfile(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 

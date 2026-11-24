@@ -79,7 +79,6 @@ export function ProfileManager({ token, onUnauthorized, onDirtyChange }: Profile
     const profileQuery = useQuery({
         queryKey: ["profile"],
         queryFn: ({ signal }) => getProfile(signal),
-        retry: 1,
         refetchOnWindowFocus: false,
     });
 
