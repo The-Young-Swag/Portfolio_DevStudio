@@ -1,6 +1,6 @@
 import "react-easy-crop/react-easy-crop.css";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 
@@ -97,6 +97,7 @@ export function ImageUploadField({
     crop: allowCrop = true,
 }: ImageUploadFieldProps) {
     const fileRef = useRef<HTMLInputElement>(null);
+    const cropUrlRef = useRef<string | null>(null);
 
     const [cropSrc, setCropSrc] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -109,9 +110,18 @@ export function ImageUploadField({
 
     const dialogOpen = cropSrc !== null;
 
+    useEffect(() => {
+        return () => {
+            if (cropUrlRef.current) {
+                URL.revokeObjectURL(cropUrlRef.current);
+            }
+        };
+    }, []);
+
     function closeDialog() {
-        if (cropSrc) {
-            URL.revokeObjectURL(cropSrc);
+        if (cropUrlRef.current) {
+            URL.revokeObjectURL(cropUrlRef.current);
+            cropUrlRef.current = null;
         }
 
         setCropSrc(null);
@@ -146,13 +156,19 @@ export function ImageUploadField({
         }
 
         setError(null);
-        const src = URL.createObjectURL(file);
 
         if (!allowCrop) {
+            const src = URL.createObjectURL(file);
             void saveWholeImage(src);
             return;
         }
 
+        if (cropUrlRef.current) {
+            URL.revokeObjectURL(cropUrlRef.current);
+        }
+
+        const src = URL.createObjectURL(file);
+        cropUrlRef.current = src;
         setCropSrc(src);
     }
 
@@ -198,7 +214,14 @@ export function ImageUploadField({
             return;
         }
 
-        await processAndUpload(await loadImage(cropSrc), croppedPixels);
+        try {
+            const image = await loadImage(cropSrc);
+            await processAndUpload(image, croppedPixels);
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : "Unable to save the image.");
+            return;
+        }
+
         closeDialog();
     }
 
